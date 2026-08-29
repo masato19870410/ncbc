@@ -158,7 +158,7 @@
     <div class="fld"><label>業種</label><input id="fCategory" placeholder="美容室 / 工務店"></div>
     <div class="fld grow"><label>絞り込み（任意）</label><input id="fCondition" placeholder="Webサイトが無さそうな個人店 など"></div>
     <div class="fld" style="min-width:80px"><label>件数</label>
-      <select id="fCount"><option>6</option><option selected>10</option><option>12</option></select></div>
+      <select id="fCount"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></div>
   </div>
 
   <div id="fSingle" style="display:none">
@@ -236,7 +236,7 @@
     <h2>このツールについて</h2>
     <p style="font-size:13.5px;margin:0 0 10px">
       会社名やエリア×業種を入れると、AIがその相手をネットで調べ、
-      <b>営業メール・DM・フォローアップの文面</b>、必要なら<b>サンプルのホームページ</b>まで作ります。
+      <b>営業メール・DM・フォローアップの文面</b>、必要なら<b>サンプル提案のイメージ</b>（LP・チラシ・SNS投稿案など、商材に合わせて）まで作ります。
     </p>
     <p style="font-size:13px;color:var(--muted);margin:0 0 8px">
       <b>使う流れ：</b><br>
@@ -318,7 +318,10 @@ async function callClaude({ system, user, tools, maxTokens }){
         body: JSON.stringify({ ...baseBody, messages }),
       });
     }catch(e){
-      throw new Error("APIに接続できませんでした。ネットワーク状態を確認してください。");
+      const embedded = window.top !== window.self;
+      throw new Error(embedded
+        ? "この埋め込みプレビューでは外部AIに接続できません。フル機能は https://masato19870410.github.io/ncbc/eigyo/ でご利用ください。"
+        : "APIに接続できませんでした。ネットワーク状態を確認してください。");
     }
     if(!res.ok){
       let detail=""; try{ detail=(await res.json()).error?.message||""; }catch(e){ detail=await res.text().catch(()=>""); }
@@ -497,8 +500,8 @@ function assetSystemPrompt(){
 `--- 自分の情報 ---\n${meLines}\n---`,
 `メールは「具体的な言及 → 相手の状況/課題への共感 → 提供価値 → 軽いCTA(押し付けない)」。誇大表現・不確かな断定は避ける。`,
 `必ず次の JSON のみを出力（前後に文章やコードフェンスを付けない）:`,
-`{"research_note":"調査からわかったこと・所感(2-4文)","hypotheses":["課題の仮説"],"email":{"subject":"件名","body":"本文（署名込み）"},"dm":{"text":"Instagram/フォーム向けの短い文面"},"followups":[{"label":"3日後・未返信","body":""},{"label":"1週間後・別角度","body":""}],"objections":[{"q":"断り文句","a":"返し方"}],"sample":{"applicable":true,"description":"サンプル成果物の説明","html":"<!doctype html>..."}}`,
-`sample: 商材がWeb制作・LP・チラシ等の「見せられる制作物」の場合のみ applicable=true とし、html にその企業向けの完成した単一ファイルHTML（インラインCSS、外部依存なし）を入れる。該当しなければ applicable=false, html=""。`
+`{"research_note":"調査からわかったこと・所感(2-4文)","hypotheses":["課題の仮説"],"email":{"subject":"件名","body":"本文（署名込み）"},"dm":{"text":"Instagram/フォーム向けの短い文面"},"followups":[{"label":"3日後・未返信","body":""},{"label":"1週間後・別角度","body":""}],"objections":[{"q":"断り文句","a":"返し方"}],"sample":{"applicable":true,"kind":"サンプルの種類（例: LP / チラシ / Instagram投稿案 / メニュー表 / 提案スライド1枚 / 広告バナー案）","description":"このサンプルで何を提案しているかの説明(1-2文)","html":"<!doctype html>..."}}`,
+`sample: 「その商材の価値が一目で伝わる“サンプル提案のイメージ”」を、相手企業向けに具体化して 1ファイルHTML（インラインCSS、外部依存なし、実在しそうなダミーの文言・メニュー・キャッチコピーを入れる）で作る。商材がWeb制作ならLP、飲食コンサルならメニュー表や店頭POP、SNS運用ならInstagram投稿3枚のモックなど、商材に合った“見せ物”を選ぶ。html は viewport 幅に収まるデザインにする。視覚的なサンプルが本当に無意味な商材（例: 純粋な仕入れ代行）のときだけ applicable=false, html=""。`
   ].join("\n\n");
 }
 async function runAttack(id){
@@ -555,7 +558,7 @@ function renderAsset(id){
     h += `</details>`;
   }
   if(a.sample && a.sample.applicable && a.sample.html){
-    h += `<details class="card" open><summary>サンプル成果物</summary>
+    h += `<details class="card" open><summary>サンプル提案${a.sample.kind?"（"+esc(a.sample.kind)+"）":""}</summary>
       <div class="kv">${esc(a.sample.description||"")}</div>
       <div class="out-actions">
         <button class="ghost sm" id="btnSampleDl">HTMLをダウンロード</button>
