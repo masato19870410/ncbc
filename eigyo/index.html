@@ -142,9 +142,9 @@
 <header class="top">
   <h1>営業リサーチ＆アプローチ</h1>
   <span class="sp"></span>
-  <span class="cost" id="costPill" title="このツールはAI（Claude）を使います。使った分だけご自身のAIアカウントに料金がかかります。ここはその概算です。">AI利用料 ¥0</span>
-  <button class="ghost sm" id="btnHelp" title="使い方">?</button>
-  <button class="ghost sm" id="btnSettings">⚙ 設定</button>
+  <button class="cost" id="costPill" title="このツールはAI（Anthropic社のClaude）を使います。設定したAPIキーのアカウントに、使った分だけ料金がかかります。ここはその概算です。クリックで詳細。">AIの利用料 約¥0</button>
+  <button class="ghost sm" id="btnHelp" title="使い方を見る">?</button>
+  <button class="ghost sm" id="btnSettings">設定を開く</button>
 </header>
 
 <div class="rbar">
@@ -166,7 +166,7 @@
     <div class="fld grow"><label>補足（任意）</label><input id="fTargetNote" placeholder="決裁者は代表 など"></div>
   </div>
 
-  <button class="primary go" id="btnResearch">リサーチ</button>
+  <button class="primary go" id="btnResearch">調べる</button>
   <div class="rstatus" id="rstatus"></div>
 </div>
 
@@ -178,8 +178,8 @@
       <label style="display:flex;align-items:center;gap:5px;margin:0;font-size:11.5px">
         <input type="checkbox" id="fltTarget" style="width:auto"> 攻略対象
       </label>
-      <button class="ghost sm" id="btnCsv" title="CSV出力">CSV</button>
-      <button class="ghost sm" id="btnClear" title="全消去">✕</button>
+      <button class="ghost sm" id="btnCsv" title="見込み客をCSVで書き出す">書き出す</button>
+      <button class="ghost sm" id="btnClear" title="すべて消す">消す</button>
     </div>
     <div class="col-body" id="prospectList"></div>
   </div>
@@ -225,7 +225,7 @@
     </details>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
       <button class="ghost" id="btnSettingsCancel">閉じる</button>
-      <button class="primary" id="btnSettingsSave">保存</button>
+      <button class="primary" id="btnSettingsSave">保存する</button>
     </div>
   </div>
 </div>
@@ -395,7 +395,7 @@ const USD_JPY = 155; // 概算用の固定レート
 function renderCost(){
   const p = PRICING[settings.model]||PRICING["claude-opus-5"];
   const usd = usage.inTok/1e6*p.in + usage.outTok/1e6*p.out + usage.searches*0.01;
-  $("#costPill").textContent = "AI利用料 約¥"+Math.round(usd*USD_JPY).toLocaleString();
+  $("#costPill").textContent = "AIの利用料 約¥"+Math.round(usd*USD_JPY).toLocaleString();
 }
 function addUsage(u){
   if(!u) return;
@@ -570,7 +570,7 @@ function renderOutEmpty(){
          <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
            <button class="primary sm" id="btnEmptyDemo">デモを見る（キー不要）</button>
            <button class="ghost sm" id="btnEmptySettings">設定を開く</button>
-           <button class="ghost sm" id="btnEmptyHelp">使い方</button>
+           <button class="ghost sm" id="btnEmptyHelp">使い方を見る</button>
          </div>`
       : `上のバーでリサーチ →左のリストで相手を選ぶと、<br>ここに調査メモ・課題仮説・営業メール・サンプル提案が出ます。<br>
          <button class="ghost sm" id="btnEmptyDemo" style="margin-top:12px">デモを見る</button>`}
@@ -639,7 +639,7 @@ async function runAttack(id){
     toast("成果物を生成しました");
   }catch(err){
     $("#outBody").innerHTML = `<div class="warnbox">${esc(err.message)}</div>
-      <button class="ghost sm" id="btnRetry" style="margin-top:10px">再試行</button>`;
+      <button class="ghost sm" id="btnRetry" style="margin-top:10px">もう一度試す</button>`;
     $("#btnRetry").onclick = ()=>runAttack(id);
   }
 }
@@ -653,7 +653,7 @@ function renderAsset(id){
   const p = prospects.find(x=>x.id===id); const a = assets[id]; if(!a) return;
   let h = `<h3 class="big">${esc(p.name)}</h3>
     <p class="sub">${esc(p.category)}${p.area?" ・ "+esc(p.area):""}
-      <button class="ghost sm" id="btnRegen" style="margin-left:8px">再生成</button></p>`;
+      <button class="ghost sm" id="btnRegen" style="margin-left:8px">作り直す</button></p>`;
   if(a.research_note) h += `<details class="card" open><summary>調査メモ</summary><div class="kv" style="white-space:pre-wrap">${esc(a.research_note)}</div></details>`;
   if(Array.isArray(a.hypotheses)&&a.hypotheses.length)
     h += `<details class="card" open><summary>課題の仮説</summary><ul style="margin:0;padding-left:18px">${a.hypotheses.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`;
@@ -755,6 +755,7 @@ function closeSettings(){ $("#settingsModal").classList.remove("open"); }
 function openHelp(){ $("#helpModal").classList.add("open"); }
 function closeHelp(){ $("#helpModal").classList.remove("open"); }
 $("#btnHelp").onclick = openHelp;
+$("#costPill").onclick = openHelp;
 $("#btnHelpClose").onclick = closeHelp;
 $("#btnHelpDemo").onclick = ()=>{ closeHelp(); loadDemo(); };
 $("#helpModal").addEventListener("click",e=>{ if(e.target===$("#helpModal")) closeHelp(); });
