@@ -722,7 +722,7 @@ function outBlock(label, txt, copyLabel){
   const idc = "c"+Math.random().toString(16).slice(2);
   return `<label>${esc(label)}</label>
     <div class="field-out" id="${idc}">${esc(txt)}</div>
-    <div class="out-actions"><button class="ghost sm" data-copy="${idc}">${copyLabel||"コピー"}</button></div>`;
+    <div class="out-actions"><button class="ghost sm" data-copy="${idc}">${copyLabel||"コピーする"}</button></div>`;
 }
 function renderAsset(id){
   const p = prospects.find(x=>x.id===id); const a = assets[id]; if(!a) return;
@@ -735,13 +735,13 @@ function renderAsset(id){
   if(Array.isArray(a.hypotheses)&&a.hypotheses.length)
     h += `<details class="card" open><summary>課題の仮説</summary><ul class="hyp">${a.hypotheses.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`;
   h += `<details class="card" open><summary>営業メール</summary>
-    ${outBlock("件名", a.email.subject||"", "件名をコピー")}
-    ${outBlock("本文", a.email.body||"", "本文をコピー")}</details>`;
+    ${outBlock("件名", a.email.subject||"", "件名をコピーする")}
+    ${outBlock("本文", a.email.body||"", "本文をコピーする")}</details>`;
   if(a.dm && a.dm.text)
-    h += `<details class="card"><summary>DM / フォーム用</summary>${outBlock("文面", a.dm.text, "コピー")}</details>`;
+    h += `<details class="card"><summary>DM / フォーム用</summary>${outBlock("文面", a.dm.text, "コピーする")}</details>`;
   if(Array.isArray(a.followups)&&a.followups.length){
     h += `<details class="card"><summary>フォローアップ</summary>`;
-    a.followups.forEach(f=> h += outBlock(f.label||"フォローアップ", f.body||"", "コピー"));
+    a.followups.forEach(f=> h += outBlock(f.label||"フォローアップ", f.body||"", "コピーする"));
     h += `</details>`;
   }
   if(Array.isArray(a.objections)&&a.objections.length){
