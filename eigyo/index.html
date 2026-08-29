@@ -251,7 +251,8 @@
       生成メールは下書きです。送信前に必ず確認し、公開されている連絡先のみに、
       各国の法令（特定電子メール法など）を守って使ってください。
     </p>
-    <div style="display:flex;justify-content:flex-end;margin-top:16px">
+    <div style="display:flex;justify-content:space-between;margin-top:16px;gap:8px">
+      <button class="ghost" id="btnHelpDemo">デモを見る（キー不要）</button>
       <button class="primary" id="btnHelpClose">わかった</button>
     </div>
   </div>
@@ -278,6 +279,116 @@ let prospects = LS.get("eigyo.prospects",[]);
 let assets = LS.get("eigyo.assets",{});
 let usage = LS.get("eigyo.usage",{ inTok:0, outTok:0, searches:0 });
 let selectedId = null;
+
+/* ---------- demo data (APIキー不要で挙動を確認するための例) ---------- */
+const DEMO_LP = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>山田工務店</title><style>*{margin:0;box-sizing:border-box;font-family:system-ui,"Noto Sans JP",sans-serif}body{color:#1e2a24;line-height:1.7}.hero{background:linear-gradient(#2f5a43,#22483599),#3d6b52;color:#fff;padding:64px 24px;text-align:center}.hero h1{font-size:30px;margin-bottom:12px}.hero p{opacity:.9}.btn{display:inline-block;margin-top:22px;background:#f4a72c;color:#26331d;font-weight:700;padding:13px 26px;border-radius:8px;text-decoration:none}.sec{max-width:860px;margin:0 auto;padding:46px 24px}.sec h2{font-size:22px;margin-bottom:18px;color:#2f5a43}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}.card{border:1px solid #e0e4e0;border-radius:10px;padding:18px}.ph{background:#e8ede9;border-radius:8px;height:150px;display:flex;align-items:center;justify-content:center;color:#88968d;font-size:13px}footer{background:#22392b;color:#cdd8d0;text-align:center;padding:26px;font-size:13px}</style><div class="hero"><h1>山田工務店</h1><p>岡山で30年、住まいの新築・リフォーム・外構まで。地域密着でずっとお付き合いできる工務店です。</p><a class="btn" href="#">無料で現地調査を相談する</a></div><div class="sec"><h2>選ばれる理由</h2><div class="grid"><div class="card"><b>創業30年・地元施工1200件</b><p>岡山市内・近郊での実績多数。近所の施工例をその場でご案内できます。</p></div><div class="card"><b>下請けに丸投げしない自社大工</b><p>設計から施工まで顔の見える職人が担当します。</p></div><div class="card"><b>リフォーム後の定期点検つき</b><p>お引き渡し後も5年間、無料で点検にうかがいます。</p></div></div></div><div class="sec"><h2>施工事例</h2><div class="grid"><div class="ph">写真（外壁塗装）</div><div class="ph">写真（キッチン改装）</div><div class="ph">写真（新築外構）</div></div></div><div class="sec"><h2>ご相談の流れ</h2><p>お問い合わせ → 現地調査（無料） → お見積り → ご契約 → 着工 → お引き渡し・定期点検</p><a class="btn" href="tel:0000000000">☎ 086-000-0000 に電話する</a></div><footer>山田工務店 ／ 岡山市〇〇 ／ 受付 8:00-19:00（日曜定休）<br>※これは営業サンプルです。実在の内容ではありません。</footer></html>`;
+
+const DEMO_PROSPECTS = [
+  { id:"demo-1", name:"山田工務店", category:"工務店・リフォーム", area:"岡山市",
+    summary:"地域密着30年の工務店。新築・リフォーム・外構まで対応。施工写真は代表の個人ブログに点在し、まとまった紹介ページがない。",
+    contact:{email:"",phone:"086-000-0000",instagram:"",form_url:"",other:"問い合わせは電話のみ"},
+    website:{url:null,status:"none",note:"独自サイトなし。検索しても電話帳サイトと地図情報のみ。"},
+    isTarget:true, sources:["https://example.com/地域情報","https://example.com/施工ブログ"], createdAt:Date.now(), demo:true },
+  { id:"demo-2", name:"café のどか", category:"個人経営カフェ", area:"岡山市",
+    summary:"自家焙煎珈琲と手作り焼き菓子の小さなカフェ。営業時間や臨時休業の告知はInstagramのみ。",
+    contact:{email:"",phone:"",instagram:"@cafe_nodoka",form_url:"",other:""},
+    website:{url:null,status:"social_only",note:"Instagramのみ。Googleマップの情報は未整備で営業時間が『情報なし』。"},
+    isTarget:true, sources:["https://instagram.com/cafe_nodoka"], createdAt:Date.now()-1000, demo:true },
+  { id:"demo-3", name:"たなか整骨院", category:"整骨院", area:"倉敷市",
+    summary:"交通事故対応・スポーツ外傷が中心。サイトは2013年制作でスマホ非対応、予約は電話のみ。",
+    contact:{email:"info@example.com",phone:"086-111-1111",instagram:"",form_url:"",other:""},
+    website:{url:"http://example.com/tanaka-old",status:"outdated",note:"スマホ非対応・SSLなし・情報が古い。"},
+    isTarget:true, sources:["http://example.com/tanaka-old"], createdAt:Date.now()-2000, demo:true },
+  { id:"demo-4", name:"岡山フラワーデザイン", category:"生花店", area:"岡山市",
+    summary:"冠婚葬祭のスタンド花・アレンジメントが主力。予約サイトとオンライン決済を整備済み。",
+    contact:{email:"order@example.com",phone:"",instagram:"@okayama_flower",form_url:"https://example.com/order",other:""},
+    website:{url:"https://example.com/okayama-flower",status:"ok",note:"レスポンシブ・予約導線あり。当面の制作ニーズは低い。"},
+    isTarget:false, sources:["https://example.com/okayama-flower"], createdAt:Date.now()-3000, demo:true },
+];
+
+const DEMO_ASSETS = {
+  "demo-1": {
+    demo:true, createdAt:Date.now(),
+    research_note:"創業30年で施工実績は豊富だが、その実績がネット上でまったく可視化されていない。施工写真は代表の個人ブログに散在し、屋号で検索しても電話帳サイトと地図しか出てこない。問い合わせ手段が電話のみで、日中に電話できない30〜40代の施主を取りこぼしている可能性が高い。",
+    hypotheses:[
+      "『岡山 リフォーム』等で検索されても候補に入らず、実績があるのに新規の相談が競合(大手リフォーム会社)に流れている",
+      "施工写真という一番の武器が、施主が見られる形で1か所にまとまっていない",
+      "問い合わせが電話のみで、フォームやLINEがないため“とりあえず相談”のハードルが高い"
+    ],
+    email:{
+      subject:"山田工務店さまの施工写真、もったいないと思いご連絡しました",
+      body:"山田工務店 ご担当者さま\n\n突然のご連絡失礼いたします。岡山で小規模事業者むけのホームページ制作をしております、山田制作所の山田と申します。\n\n先日『岡山 外構 リフォーム』で施工事例を探していたところ、御社の施工ブログにたどり着きました。外壁塗装やキッチン改装の写真がとても丁寧で、これは相談したくなる、と感じた一方で、屋号で検索しても独自のサイトが出てこず、この写真群が埋もれてしまっているのがもったいないと思いました。\n\n私の方では、御社の施工写真を1ページにまとめ、スマホから電話・フォームどちらでも相談できる形にした『施工事例ページ』を、初期5万円〜・約1週間でお作りしています。Googleマップの情報(営業時間・写真・クチコミ返信)の整備もあわせて行います。\n\nご参考までに、御社を想定して作ったサンプルページを用意しました。よろしければ一度ご覧いただけますでしょうか。ご不要でしたらこのメールは破棄いただいて構いません。\n\n山田制作所 山田太郎\n090-0000-0000 / yamada@example.com",
+    },
+    dm:{ text:"はじめまして。岡山で小規模店のホームページ制作をしている者です。御社の施工ブログの写真を拝見し、屋号で検索しても独自サイトが出てこないのがもったいないと感じてご連絡しました。施工事例を1ページにまとめてスマホから相談できる形にするサンプルを作ってみたので、よければご覧ください（不要でしたらスルーで大丈夫です）。" },
+    followups:[
+      { label:"3日後・未返信", body:"山田工務店さま\n\n先日ご連絡した山田制作所です。先日お送りしたサンプルページ、ご覧いただけましたでしょうか。\n『今すぐ作る予定はない』という場合でも、Googleマップの整備だけ先に行うと問い合わせが増えやすいので、その部分だけのご相談でも歓迎です。ご検討いただけますと幸いです。" },
+      { label:"1週間後・別角度", body:"山田工務店さま\n\n重ねてのご連絡失礼します。もし『文章を書くのが手間』という点がネックでしたら、ヒアリング30分いただければこちらで原稿まで用意します。作業は写真をお預かりするだけで進められます。ご興味あれば一度お電話でもお話しさせてください。" },
+    ],
+    objections:[
+      { q:"今のところ紹介で仕事は足りている", a:"承知しました。紹介中心のままで大丈夫だと思います。ただ紹介先の方も『念のため名前を検索』することが増えていて、その時に情報が出ないと不安にさせてしまう、という声をよく聞きます。名刺代わりの1ページだけ、という考え方で持っておくのはいかがでしょう。" },
+      { q:"ホームページを作っても更新できない", a:"更新が要らない構成にしています。施工事例だけは追加したくなると思うので、写真をメールで送っていただければ月1回こちらで追加する運用(月3千円)もご用意しています。" },
+      { q:"値段が高いのでは", a:"初期5万円〜で、大手のリフォームポータル1か月分の掲載料と同じくらいです。ポータルは掲載をやめると消えますが、自社ページは資産として残ります。" },
+    ],
+    sample:{ applicable:true, kind:"施工事例LP",
+      description:"『実績があるのにネットで見つからない・相談されない』という課題に対し、施工写真を1ページに集約し、スマホから電話とフォームで相談できる導線を付けた工務店向けLPのサンプル。",
+      html: DEMO_LP },
+  },
+  "demo-2": {
+    demo:true, createdAt:Date.now()-1000,
+    research_note:"味とファンづくりはInstagramで成立しているが、『今日開いているか』『どこにあるか』を知りたい初見客の導線がない。検索やGoogleマップからの新規来店を取りこぼしている。",
+    hypotheses:[
+      "Googleマップの営業時間が未整備で、『情報なし』を見た初見客が来店を諦めている",
+      "臨時休業がInstagram限定告知のため、フォロワー以外が無駄足になり悪い口コミにつながりやすい",
+      "焙煎豆の販売や予約の受け皿がなく、常連の『買いたい』を取りこぼしている"
+    ],
+    email:{
+      subject:"café のどかさん、Googleマップの営業時間だけ直すと来店が増えるかもしれません",
+      body:"café のどか ご担当者さま\n\nはじめまして。岡山で小さなお店のホームページ・Googleマップ整備をしている山田と申します。\n\nInstagramの焼き菓子の写真がいつも素敵で拝見しています。先日お店を検索したところ、Googleマップの営業時間が『情報なし』になっていて、これはInstagramを見ていない初めてのお客さんが来店をためらってしまうかもしれない、と気になりご連絡しました。\n\n私の方では、Googleマップの整備(営業時間・写真・臨時休業の反映)と、スマホで見やすい1ページのお店紹介(メニュー・地図・焙煎豆の予約フォーム)を、初期3万円〜でまとめてお作りしています。\n\n『のどかさん』を想定したサンプルページを作ってみました。よろしければご覧ください。不要でしたら破棄いただいて構いません。\n\n山田太郎 / 090-0000-0000",
+    },
+    dm:{ text:"はじめまして。焼き菓子の写真いつも拝見しています。先日お店を検索したらGoogleマップの営業時間が『情報なし』になっていて、初見のお客さんがもったいないなと思いご連絡しました。マップ整備＋スマホ用の1ページ紹介のサンプルを作ってみたので、よければ見てください。不要ならスルーで大丈夫です。" },
+    followups:[
+      { label:"3日後・未返信", body:"café のどかさん\n\n先日ご連絡した山田です。サンプルご覧いただけましたか。まず費用のかからないGoogleマップの整備だけでも、初見のお客さんの来店には効くので、その部分だけでもお手伝いできればと思っています。" },
+      { label:"1週間後・別角度", body:"café のどかさん\n\nもし焙煎豆の通販や予約に興味があれば、フォームだけ先に用意することもできます(初期1万円)。まずは小さく試してみるのはいかがでしょうか。" },
+    ],
+    objections:[
+      { q:"Instagramで足りている", a:"発信はInstagramのままで大丈夫です。困るのは『Instagramを見ていない初めてのお客さん』が営業時間や場所を確認できない点だけなので、そこを補う1ページ、という位置づけです。" },
+      { q:"忙しくて対応できない", a:"やり取りはLINEで写真とメニューを送っていただくだけです。原稿はこちらで整えます。" },
+    ],
+    sample:{ applicable:true, kind:"店舗紹介1ページ＋マップ整備イメージ",
+      description:"『初見客が営業時間や場所を確認できず来店を諦めている』課題に対し、メニュー・地図・営業時間・臨時休業・焙煎豆予約をスマホ1画面にまとめたカフェ向け紹介ページのサンプル。",
+      html: DEMO_LP.replace(/山田工務店/g,"café のどか").replace("岡山で30年、住まいの新築・リフォーム・外構まで。地域密着でずっとお付き合いできる工務店です。","自家焙煎の珈琲と、毎朝焼く焼き菓子。営業時間・臨時休業・お取り置きはこのページで。").replace("無料で現地調査を相談する","今日の営業時間を見る") },
+  },
+};
+
+function loadDemo(){
+  if(prospects.length && !prospects.every(p=>p.demo)){
+    if(!confirm("現在のデータを残したままデモの例を追加します。よろしいですか？")) return;
+  }
+  const ids = new Set(prospects.map(p=>p.id));
+  DEMO_PROSPECTS.forEach(p=>{ if(!ids.has(p.id)) prospects.unshift(JSON.parse(JSON.stringify(p))); });
+  Object.assign(assets, JSON.parse(JSON.stringify(DEMO_ASSETS)));
+  LS.set("eigyo.prospects",prospects); LS.set("eigyo.assets",assets);
+  LS.set("eigyo.demo",true);
+  renderProspects(); selectProspect("demo-1"); renderDemoBanner();
+  toast("デモの例を読み込みました");
+}
+function renderDemoBanner(){
+  let b = $("#demoBanner");
+  const on = prospects.some(p=>p.demo);
+  if(on && !b){
+    b = document.createElement("div"); b.id="demoBanner";
+    b.style.cssText="background:var(--warn-bg);color:var(--warn);font-size:12px;padding:6px 16px;text-align:center;flex-shrink:0";
+    b.innerHTML='デモ表示中：これはサンプルで、実際のAI生成ではありません。 <button class="ghost sm" id="btnDemoClear" style="margin-left:8px">デモを消す</button>';
+    document.querySelector(".rbar").after(b);
+    $("#btnDemoClear").onclick = ()=>{
+      prospects = prospects.filter(p=>!p.demo);
+      DEMO_PROSPECTS.forEach(p=> delete assets[p.id]);
+      LS.set("eigyo.prospects",prospects); LS.set("eigyo.assets",assets); LS.set("eigyo.demo",false);
+      if(String(selectedId||"").startsWith("demo-")){ selectedId=null; renderOutEmpty(); }
+      b.remove(); renderProspects();
+    };
+  }else if(!on && b){ b.remove(); }
+}
 
 const PRICING = { "claude-opus-5":{in:5,out:25}, "claude-sonnet-5":{in:2,out:10} };
 const USD_JPY = 155; // 概算用の固定レート
@@ -454,15 +565,19 @@ function renderOutEmpty(){
   const needKey = !settings.apiKey;
   $("#outBody").innerHTML = `<div class="empty" style="padding-top:56px;max-width:420px;margin:0 auto">
     ${needKey
-      ? `まず <b>⚙設定</b> で「APIキー」を登録してください。<br>AIを動かすための鍵です。<br>
-         <button class="primary sm" id="btnEmptySettings" style="margin-top:12px">設定を開く</button>
-         <button class="ghost sm" id="btnEmptyHelp" style="margin-top:12px">使い方を見る</button>`
-      : `上のバーでリサーチ →左のリストで相手を選ぶと、<br>ここに調査メモ・課題仮説・営業メール・サンプルが出ます。`}
+      ? `AIを動かすには <b>⚙設定</b> で「APIキー」の登録が必要です。<br>
+         キーがなくても、まずは<b>デモ</b>で動きを確認できます。<br>
+         <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+           <button class="primary sm" id="btnEmptyDemo">デモを見る（キー不要）</button>
+           <button class="ghost sm" id="btnEmptySettings">設定を開く</button>
+           <button class="ghost sm" id="btnEmptyHelp">使い方</button>
+         </div>`
+      : `上のバーでリサーチ →左のリストで相手を選ぶと、<br>ここに調査メモ・課題仮説・営業メール・サンプル提案が出ます。<br>
+         <button class="ghost sm" id="btnEmptyDemo" style="margin-top:12px">デモを見る</button>`}
   </div>`;
-  if(needKey){
-    $("#btnEmptySettings").onclick = openSettings;
-    $("#btnEmptyHelp").onclick = openHelp;
-  }
+  const d = $("#btnEmptyDemo"); if(d) d.onclick = loadDemo;
+  const s = $("#btnEmptySettings"); if(s) s.onclick = openSettings;
+  const hp = $("#btnEmptyHelp"); if(hp) hp.onclick = openHelp;
 }
 function renderOutRaw(text){
   $("#outBody").innerHTML = `<h3 class="big">応答（JSON解析に失敗）</h3>
@@ -501,7 +616,7 @@ function assetSystemPrompt(){
 `メールは「具体的な言及 → 相手の状況/課題への共感 → 提供価値 → 軽いCTA(押し付けない)」。誇大表現・不確かな断定は避ける。`,
 `必ず次の JSON のみを出力（前後に文章やコードフェンスを付けない）:`,
 `{"research_note":"調査からわかったこと・所感(2-4文)","hypotheses":["課題の仮説"],"email":{"subject":"件名","body":"本文（署名込み）"},"dm":{"text":"Instagram/フォーム向けの短い文面"},"followups":[{"label":"3日後・未返信","body":""},{"label":"1週間後・別角度","body":""}],"objections":[{"q":"断り文句","a":"返し方"}],"sample":{"applicable":true,"kind":"サンプルの種類（例: LP / チラシ / Instagram投稿案 / メニュー表 / 提案スライド1枚 / 広告バナー案）","description":"このサンプルで何を提案しているかの説明(1-2文)","html":"<!doctype html>..."}}`,
-`sample: 「その商材の価値が一目で伝わる“サンプル提案のイメージ”」を、相手企業向けに具体化して 1ファイルHTML（インラインCSS、外部依存なし、実在しそうなダミーの文言・メニュー・キャッチコピーを入れる）で作る。商材がWeb制作ならLP、飲食コンサルならメニュー表や店頭POP、SNS運用ならInstagram投稿3枚のモックなど、商材に合った“見せ物”を選ぶ。html は viewport 幅に収まるデザインにする。視覚的なサンプルが本当に無意味な商材（例: 純粋な仕入れ代行）のときだけ applicable=false, html=""。`
+`sample: まず「相手企業が抱えていそうな課題」を1つ特定し（集客・認知・予約導線・客単価・採用・リピートなど、調査内容から具体的に）、それを解決して見せる“サンプル提案のイメージ”を作る。表現形式は自分の商材に合わせる（Web制作ならLP、飲食コンサルならメニュー表や店頭POP、SNS運用ならInstagram投稿3枚のモックなど）。1ファイルHTML（インラインCSS、外部依存なし）で、実在しそうなダミーの文言・写真枠・キャッチコピーを入れ、viewport幅に収める。description には「どの課題に対する提案か」を明記する。視覚的なサンプルが本当に無意味な商材のときだけ applicable=false, html=""。`
   ].join("\n\n");
 }
 async function runAttack(id){
@@ -641,6 +756,7 @@ function openHelp(){ $("#helpModal").classList.add("open"); }
 function closeHelp(){ $("#helpModal").classList.remove("open"); }
 $("#btnHelp").onclick = openHelp;
 $("#btnHelpClose").onclick = closeHelp;
+$("#btnHelpDemo").onclick = ()=>{ closeHelp(); loadDemo(); };
 $("#helpModal").addEventListener("click",e=>{ if(e.target===$("#helpModal")) closeHelp(); });
 $("#btnSettings").onclick = openSettings;
 $("#btnSettingsCancel").onclick = closeSettings;
@@ -655,7 +771,7 @@ $("#btnSettingsSave").onclick = ()=>{
 };
 
 /* init */
-renderCost(); renderProspects();
+renderCost(); renderProspects(); renderDemoBanner();
 if(selectedId && assets[selectedId]) renderAsset(selectedId); else renderOutEmpty();
 if(!LS.get("eigyo.seen",false)){ setTimeout(openHelp,300); LS.set("eigyo.seen",true); }
 </script>
