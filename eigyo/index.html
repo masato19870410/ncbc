@@ -95,20 +95,26 @@
   @keyframes spin{to{transform:rotate(360deg)}}
 
   /* output pane */
-  .out-body{flex:1;overflow:auto;padding:16px 18px}
-  .out-body h3.big{font-size:16px;margin:0 0 2px}
-  .out-body .sub{font-size:12px;color:var(--muted);margin-bottom:14px}
-  details.card{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:0 13px;margin:9px 0}
-  details.card>summary{cursor:pointer;font-weight:700;padding:11px 0;font-size:13px;list-style:none;display:flex;align-items:center;gap:7px}
+  .out-body{flex:1;overflow:auto;padding:26px 28px 48px;max-width:768px;margin:0 auto;width:100%}
+  .out-body h3.big{font-size:17px;margin:0 0 3px;letter-spacing:-.01em}
+  .out-body .sub{font-size:12.5px;color:var(--muted);margin:0 0 8px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+  details.card{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:2px 18px;margin:14px 0}
+  details.card>summary{cursor:pointer;font-weight:700;padding:14px 0;font-size:13px;letter-spacing:.02em;color:var(--text);list-style:none}
   details.card>summary::-webkit-details-marker{display:none}
-  details.card>summary::before{content:"▸";color:var(--muted);font-size:11px}
-  details.card[open]>summary::before{content:"▾"}
-  details.card[open]>summary{border-bottom:1px solid var(--border);margin-bottom:11px}
-  .field-out{background:var(--panel-2);border:1px solid var(--border);border-radius:7px;padding:10px;
-    font-size:13px;white-space:pre-wrap;margin:6px 0}
-  .out-actions{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 12px}
-  iframe.preview{width:100%;height:420px;border:1px solid var(--border);border-radius:7px;background:#fff}
-  .warnbox{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px}
+  details.card[open]>summary{border-bottom:1px solid var(--border);margin-bottom:16px}
+  details.card>:last-child{margin-bottom:16px}
+  .note-text{font-size:13px;line-height:1.85;color:var(--text);white-space:pre-wrap}
+  .hyp{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+  .hyp li{padding-left:4px;font-size:13px;line-height:1.75}
+  .hyp li::marker{color:var(--accent)}
+  .field-out{background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:13px 14px;
+    font-size:13px;line-height:1.8;white-space:pre-wrap;margin:6px 0 0}
+  .qa{margin:0 0 10px}
+  .qa b{color:var(--accent);font-weight:700}
+  .out-body label{margin:16px 0 4px;letter-spacing:.03em;text-transform:none}
+  .out-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin:9px 0 18px}
+  iframe.preview{width:100%;height:440px;border:1px solid var(--border);border-radius:9px;background:#fff;margin-top:4px}
+  .warnbox{background:var(--warn-bg);color:var(--warn);border-radius:9px;padding:11px 13px;font-size:12.5px;margin-top:10px}
   .kv{font-size:12px;color:var(--muted)}
   code{background:var(--panel-2);padding:1px 5px;border-radius:5px;font-size:12px}
 
@@ -283,6 +289,10 @@ let selectedId = null;
 /* ---------- demo data (APIキー不要で挙動を確認するための例) ---------- */
 const DEMO_LP = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>山田工務店</title><style>*{margin:0;box-sizing:border-box;font-family:system-ui,"Noto Sans JP",sans-serif}body{color:#1e2a24;line-height:1.7}.hero{background:linear-gradient(#2f5a43,#22483599),#3d6b52;color:#fff;padding:64px 24px;text-align:center}.hero h1{font-size:30px;margin-bottom:12px}.hero p{opacity:.9}.btn{display:inline-block;margin-top:22px;background:#f4a72c;color:#26331d;font-weight:700;padding:13px 26px;border-radius:8px;text-decoration:none}.sec{max-width:860px;margin:0 auto;padding:46px 24px}.sec h2{font-size:22px;margin-bottom:18px;color:#2f5a43}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}.card{border:1px solid #e0e4e0;border-radius:10px;padding:18px}.ph{background:#e8ede9;border-radius:8px;height:150px;display:flex;align-items:center;justify-content:center;color:#88968d;font-size:13px}footer{background:#22392b;color:#cdd8d0;text-align:center;padding:26px;font-size:13px}</style><div class="hero"><h1>山田工務店</h1><p>岡山で30年、住まいの新築・リフォーム・外構まで。地域密着でずっとお付き合いできる工務店です。</p><a class="btn" href="#">無料で現地調査を相談する</a></div><div class="sec"><h2>選ばれる理由</h2><div class="grid"><div class="card"><b>創業30年・地元施工1200件</b><p>岡山市内・近郊での実績多数。近所の施工例をその場でご案内できます。</p></div><div class="card"><b>下請けに丸投げしない自社大工</b><p>設計から施工まで顔の見える職人が担当します。</p></div><div class="card"><b>リフォーム後の定期点検つき</b><p>お引き渡し後も5年間、無料で点検にうかがいます。</p></div></div></div><div class="sec"><h2>施工事例</h2><div class="grid"><div class="ph">写真（外壁塗装）</div><div class="ph">写真（キッチン改装）</div><div class="ph">写真（新築外構）</div></div></div><div class="sec"><h2>ご相談の流れ</h2><p>お問い合わせ → 現地調査（無料） → お見積り → ご契約 → 着工 → お引き渡し・定期点検</p><a class="btn" href="tel:0000000000">☎ 086-000-0000 に電話する</a></div><footer>山田工務店 ／ 岡山市〇〇 ／ 受付 8:00-19:00（日曜定休）<br>※これは営業サンプルです。実在の内容ではありません。</footer></html>`;
 
+const DEMO_LP_3 = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>たなか整骨院</title><style>*{margin:0;box-sizing:border-box;font-family:system-ui,"Noto Sans JP",sans-serif}body{color:#1c2733;line-height:1.7;padding-bottom:60px}.hero{background:linear-gradient(#12557a,#0f4460);color:#fff;padding:48px 20px;text-align:center}.hero h1{font-size:25px;margin-bottom:10px}.hero .lead{opacity:.92;font-size:15px}.tag{display:inline-block;background:#e8b53d;color:#2a2100;font-weight:700;font-size:12px;padding:4px 12px;border-radius:999px;margin-bottom:14px}.sec{max-width:720px;margin:0 auto;padding:34px 20px}.sec h2{font-size:19px;color:#12557a;margin-bottom:14px}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.card{border:1px solid #dde3e8;border-radius:10px;padding:15px}.card b{color:#12557a}.hours{width:100%;border-collapse:collapse;font-size:14px}.hours td,.hours th{border-bottom:1px solid #e5e9ec;padding:8px;text-align:center}.ph{background:#e8edf0;border-radius:8px;height:140px;display:flex;align-items:center;justify-content:center;color:#8b98a3;font-size:13px}.bar{position:fixed;left:0;right:0;bottom:0;display:flex}.bar a{flex:1;text-align:center;padding:15px 8px;font-weight:700;text-decoration:none;color:#fff;font-size:15px}.bar .line{background:#06c755}.bar .web{background:#12557a}footer{text-align:center;color:#7c8894;font-size:12px;padding:18px}</style><div class="hero"><span class="tag">交通事故・むちうち治療 対応</span><h1>たなか整骨院</h1><p class="lead">倉敷で開業18年。事故後の痛み・スポーツのケガに。<br>予約はスマホから30秒、平日夜20時・土曜も診療。</p></div><div class="sec"><h2>こんな方へ</h2><div class="row"><div class="card"><b>交通事故に遭った</b><p>自賠責保険適用で窓口負担0円。保険会社への連絡もサポートします。</p></div><div class="card"><b>むちうち・首や腰の痛み</b><p>「レントゲンで異常なし」と言われたが痛みが続く方の相談が多いです。</p></div><div class="card"><b>部活・スポーツのケガ</b><p>捻挫・肉離れの応急処置と、競技復帰までのサポート。</p></div></div></div><div class="sec"><h2>診療時間</h2><table class="hours"><tr><th></th><th>平日</th><th>土</th><th>日祝</th></tr><tr><td>午前</td><td>9:00-12:30</td><td>9:00-13:00</td><td>休</td></tr><tr><td>午後</td><td>15:00-20:00</td><td>休</td><td>休</td></tr></table></div><div class="sec"><h2>アクセス</h2><div class="ph">地図（倉敷市〇〇・駐車場5台）</div></div><footer>たなか整骨院 ／ 倉敷市〇〇 ／ ※これは営業サンプルです。実在の内容ではありません。</footer><div class="bar"><a class="line" href="#">LINEで予約</a><a class="web" href="#">Webで予約（24時間）</a></div></html>`;
+
+const DEMO_LP_4 = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>岡山フラワーデザイン｜法人向け定期装花</title><style>*{margin:0;box-sizing:border-box;font-family:system-ui,"Noto Sans JP",serif}body{color:#2b2b28;line-height:1.8}.hero{background:#f3f1ea;padding:52px 24px;text-align:center}.hero .k{letter-spacing:.2em;font-size:12px;color:#8a7f5c}.hero h1{font-size:25px;margin:12px 0;font-weight:700}.hero p{color:#5c5a52;font-size:15px}.btn{display:inline-block;margin-top:20px;background:#3f5c3a;color:#fff;padding:13px 28px;border-radius:4px;text-decoration:none;font-size:14px}.sec{max-width:800px;margin:0 auto;padding:40px 24px}.sec h2{font-size:19px;color:#3f5c3a;margin-bottom:16px;text-align:center}.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}.plan{border:1px solid #e2ded2;border-radius:6px;padding:20px;text-align:center}.plan h3{font-size:16px;margin-bottom:6px}.plan .price{font-size:21px;color:#3f5c3a;font-weight:700;margin:8px 0}.plan ul{list-style:none;font-size:13px;color:#5c5a52;text-align:left;margin-top:10px}.plan li{padding:3px 0;border-bottom:1px dashed #e6e2d6}.ph{background:#ece9df;border-radius:6px;height:130px;display:flex;align-items:center;justify-content:center;color:#9a9276;font-size:13px}footer{background:#2f3b2c;color:#d6d9cf;text-align:center;padding:20px;font-size:12px}</style><div class="hero"><div class="k">FOR BUSINESS</div><h1>オフィス・店舗の第一印象は、<br>入口の花で決まります</h1><p>岡山フラワーデザインの、法人向け「定期装花」プラン。<br>毎週プロが活け替え、季節に合わせてご提案します。</p><a class="btn" href="#">無料のお試し1回を申し込む</a></div><div class="sec"><h2>3つのプラン</h2><div class="plans"><div class="plan"><h3>エントランス</h3><div class="price">¥4,400/週〜</div><ul><li>受付・入口に1アレンジ</li><li>週1回の活け替え</li><li>花器レンタル込み</li></ul></div><div class="plan"><h3>スタンダード</h3><div class="price">¥8,800/週〜</div><ul><li>入口＋応接に2アレンジ</li><li>週1回の活け替え</li><li>季節提案・記念日対応</li></ul></div><div class="plan"><h3>店舗まるごと</h3><div class="price">お見積り</div><ul><li>複数箇所・大型装花</li><li>開店祝い・催事にも対応</li><li>専任デザイナー</li></ul></div></div></div><div class="sec"><h2>納入イメージ</h2><div class="plans"><div class="ph">写真（受付の装花）</div><div class="ph">写真（応接テーブル）</div><div class="ph">写真（季節のアレンジ）</div></div></div><footer>岡山フラワーデザイン ／ 岡山市〇〇 ／ ※これは営業サンプルです。実在の内容ではありません。</footer></html>`;
+
 const DEMO_PROSPECTS = [
   { id:"demo-1", name:"山田工務店", category:"工務店・リフォーム", area:"岡山市",
     summary:"地域密着30年の工務店。新築・リフォーム・外構まで対応。施工写真は代表の個人ブログに点在し、まとまった紹介ページがない。",
@@ -357,6 +367,56 @@ const DEMO_ASSETS = {
     sample:{ applicable:true, kind:"店舗紹介1ページ＋マップ整備イメージ",
       description:"『初見客が営業時間や場所を確認できず来店を諦めている』課題に対し、メニュー・地図・営業時間・臨時休業・焙煎豆予約をスマホ1画面にまとめたカフェ向け紹介ページのサンプル。",
       html: DEMO_LP.replace(/山田工務店/g,"café のどか").replace("岡山で30年、住まいの新築・リフォーム・外構まで。地域密着でずっとお付き合いできる工務店です。","自家焙煎の珈琲と、毎朝焼く焼き菓子。営業時間・臨時休業・お取り置きはこのページで。").replace("無料で現地調査を相談する","今日の営業時間を見る") },
+  },
+  "demo-3": {
+    demo:true, createdAt:Date.now()-2000,
+    research_note:"『交通事故対応』という単価も紹介価値も高い強みがあるのに、サイトが2013年制作でスマホ非対応・SSLなし。スマホで開くと文字が小さく、予約は電話のみ。事故直後という一番動いてほしいタイミングで離脱させている可能性が高い。",
+    hypotheses:[
+      "『倉敷 交通事故 整骨院』で検索されても古いサイトが評価されず、上位の競合に問い合わせが流れている",
+      "スマホで開くと拡大しないと読めず、事故直後で不安な人がその場で離脱している",
+      "予約が日中の電話のみで、仕事や通院の合間にLINE/Webで予約したい層を取りこぼしている"
+    ],
+    email:{
+      subject:"たなか整骨院さまのサイト、スマホで開くと読みにくい状態です",
+      body:"たなか整骨院 ご担当者さま\n\nはじめまして。倉敷で小規模事業者むけのホームページ制作をしております山田と申します。\n\n『倉敷 交通事故 整骨院』で調べていて御院のサイトを拝見しました。自賠責対応やスポーツ外傷の実績がしっかり書かれている一方で、スマホで開くと文字がとても小さく、事故直後で不安な方だと読む前に離れてしまうかもしれない、と気になりました。\n\n私の方では、既存の内容を活かしてスマホ最適化し、画面下にLINE予約・Web予約のボタンを固定表示する『予約が取りやすいページ』への作り替えを、初期6万円〜・約1週間で行っています。\n\n御院を想定したサンプルページを作ってみました。よろしければご覧ください。不要でしたら破棄いただいて構いません。\n\n山田太郎 / 090-0000-0000 / yamada@example.com",
+    },
+    dm:{ text:"はじめまして。倉敷でホームページ制作をしている者です。『倉敷 交通事故 整骨院』で御院のサイトを拝見しましたが、スマホで開くと文字が小さく、事故直後の方だと離脱してしまいそうで気になりました。内容を活かしてスマホ対応＋LINE/Web予約を付けたサンプルを作ってみたので、よければご覧ください（不要ならスルーで大丈夫です）。" },
+    followups:[
+      { label:"3日後・未返信", body:"たなか整骨院さま\n\n先日ご連絡した山田です。サンプルはご覧いただけましたでしょうか。まずはスマホ対応だけ先に行い、予約フォームは後から追加する、という進め方も可能です。ご検討いただけますと幸いです。" },
+      { label:"1週間後・別角度", body:"たなか整骨院さま\n\n重ねて失礼します。もしGoogleのクチコミ返信まで手が回っていないようでしたら、返信文の下書き作成もあわせてお手伝いできます。まずは一度お電話でお話しさせていただけませんか。" },
+    ],
+    objections:[
+      { q:"今のサイトで特に困っていない", a:"表示自体は問題ないと思います。気になるのは事故直後の方がスマホで開いたときに読みづらく、電話しか予約手段がない点です。そこだけ整えると、同じ広告費でも問い合わせが増えやすくなります。" },
+      { q:"予約は電話で受けたい", a:"電話予約はそのまま残せます。LINE/Webはあくまで『電話しづらい時間帯』の受け皿として追加する形です。通知はスマホに届きます。" },
+    ],
+    sample:{ applicable:true, kind:"スマホ最適化の予約LP",
+      description:"『サイトが古くスマホ非対応・予約が電話のみ』という課題に対し、交通事故対応を前面に出し、画面下にLINE予約とWeb予約を固定表示したスマホ向け整骨院LPのサンプル。",
+      html: DEMO_LP_3 },
+  },
+  "demo-4": {
+    demo:true, createdAt:Date.now()-3000,
+    research_note:"予約サイトもオンライン決済も整備済みで、個人客向けの導線は十分。伸びしろは、単価とリピート性が高い『法人の定期装花』。冠婚葬祭のスタンド花で企業との接点はあるはずだが、定期契約の提案パッケージが表に出ていない。",
+    hypotheses:[
+      "スポットのスタンド花注文は取れているが、毎週の定期装花という継続収益につながっていない",
+      "法人担当者が『いくらで何を頼めるか』を判断できる料金プランがサイトに無い",
+      "Instagramのフォロワーに企業アカウントもいるはずだが、法人向けの案内動線がない"
+    ],
+    email:{
+      subject:"岡山フラワーデザインさま、法人向け『定期装花プラン』のご提案",
+      body:"岡山フラワーデザイン ご担当者さま\n\nはじめまして。岡山で販促まわりのお手伝いをしている山田と申します。\n\n予約サイトやInstagramを拝見し、アレンジのセンスと運用の丁寧さが伝わってきました。冠婚葬祭のスタンド花で企業との取引もある一方で、『毎週活け替えるオフィス・店舗の定期装花』のプランが表に出ていないのがもったいないと感じ、ご連絡しました。\n\n私の方では、法人担当者がその場で申し込めるよう、料金プランを3段階に整理した『法人向け1ページ』の作成を初期4万円〜で行っています（既存サイトへの追加も可）。\n\n御社の強みを想定したサンプルを作ってみました。よろしければご覧ください。不要でしたら破棄いただいて構いません。\n\n山田太郎 / 090-0000-0000",
+    },
+    dm:{ text:"はじめまして。アレンジのセンスと運用の丁寧さ、いつも拝見しています。スタンド花で企業との取引はあるのに、毎週の『定期装花プラン』が表に出ていないのがもったいないと思いご連絡しました。法人担当者がその場で申し込める1ページのサンプルを作ってみたので、よければご覧ください。不要ならスルーで大丈夫です。" },
+    followups:[
+      { label:"3日後・未返信", body:"岡山フラワーデザインさま\n\n先日ご連絡した山田です。サンプルご覧いただけましたか。まずは『お試し1回無料』を入口にした簡単な案内ページから始めて、反応を見て広げる、という進め方もおすすめです。" },
+      { label:"1週間後・別角度", body:"岡山フラワーデザインさま\n\n重ねて失礼します。既存の予約サイトに1ページ足すだけでも対応できますので、作り替えの必要はありません。年末年始の装花需要の前に用意しておくと動きやすいかと思います。" },
+    ],
+    objections:[
+      { q:"定期契約は手間が増えそう", a:"ルートを固定できるので、実はスポット対応より段取りは楽になります。曜日と箇所を決めてしまえば、あとは活け替えだけです。" },
+      { q:"今の予約サイトで十分", a:"個人のお客様向けはそのままで大丈夫です。今回は『法人担当者が稟議に使える料金ページ』を1枚足すイメージです。" },
+    ],
+    sample:{ applicable:true, kind:"法人向け定期装花プランの提案1ページ",
+      description:"『単価とリピート性の高い法人契約が取れていない』という課題に対し、オフィス・店舗向けの月額定期装花プランを3段階で提示する、生花店の営業用1ページのサンプル。",
+      html: DEMO_LP_4 },
   },
 };
 
@@ -590,14 +650,21 @@ function selectProspect(id){
   const p = prospects.find(x=>x.id===id); if(!p) return;
   if(assets[id]) renderAsset(id);
   else{
+    const noKeyDemo = p.demo && !settings.apiKey;
     $("#outBody").innerHTML = `
-      <h3 class="big">${esc(p.name)}</h3>
-      <p class="sub">${esc(p.category)}${p.area?" ・ "+esc(p.area):""}${p.website.url?' ・ <a href="'+esc(p.website.url)+'" target="_blank" rel="noopener">サイト</a>':""}</p>
+      <div class="sub" style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <h3 class="big" style="margin:0">${esc(p.name)}</h3>
+        <span style="flex:1;min-width:80px">${esc(p.category)}${p.area?" ・ "+esc(p.area):""}${p.website.url?' ・ <a href="'+esc(p.website.url)+'" target="_blank" rel="noopener">サイト</a>':""}</span>
+      </div>
       <div class="field-out">${esc(p.summary||"（要約なし）")}</div>
-      ${p.website.note?`<p class="kv" style="margin:8px 0">サイト評価: ${esc(p.website.note)}</p>`:""}
-      <button class="primary" id="btnAttack">この相手のアプローチ一式を作る</button>
-      <p class="kv" style="margin-top:8px">自分の商材を設定しておくと精度が上がります（⚙ 設定）。</p>`;
-    $("#btnAttack").onclick = ()=>runAttack(id);
+      ${p.website.note?`<p class="kv" style="margin:10px 0 0">サイト評価: ${esc(p.website.note)}</p>`:""}
+      <div class="out-actions" style="justify-content:flex-start;margin-top:16px">
+        ${noKeyDemo
+          ? `<span class="kv">この相手のデモ例は未収録です。実際に作るには ⚙設定 でAPIキーを登録してください。</span>`
+          : `<button class="primary" id="btnAttack">この相手のアプローチ一式を作る</button>`}
+      </div>
+      ${noKeyDemo?"":`<p class="kv">自分の商材を設定しておくと精度が上がります（⚙ 設定）。</p>`}`;
+    const ba = $("#btnAttack"); if(ba) ba.onclick = ()=>runAttack(id);
   }
 }
 
@@ -621,6 +688,11 @@ function assetSystemPrompt(){
 }
 async function runAttack(id){
   const p = prospects.find(x=>x.id===id); if(!p) return;
+  if(p.demo && !settings.apiKey){
+    toast("デモの例です。作り直すにはAPIキーの登録が必要です");
+    if(assets[id]) renderAsset(id);
+    return;
+  }
   selectedId = id; renderProspects();
   $("#outBody").innerHTML = `<div class="empty" style="padding-top:64px"><span class="spinner"></span> 生成中…（30秒〜2分ほど）</div>`;
   try{
@@ -651,12 +723,14 @@ function outBlock(label, txt, copyLabel){
 }
 function renderAsset(id){
   const p = prospects.find(x=>x.id===id); const a = assets[id]; if(!a) return;
-  let h = `<h3 class="big">${esc(p.name)}</h3>
-    <p class="sub">${esc(p.category)}${p.area?" ・ "+esc(p.area):""}
-      <button class="ghost sm" id="btnRegen" style="margin-left:8px">作り直す</button></p>`;
-  if(a.research_note) h += `<details class="card" open><summary>調査メモ</summary><div class="kv" style="white-space:pre-wrap">${esc(a.research_note)}</div></details>`;
+  let h = `<div class="sub" style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+      <h3 class="big" style="margin:0">${esc(p.name)}</h3>
+      <span style="flex:1;min-width:80px">${esc(p.category)}${p.area?" ・ "+esc(p.area):""}</span>
+      <button class="ghost sm" id="btnRegen">作り直す</button>
+    </div>`;
+  if(a.research_note) h += `<details class="card" open><summary>調査メモ</summary><div class="note-text">${esc(a.research_note)}</div></details>`;
   if(Array.isArray(a.hypotheses)&&a.hypotheses.length)
-    h += `<details class="card" open><summary>課題の仮説</summary><ul style="margin:0;padding-left:18px">${a.hypotheses.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`;
+    h += `<details class="card" open><summary>課題の仮説</summary><ul class="hyp">${a.hypotheses.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`;
   h += `<details class="card" open><summary>営業メール</summary>
     ${outBlock("件名", a.email.subject||"", "件名をコピー")}
     ${outBlock("本文", a.email.body||"", "本文をコピー")}</details>`;
@@ -669,7 +743,7 @@ function renderAsset(id){
   }
   if(Array.isArray(a.objections)&&a.objections.length){
     h += `<details class="card"><summary>想定反論と返し</summary>`;
-    a.objections.forEach(o=> h += `<div class="field-out"><b>Q:</b> ${esc(o.q)}<br><b>A:</b> ${esc(o.a)}</div>`);
+    a.objections.forEach(o=> h += `<div class="field-out qa"><b>Q.</b> ${esc(o.q)}<br><br><b>A.</b> ${esc(o.a)}</div>`);
     h += `</details>`;
   }
   if(a.sample && a.sample.applicable && a.sample.html){
