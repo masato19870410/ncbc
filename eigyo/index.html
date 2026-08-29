@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>営業リサーチ＆アプローチ ツール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --panel-2:#f0f2f5; --border:#e2e5ea;
+    --text:#1c2126; --muted:#616b78; --accent:#2f6bff; --accent-ink:#ffffff;
+    --ok:#127a3f; --ok-bg:#e3f5ea; --warn:#9a6800; --warn-bg:#fdf2d8;
+    --bad:#b3261e; --bad-bg:#fbe4e2; --shadow:0 1px 3px rgba(20,26,35,.08),0 8px 24px rgba(20,26,35,.06);
+    --radius:12px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1216; --panel:#171b21; --panel-2:#1e232b; --border:#2b313b;
+      --text:#e7eaef; --muted:#9aa4b2; --accent:#5b8bff; --accent-ink:#0b1220;
+      --ok:#5fd08a; --ok-bg:#123020; --warn:#e6c25f; --warn-bg:#33290d;
+      --bad:#f2a49d; --bad-bg:#3a1512; --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 80px}
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  header.top h1{font-size:19px;margin:0;font-weight:700}
+  header.top .sp{flex:1}
+  .cost{font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--border);
+    border-radius:999px;padding:4px 10px;white-space:nowrap}
+  button{font-family:inherit;font-size:14px;cursor:pointer;border-radius:10px;border:1px solid var(--border);
+    background:var(--panel);color:var(--text);padding:8px 14px;transition:.12s}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+  button.primary:hover{filter:brightness(1.05)}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.sm{padding:5px 10px;font-size:12.5px;border-radius:8px}
+  nav.tabs{display:flex;gap:6px;margin:14px 0 18px;border-bottom:1px solid var(--border)}
+  nav.tabs button{border:none;background:none;border-bottom:2px solid transparent;border-radius:0;
+    padding:10px 12px;color:var(--muted);font-weight:500}
+  nav.tabs button.active{color:var(--text);border-bottom-color:var(--accent);font-weight:700}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+  .panel h2{font-size:15px;margin:0 0 4px}
+  .panel p.hint{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+  label{display:block;font-size:12.5px;font-weight:500;margin:12px 0 4px;color:var(--muted)}
+  input,select,textarea{width:100%;font-family:inherit;font-size:14px;color:var(--text);
+    background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:9px 11px}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  textarea{resize:vertical;min-height:64px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media (max-width:640px){.row,.row3{grid-template-columns:1fr}}
+  .seg{display:flex;gap:0;border:1px solid var(--border);border-radius:9px;overflow:hidden;width:fit-content}
+  .seg button{border:none;border-radius:0;background:var(--panel-2);color:var(--muted);padding:8px 16px}
+  .seg button.active{background:var(--accent);color:var(--accent-ink);font-weight:700}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .b-none{background:var(--bad-bg);color:var(--bad)}
+  .b-social{background:var(--warn-bg);color:var(--warn)}
+  .b-outdated{background:var(--warn-bg);color:var(--warn)}
+  .b-ok{background:var(--ok-bg);color:var(--ok)}
+  .tag{display:inline-block;background:var(--panel-2);border:1px solid var(--border);border-radius:6px;
+    font-size:11.5px;padding:1px 7px;margin:2px 4px 2px 0;color:var(--muted)}
+  .empty{text-align:center;color:var(--muted);padding:40px 12px;font-size:13.5px}
+  .spinner{display:inline-block;width:15px;height:15px;border:2px solid var(--border);
+    border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .modal-bg{position:fixed;inset:0;background:rgba(10,14,20,.55);display:none;align-items:flex-start;
+    justify-content:center;padding:32px 16px;z-index:50;overflow:auto}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;max-width:560px;width:100%;
+    padding:22px;box-shadow:var(--shadow)}
+  .modal h2{margin:0 0 14px;font-size:16px}
+  .toast-wrap{position:fixed;left:0;right:0;bottom:20px;display:flex;flex-direction:column;align-items:center;
+    gap:8px;z-index:60;pointer-events:none}
+  .toast{background:var(--text);color:var(--bg);font-size:13px;padding:9px 16px;border-radius:999px;
+    box-shadow:var(--shadow);animation:pop .2s}
+  @keyframes pop{from{transform:translateY(8px);opacity:0}}
+  details.card{background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:0 14px;margin:10px 0}
+  details.card>summary{cursor:pointer;font-weight:700;padding:12px 0;font-size:13.5px}
+  details.card[open]>summary{border-bottom:1px solid var(--border);margin-bottom:12px}
+  .field-out{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:11px;
+    font-size:13.5px;white-space:pre-wrap;margin:6px 0}
+  .out-actions{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px}
+  iframe.preview{width:100%;height:460px;border:1px solid var(--border);border-radius:8px;background:#fff}
+  .kv{font-size:12.5px;color:var(--muted);margin:2px 0}
+  .warnbox{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:10px}
+  code{background:var(--panel-2);padding:1px 5px;border-radius:5px;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>営業リサーチ＆アプローチ ツール</h1>
+    <span class="sp"></span>
+    <span class="cost" id="costPill">概算コスト $0.000</span>
+    <button class="ghost sm" id="btnSettings">⚙ 設定</button>
+  </header>
+  <p class="hint" style="margin:0 0 4px">
+    ターゲットを調べ、課題の仮説を立て、営業メール・DM・フォローアップ文面（＋任意でサンプル成果物）まで一気に作ります。
+    Claude API を使うため、ご自身の API キーが必要です。
+  </p>
+
+  <nav class="tabs">
+    <button data-tab="research" class="active">リサーチ</button>
+    <button data-tab="prospects">見込み客 <span id="pCount">(0)</span></button>
+  </nav>
+
+  <!-- ===== RESEARCH ===== -->
+  <section id="tab-research">
+    <div class="panel">
+      <h2>リサーチ</h2>
+      <p class="hint">エリア＋業種で候補を探すか、特定の1社を指定して深掘りします。</p>
+
+      <div class="seg" id="modeSeg">
+        <button data-mode="discover" class="active">エリア×業種で探す</button>
+        <button data-mode="single">特定の1社を調べる</button>
+      </div>
+
+      <div id="modeDiscover">
+        <div class="row">
+          <div><label>エリア</label><input id="fArea" placeholder="例: 東京都世田谷区 / Austin, TX"></div>
+          <div><label>業種</label><input id="fCategory" placeholder="例: 美容室 / 工務店 / 個人経営カフェ"></div>
+        </div>
+        <label>絞り込み条件（任意）</label>
+        <input id="fCondition" placeholder="例: Webサイトが無さそうな個人店 / 開業3年以内 / Instagramはやっている">
+        <label>取得件数の上限</label>
+        <select id="fCount"><option>6</option><option selected>10</option><option>12</option></select>
+      </div>
+
+      <div id="modeSingle" style="display:none">
+        <label>会社名 または URL</label>
+        <input id="fTarget" placeholder="例: 株式会社〇〇 / https://example.com">
+        <label>補足（任意）</label>
+        <input id="fTargetNote" placeholder="例: 決裁者は代表 / 展示会で名刺交換した">
+      </div>
+
+      <div style="margin-top:16px">
+        <button class="primary" id="btnResearch">リサーチ実行</button>
+        <span id="researchStatus" class="kv" style="margin-left:10px"></span>
+      </div>
+      <div id="researchError" class="warnbox" style="display:none"></div>
+    </div>
+
+    <div class="panel" id="rawPanel" style="display:none">
+      <h2>応答（JSON解析に失敗）</h2>
+      <p class="hint">下の生テキストを確認し、もう一度実行してください。</p>
+      <div class="field-out" id="rawOut"></div>
+    </div>
+  </section>
+
+  <!-- ===== PROSPECTS ===== -->
+  <section id="tab-prospects" style="display:none">
+    <div class="panel">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <h2 style="margin:0">見込み客</h2>
+        <span class="sp" style="flex:1"></span>
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12.5px">
+          <input type="checkbox" id="fltTarget" style="width:auto"> 攻略対象のみ
+        </label>
+        <button class="ghost sm" id="btnCsv">CSV出力</button>
+        <button class="ghost sm" id="btnClear">全消去</button>
+      </div>
+      <div id="prospectList"></div>
+    </div>
+
+    <div class="panel" id="assetPanel" style="display:none">
+      <h2 id="assetTitle">成果物</h2>
+      <div id="assetBody"></div>
+    </div>
+  </section>
+</div>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>設定</h2>
+    <label>Anthropic API キー</label>
+    <input type="password" id="sApiKey" placeholder="sk-ant-...">
+    <p class="kv">このブラウザ（localStorage）にのみ保存されます。共有PCでは使用しないでください。
+      キー発行: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a></p>
+
+    <div class="row">
+      <div>
+        <label>モデル</label>
+        <select id="sModel">
+          <option value="claude-opus-5">Claude Opus 5（高品質）</option>
+          <option value="claude-sonnet-5">Claude Sonnet 5（低コスト）</option>
+        </select>
+      </div>
+      <div>
+        <label>出力言語</label>
+        <select id="sLang"><option value="ja">日本語</option><option value="en">English</option></select>
+      </div>
+    </div>
+
+    <details class="card" style="margin-top:14px">
+      <summary>自分の情報（任意・文面の質が上がります）</summary>
+      <div class="row">
+        <div><label>名前</label><input id="sMeName" placeholder="山田 太郎"></div>
+        <div><label>屋号・会社名</label><input id="sMeBrand" placeholder="フリーランス / 〇〇制作所"></div>
+      </div>
+      <label>商材・提供サービス</label>
+      <textarea id="sMeServices" placeholder="例: 小規模店向けの1ページホームページ制作＋Googleビジネス整備"></textarea>
+      <div class="row">
+        <div><label>強み・差別化</label><input id="sMeStrength" placeholder="例: 3日納品 / 写真撮影込み"></div>
+        <div><label>料金感</label><input id="sMePrice" placeholder="例: 初期5万円〜 月3千円"></div>
+      </div>
+      <div class="row">
+        <div><label>ポートフォリオ / 実績URL</label><input id="sMePortfolio" placeholder="https://"></div>
+        <div><label>署名</label><input id="sMeSign" placeholder="山田 / 090-xxxx / mail@"></div>
+      </div>
+    </details>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
+      <button class="ghost" id="btnSettingsCancel">閉じる</button>
+      <button class="primary" id="btnSettingsSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+"use strict";
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "id-"+Date.now()+Math.random().toString(16).slice(2));
+
+/* ---------- storage ---------- */
+const LS = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ toast("保存に失敗（容量超過かも）"); return false; } },
+};
+const DEFAULT_SETTINGS = { apiKey:"", model:"claude-opus-5", lang:"ja",
+  me:{ name:"",brand:"",services:"",strength:"",price:"",portfolio:"",sign:"" } };
+let settings = Object.assign({}, DEFAULT_SETTINGS, LS.get("eigyo.settings",{}));
+settings.me = Object.assign({}, DEFAULT_SETTINGS.me, settings.me||{});
+let prospects = LS.get("eigyo.prospects",[]);
+let assets = LS.get("eigyo.assets",{});
+let usage = LS.get("eigyo.usage",{ inTok:0, outTok:0, searches:0 });
+
+const PRICING = { // USD per 1M tokens
+  "claude-opus-5":{in:5,out:25}, "claude-sonnet-5":{in:2,out:10}
+};
+function renderCost(){
+  const p = PRICING[settings.model]||PRICING["claude-opus-5"];
+  const usd = usage.inTok/1e6*p.in + usage.outTok/1e6*p.out + usage.searches*0.01;
+  $("#costPill").textContent = "概算コスト $"+usd.toFixed(3);
+}
+function addUsage(u){
+  if(!u) return;
+  usage.inTok += (u.input_tokens||0) + (u.cache_read_input_tokens||0) + (u.cache_creation_input_tokens||0);
+  usage.outTok += (u.output_tokens||0);
+  const ss = u.server_tool_use && u.server_tool_use.web_search_requests;
+  if(ss) usage.searches += ss;
+  LS.set("eigyo.usage",usage); renderCost();
+}
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg){
+  const el=document.createElement("div"); el.className="toast"; el.textContent=msg;
+  $("#toastWrap").appendChild(el);
+  setTimeout(()=>el.remove(),2600);
+}
+
+/* ---------- Anthropic API ---------- */
+async function callClaude({ system, user, tools, maxTokens }){
+  if(!settings.apiKey) { openSettings(); throw new Error("APIキーが未設定です"); }
+  const baseBody = {
+    model: settings.model,
+    max_tokens: maxTokens || 8000,
+    system,
+    messages: [{ role:"user", content:user }],
+  };
+  if(tools) baseBody.tools = tools;
+
+  let messages = baseBody.messages.slice();
+  for(let guard=0; guard<6; guard++){
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{
+        "content-type":"application/json",
+        "x-api-key": settings.apiKey,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true",
+      },
+      body: JSON.stringify({ ...baseBody, messages }),
+    });
+    if(!res.ok){
+      let detail=""; try{ detail=(await res.json()).error?.message||""; }catch(e){ detail=await res.text().catch(()=>""); }
+      if(res.status===401) throw new Error("APIキーが無効です。設定を確認してください。");
+      if(res.status===429) throw new Error("レート制限です。少し待って再実行してください。 "+detail);
+      throw new Error("APIエラー ("+res.status+"): "+detail);
+    }
+    const data = await res.json();
+    addUsage(data.usage);
+    if(data.stop_reason==="refusal") throw new Error("リクエストが安全機構により拒否されました。");
+    if(data.stop_reason==="pause_turn"){
+      messages = messages.concat([{ role:"assistant", content:data.content }]);
+      continue;
+    }
+    const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+    return { text, data };
+  }
+  throw new Error("応答が完了しませんでした（pause_turn ループ上限）。");
+}
+
+function parseJsonLoose(text){
+  let t = text.trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(fence) t = fence[1].trim();
+  try{ return JSON.parse(t); }catch(e){}
+  const s=t.indexOf("{"), e=t.lastIndexOf("}");
+  const a=t.indexOf("["), b=t.lastIndexOf("]");
+  const start = (a!==-1 && (s===-1 || a<s)) ? a : s;
+  const end   = (start===a) ? b : e;
+  if(start!==-1 && end!==-1){ try{ return JSON.parse(t.slice(start,end+1)); }catch(e){} }
+  return null;
+}
+
+/* ---------- research ---------- */
+const LANG_LABEL = { ja:"日本語", en:"English" };
+
+function researchSystemPrompt(mode){
+  const lang = LANG_LABEL[settings.lang];
+  return [
+`あなたは B2B 営業のためのリサーチャーです。ウェブ検索を使い、実在する企業・店舗の情報だけを集めます。`,
+`出力言語: ${lang}。推測は "note" に明記し、事実と分けること。`,
+mode==="discover"
+ ? `与えられたエリアと業種から、条件に合う実在の事業者を最大件数まで挙げます。各社について自社サイトの有無と品質を必ず評価します。`
+ : `与えられた1社を深掘りします。`,
+`必ず次の JSON のみを出力（前後に文章やコードフェンスを付けない）:`,
+`{
+  "prospects": [
+    {
+      "name": "事業者名",
+      "category": "業種",
+      "area": "所在エリア",
+      "summary": "事業内容の要約(1-2文)",
+      "contact": { "email":"", "phone":"", "instagram":"", "form_url":"", "other":"" },
+      "website": { "url": null, "status": "none|social_only|outdated|ok", "note": "評価の根拠" },
+      "sources": ["参照URL", "..."]
+    }
+  ]
+}`,
+`status の意味: none=自社サイト無し, social_only=SNS/ポータルのみ, outdated=古い/低品質, ok=十分。`,
+`連絡先が公開情報から分からない項目は空文字にする。捏造しない。`
+  ].join("\n\n");
+}
+
+async function runResearch(){
+  const mode = currentMode;
+  let userMsg;
+  if(mode==="discover"){
+    const area=$("#fArea").value.trim(), cat=$("#fCategory").value.trim();
+    if(!area || !cat){ toast("エリアと業種を入力してください"); return; }
+    userMsg = `エリア: ${area}\n業種: ${cat}\n絞り込み条件: ${$("#fCondition").value.trim()||"（なし）"}\n取得件数の上限: ${$("#fCount").value}`;
+  }else{
+    const t=$("#fTarget").value.trim();
+    if(!t){ toast("会社名またはURLを入力してください"); return; }
+    userMsg = `対象: ${t}\n補足: ${$("#fTargetNote").value.trim()||"（なし）"}`;
+  }
+
+  setResearchBusy(true);
+  $("#researchError").style.display="none";
+  $("#rawPanel").style.display="none";
+  try{
+    const { text } = await callClaude({
+      system: researchSystemPrompt(mode),
+      user: userMsg,
+      tools: [{ type:"web_search_20260209", name:"web_search", max_uses:8 }],
+      maxTokens: 8000,
+    });
+    const parsed = parseJsonLoose(text);
+    if(!parsed || !Array.isArray(parsed.prospects)){
+      $("#rawOut").textContent = text || "(空の応答)";
+      $("#rawPanel").style.display="block";
+      toast("JSONの解析に失敗しました");
+      return;
+    }
+    let added=0;
+    for(const p of parsed.prospects){
+      if(!p || !p.name) continue;
+      const dup = prospects.find(x=>x.name.trim()===p.name.trim());
+      const st = (p.website&&p.website.status) || "none";
+      const rec = {
+        id: dup? dup.id : uid(),
+        name:p.name, category:p.category||"", area:p.area||"",
+        summary:p.summary||"",
+        contact: Object.assign({email:"",phone:"",instagram:"",form_url:"",other:""}, p.contact||{}),
+        website: { url:(p.website&&p.website.url)||null, status:st, note:(p.website&&p.website.note)||"" },
+        isTarget: st!=="ok",
+        sources: Array.isArray(p.sources)? p.sources : [],
+        createdAt: dup? dup.createdAt : Date.now(),
+      };
+      if(dup){ Object.assign(dup, rec); } else { prospects.unshift(rec); added++; }
+    }
+    LS.set("eigyo.prospects",prospects);
+    renderProspects(); updateCounts();
+    toast(added? `${added}件を追加しました` : "既存の見込み客を更新しました");
+    switchTab("prospects");
+  }catch(err){
+    $("#researchError").textContent = err.message;
+    $("#researchError").style.display="block";
+  }finally{
+    setResearchBusy(false);
+  }
+}
+function setResearchBusy(b){
+  $("#btnResearch").disabled=b;
+  $("#researchStatus").innerHTML = b ? '<span class="spinner"></span> 調査中…（30秒〜2分ほど）' : "";
+}
+
+/* ---------- prospect list ---------- */
+const STATUS_BADGE = {
+  none:['b-none','サイト無し'], social_only:['b-social','SNSのみ'],
+  outdated:['b-outdated','古い/低品質'], ok:['b-ok','サイトあり'],
+};
+function contactHint(c){
+  const parts=[];
+  if(c.email) parts.push("✉ "+c.email);
+  else if(c.form_url) parts.push("フォーム有");
+  if(c.instagram) parts.push("IG");
+  if(c.phone) parts.push("☎");
+  return parts.join(" / ") || "—";
+}
+function renderProspects(){
+  const onlyT = $("#fltTarget").checked;
+  const list = prospects.filter(p=>!onlyT || p.isTarget);
+  if(!list.length){
+    $("#prospectList").innerHTML = `<div class="empty">まだ見込み客がいません。「リサーチ」タブから追加してください。</div>`;
+    return;
+  }
+  const rows = list.map(p=>{
+    const [cls,txt] = STATUS_BADGE[p.website.status]||STATUS_BADGE.none;
+    const hasAsset = !!assets[p.id];
+    return `<tr>
+      <td>
+        <div style="font-weight:700">${esc(p.name)}</div>
+        <div class="kv">${esc(p.category)}${p.area?" ・ "+esc(p.area):""}</div>
+        <div class="kv">${esc(p.summary)}</div>
+        ${p.website.url?`<div class="kv"><a href="${esc(p.website.url)}" target="_blank" rel="noopener">${esc(p.website.url)}</a></div>`:""}
+      </td>
+      <td><span class="badge ${cls}">${txt}</span></td>
+      <td class="kv">${esc(contactHint(p.contact))}</td>
+      <td style="white-space:nowrap">
+        <button class="primary sm" data-attack="${p.id}">${hasAsset?"再生成":"攻略"}</button>
+        ${hasAsset?`<button class="ghost sm" data-view="${p.id}">開く</button>`:""}
+        <button class="ghost sm" data-del="${p.id}">✕</button>
+      </td>
+    </tr>`;
+  }).join("");
+  $("#prospectList").innerHTML = `<table>
+    <thead><tr><th>事業者</th><th>サイト</th><th>連絡先</th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+/* ---------- asset generation ---------- */
+function assetSystemPrompt(){
+  const m = settings.me, lang = LANG_LABEL[settings.lang];
+  const meLines = [
+    m.name && `担当者名: ${m.name}`,
+    m.brand && `屋号/会社: ${m.brand}`,
+    m.services && `商材/サービス: ${m.services}`,
+    m.strength && `強み: ${m.strength}`,
+    m.price && `料金感: ${m.price}`,
+    m.portfolio && `実績URL: ${m.portfolio}`,
+    m.sign && `署名: ${m.sign}`,
+  ].filter(Boolean).join("\n") || "（自分の情報は未設定。商材は汎用的に、当たり障りなく仮定する）";
+  return [
+`あなたは経験豊富なB2B営業兼コピーライターです。出力言語: ${lang}。`,
+`次の「自分（送り手）の情報」を踏まえ、渡されたターゲット企業への初回アプローチ一式を作ります。`,
+`--- 自分の情報 ---\n${meLines}\n---`,
+`メールは「具体的な言及 → 相手の状況/課題への共感 → 提供価値 → 軽いCTA(押し付けない)」。誇大表現・不確かな断定は避ける。`,
+`必ず次の JSON のみを出力（前後に文章やコードフェンスを付けない）:`,
+`{
+  "research_note": "調査からわかったこと・所感(2-4文)",
+  "hypotheses": ["相手が抱えていそうな課題の仮説", "..."],
+  "email": { "subject": "件名", "body": "本文（署名込み）" },
+  "dm": { "text": "Instagram/フォーム向けの短い文面" },
+  "followups": [ { "label": "3日後・未返信", "body": "..." }, { "label": "1週間後・別角度", "body": "..." } ],
+  "objections": [ { "q": "想定される断り文句", "a": "返し方" } ],
+  "sample": { "applicable": true, "description": "サンプル成果物の説明", "html": "<!doctype html>..." }
+}`,
+`sample: 商材がWeb制作・LP・チラシ等の「見せられる制作物」の場合のみ applicable=true とし、html にその企業向けの完成した単一ファイルHTML（インラインCSS、外部依存なし、日本語可）を入れる。該当しなければ applicable=false, html="" とする。`
+  ].join("\n\n");
+}
+
+async function runAttack(id){
+  const p = prospects.find(x=>x.id===id); if(!p) return;
+  switchTab("prospects");
+  $("#assetPanel").style.display="block";
+  $("#assetTitle").textContent = "成果物 — "+p.name;
+  $("#assetBody").innerHTML = `<div class="empty"><span class="spinner"></span> 生成中…（30秒〜2分ほど）</div>`;
+  $("#assetPanel").scrollIntoView({behavior:"smooth",block:"start"});
+  try{
+    const { text } = await callClaude({
+      system: assetSystemPrompt(),
+      user: "ターゲット企業（JSON）:\n"+JSON.stringify({
+        name:p.name, category:p.category, area:p.area, summary:p.summary,
+        contact:p.contact, website:p.website, sources:p.sources
+      }, null, 2),
+      maxTokens: 16000,
+    });
+    const a = parseJsonLoose(text);
+    if(!a || !a.email){
+      $("#assetBody").innerHTML = `<div class="field-out">${esc(text||"(空の応答)")}</div>
+        <button class="ghost sm" data-attack="${id}">再試行</button>`;
+      wireAssetButtons();
+      toast("JSONの解析に失敗しました");
+      return;
+    }
+    a.createdAt = Date.now();
+    assets[id] = a; LS.set("eigyo.assets",assets);
+    renderAsset(id);
+    renderProspects();
+    toast("成果物を生成しました");
+  }catch(err){
+    $("#assetBody").innerHTML = `<div class="warnbox">${esc(err.message)}</div>
+      <button class="ghost sm" data-attack="${id}">再試行</button>`;
+    wireAssetButtons();
+  }
+}
+
+function outBlock(label, txt, copyLabel){
+  const idc = "c"+Math.random().toString(16).slice(2);
+  return `<label>${esc(label)}</label>
+    <div class="field-out" id="${idc}">${esc(txt)}</div>
+    <div class="out-actions"><button class="ghost sm" data-copy="${idc}">${copyLabel||"コピー"}</button></div>`;
+}
+function renderAsset(id){
+  const p = prospects.find(x=>x.id===id); const a = assets[id]; if(!a) return;
+  $("#assetPanel").style.display="block";
+  $("#assetTitle").textContent = "成果物 — "+p.name;
+  let h = "";
+  if(a.research_note) h += `<details class="card" open><summary>調査メモ</summary><div class="kv" style="white-space:pre-wrap">${esc(a.research_note)}</div></details>`;
+  if(Array.isArray(a.hypotheses)&&a.hypotheses.length)
+    h += `<details class="card" open><summary>課題の仮説</summary><ul style="margin:0;padding-left:18px">${a.hypotheses.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`;
+
+  h += `<details class="card" open><summary>営業メール</summary>
+    ${outBlock("件名", a.email.subject||"", "件名をコピー")}
+    ${outBlock("本文", a.email.body||"", "本文をコピー")}
+  </details>`;
+
+  if(a.dm && a.dm.text)
+    h += `<details class="card"><summary>DM / フォーム用</summary>${outBlock("文面", a.dm.text, "コピー")}</details>`;
+
+  if(Array.isArray(a.followups)&&a.followups.length){
+    h += `<details class="card"><summary>フォローアップ</summary>`;
+    a.followups.forEach(f=> h += outBlock(f.label||"フォローアップ", f.body||"", "コピー"));
+    h += `</details>`;
+  }
+  if(Array.isArray(a.objections)&&a.objections.length){
+    h += `<details class="card"><summary>想定反論と返し</summary>`;
+    a.objections.forEach(o=> h += `<div class="field-out"><b>Q:</b> ${esc(o.q)}<br><b>A:</b> ${esc(o.a)}</div>`);
+    h += `</details>`;
+  }
+  if(a.sample && a.sample.applicable && a.sample.html){
+    h += `<details class="card" open><summary>サンプル成果物</summary>
+      <div class="kv">${esc(a.sample.description||"")}</div>
+      <div class="out-actions">
+        <button class="ghost sm" id="btnSampleDl">HTMLをダウンロード</button>
+        <button class="ghost sm" id="btnSampleOpen">新しいタブで開く</button>
+      </div>
+      <iframe class="preview" id="sampleFrame"></iframe>
+    </details>`;
+  }
+  $("#assetBody").innerHTML = h;
+
+  if(a.sample && a.sample.applicable && a.sample.html){
+    $("#sampleFrame").srcdoc = a.sample.html;
+    const blobUrl = ()=>URL.createObjectURL(new Blob([a.sample.html],{type:"text/html"}));
+    $("#btnSampleDl").onclick = ()=>{
+      const u=blobUrl(); const link=document.createElement("a");
+      link.href=u; link.download=(p.name.replace(/[^\w一-龠ぁ-んァ-ヶー]+/g,"_")||"sample")+".html";
+      link.click(); setTimeout(()=>URL.revokeObjectURL(u),4000);
+    };
+    $("#btnSampleOpen").onclick = ()=> window.open(blobUrl(),"_blank");
+  }
+  wireAssetButtons();
+}
+function wireAssetButtons(){
+  $$("[data-copy]").forEach(b=> b.onclick = ()=>{
+    const el = document.getElementById(b.dataset.copy);
+    navigator.clipboard.writeText(el.textContent).then(()=>toast("コピーしました"));
+  });
+  $$("[data-attack]",$("#assetBody")).forEach(b=> b.onclick=()=>runAttack(b.dataset.attack));
+}
+
+/* ---------- CSV ---------- */
+function exportCsv(){
+  if(!prospects.length){ toast("データがありません"); return; }
+  const head = ["name","category","area","summary","website_status","website_url","email","phone","instagram","form_url","sources"];
+  const rows = prospects.map(p=>[
+    p.name,p.category,p.area,p.summary,p.website.status,p.website.url||"",
+    p.contact.email,p.contact.phone,p.contact.instagram,p.contact.form_url,(p.sources||[]).join(" | ")
+  ]);
+  const csv = [head, ...rows].map(r=>r.map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const u = URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv"}));
+  const a=document.createElement("a"); a.href=u; a.download="prospects.csv"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(u),4000);
+}
+
+/* ---------- tabs & wiring ---------- */
+let currentMode="discover", currentTab="research";
+function switchTab(t){
+  currentTab=t;
+  $$("nav.tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
+  $("#tab-research").style.display = t==="research"?"":"none";
+  $("#tab-prospects").style.display = t==="prospects"?"":"none";
+}
+function updateCounts(){
+  $("#pCount").textContent = "("+prospects.length+")";
+}
+$$("nav.tabs button").forEach(b=> b.onclick=()=>switchTab(b.dataset.tab));
+
+$$("#modeSeg button").forEach(b=> b.onclick=()=>{
+  currentMode=b.dataset.mode;
+  $$("#modeSeg button").forEach(x=>x.classList.toggle("active",x===b));
+  $("#modeDiscover").style.display = currentMode==="discover"?"":"none";
+  $("#modeSingle").style.display = currentMode==="single"?"":"none";
+});
+
+$("#btnResearch").onclick = runResearch;
+$("#fltTarget").onchange = renderProspects;
+$("#btnCsv").onclick = exportCsv;
+$("#btnClear").onclick = ()=>{
+  if(!confirm("見込み客と成果物をすべて削除します。よろしいですか？")) return;
+  prospects=[]; assets={};
+  LS.set("eigyo.prospects",prospects); LS.set("eigyo.assets",assets);
+  renderProspects(); updateCounts(); $("#assetPanel").style.display="none";
+};
+$("#prospectList").addEventListener("click",e=>{
+  const a=e.target.closest("[data-attack]"), v=e.target.closest("[data-view]"), d=e.target.closest("[data-del]");
+  if(a) runAttack(a.dataset.attack);
+  else if(v) renderAsset(v.dataset.view), $("#assetPanel").scrollIntoView({behavior:"smooth"});
+  else if(d){
+    const id=d.dataset.del; const p=prospects.find(x=>x.id===id);
+    if(!confirm(`「${p.name}」を削除しますか？`)) return;
+    prospects=prospects.filter(x=>x.id!==id); delete assets[id];
+    LS.set("eigyo.prospects",prospects); LS.set("eigyo.assets",assets);
+    renderProspects(); updateCounts();
+  }
+});
+
+/* ---------- settings modal ---------- */
+function openSettings(){
+  $("#sApiKey").value=settings.apiKey;
+  $("#sModel").value=settings.model;
+  $("#sLang").value=settings.lang;
+  const m=settings.me;
+  $("#sMeName").value=m.name; $("#sMeBrand").value=m.brand; $("#sMeServices").value=m.services;
+  $("#sMeStrength").value=m.strength; $("#sMePrice").value=m.price;
+  $("#sMePortfolio").value=m.portfolio; $("#sMeSign").value=m.sign;
+  $("#settingsModal").classList.add("open");
+}
+function closeSettings(){ $("#settingsModal").classList.remove("open"); }
+$("#btnSettings").onclick = openSettings;
+$("#btnSettingsCancel").onclick = closeSettings;
+$("#settingsModal").addEventListener("click",e=>{ if(e.target===$("#settingsModal")) closeSettings(); });
+$("#btnSettingsSave").onclick = ()=>{
+  settings.apiKey = $("#sApiKey").value.trim();
+  settings.model = $("#sModel").value;
+  settings.lang = $("#sLang").value;
+  settings.me = {
+    name:$("#sMeName").value.trim(), brand:$("#sMeBrand").value.trim(),
+    services:$("#sMeServices").value.trim(), strength:$("#sMeStrength").value.trim(),
+    price:$("#sMePrice").value.trim(), portfolio:$("#sMePortfolio").value.trim(),
+    sign:$("#sMeSign").value.trim(),
+  };
+  LS.set("eigyo.settings",settings);
+  renderCost();
+  closeSettings();
+  toast("設定を保存しました");
+  if(settings.apiKey && !settings.apiKey.startsWith("sk-ant-")) toast("キーの形式が想定と異なります");
+};
+
+/* ---------- init ---------- */
+renderCost(); renderProspects(); updateCounts(); switchTab("research");
+if(!settings.apiKey) setTimeout(openSettings,400);
+</script>
+</body>
+</html>
