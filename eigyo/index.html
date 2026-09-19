@@ -90,17 +90,6 @@
   .spark{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0}
 
   .empty{text-align:center;color:var(--muted);padding:32px 16px;font-size:13px}
-  .reco{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--panel)}
-  .reco-head{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
-  .reco-head h2{font-size:14px;margin:0}
-  .reco-head .kv{font-size:11px}
-  .reco-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:2px}
-  .reco-card{flex:0 0 auto;width:240px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--panel-2)}
-  .reco-card .rname{font-weight:700;font-size:13px;margin-bottom:2px}
-  .reco-card .rmeta{font-size:11px;color:var(--muted);margin-bottom:6px}
-  .reco-card .rjob{font-size:12px;margin-bottom:6px;line-height:1.5}
-  .reco-card .rhyp{font-size:11.5px;color:var(--text);border-top:1px dashed var(--border);padding-top:6px;line-height:1.5}
-  .reco-card .rhyp b{color:var(--accent)}
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);
     border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -175,19 +164,7 @@
   <button class="ghost sm" id="btnSettings">設定を開く</button>
 </header>
 
-<div class="reco" id="recoSection" style="display:none">
-  <div class="reco-head">
-    <h2>本日のおすすめ提案先</h2>
-    <span class="kv" id="recoUpdated"></span>
-  </div>
-  <div class="reco-row" id="recoRow"></div>
-</div>
-
-<div style="text-align:center;padding:6px 0">
-  <button class="ghost sm" id="btnToggleSearch">＋ 自分で条件を指定して探す</button>
-</div>
-
-<div class="rbar" id="rbar" style="display:none">
+<div class="rbar">
   <div class="seg" id="modeSeg">
     <button data-mode="discover" class="active">エリア×業種</button>
     <button data-mode="single">特定の1社</button>
@@ -199,8 +176,8 @@
     <div class="fld grow"><label>絞り込み（任意）</label><input id="fCondition" placeholder="Webサイトが無さそうな個人店 など"></div>
     <div class="fld" style="min-width:140px"><label>検索対象サイト</label>
       <select id="fSitePreset">
-        <option value="indeed" selected>Indeed（求人あり企業）</option>
         <option value="">指定なし（Web全体）</option>
+        <option value="indeed">Indeed（求人あり企業）</option>
         <option value="gmap">Googleマップ</option>
         <option value="epark">エキテン</option>
         <option value="hotpepper">ホットペッパー</option>
@@ -309,12 +286,7 @@
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script src="site-presets.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-const EIGYO_SUPABASE_URL = "https://mqkuoygyatyalkynhauj.supabase.co";
-const EIGYO_SUPABASE_ANON_KEY = "sb_publishable_HONnw8Vn6XJAL94OaySFhw_RFmawq1Y";
-const eigyoSb = window.supabase.createClient(EIGYO_SUPABASE_URL, EIGYO_SUPABASE_ANON_KEY);
-
 "use strict";
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
@@ -660,7 +632,6 @@ async function runResearch(){
         createdAt: dup?dup.createdAt:Date.now(),
       };
       if(dup) Object.assign(dup,rec); else { prospects.unshift(rec); added++; }
-      if(rec.isTarget) saveProspectToSupabase(rec, $("#fSitePreset").value);
     }
     LS.set("eigyo.prospects",prospects);
     renderProspects();
@@ -934,60 +905,10 @@ $("#btnSettingsSave").onclick = ()=>{
   if(settings.apiKey && !settings.apiKey.startsWith("sk-ant-")) toast("キーの形式が想定と異なります");
 };
 
-/* recommendations: 開いた瞬間にSupabaseの prospects から自動表示（操作不要） */
-async function saveProspectToSupabase(rec, preset){
-  try{
-    await eigyoSb.from("prospects").insert({
-      name: rec.name, category: rec.category, area: rec.area, summary: rec.summary,
-      hypothesis: rec.summary, website_status: rec.website.status, website_url: rec.website.url,
-      website_note: rec.website.note, contact: rec.contact, sources: rec.sources, source_preset: preset||null,
-    });
-  }catch(e){ /* DB未設定でも本体機能は継続。静かに無視 */ }
-}
-async function loadRecommendations(){
-  let items = []; let updatedAt = null;
-  try{
-    const { data, error } = await eigyoSb
-      .from("prospects")
-      .select("name, category, area, summary, hypothesis, website_note, sources, created_at")
-      .order("created_at", { ascending:false })
-      .limit(10);
-    if(!error && Array.isArray(data) && data.length){ items = data; updatedAt = data[0].created_at; }
-  }catch(e){ /* 未接続時はフォールバックへ */ }
-  if(!items.length){
-    // Supabase未接続・データ0件の間は、既存のデモ企業（攻略対象のみ）を「おすすめ」として表示
-    items = DEMO_PROSPECTS.filter(p=>p.isTarget).map(p=>({ name:p.name, category:p.category, area:p.area, summary:p.summary, hypothesis:p.summary }));
-  }
-  if(!items.length) return;
-  $("#recoUpdated").textContent = updatedAt ? "更新: "+formatRecoDate(updatedAt) : "デモ表示（リサーチすると実データに切り替わります）";
-  $("#recoRow").innerHTML = items.map(p=>{
-    const src = Array.isArray(p.sources) && p.sources[0];
-    return `
-    <div class="reco-card">
-      <div class="rname">${esc(p.name||"")}</div>
-      <div class="rmeta">${esc(p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
-      ${p.summary?`<div class="rjob">${esc(p.summary)}</div>`:""}
-      ${p.hypothesis?`<div class="rhyp"><b>課題仮説:</b> ${esc(p.hypothesis)}</div>`:""}
-      ${p.website_note?`<div class="rmeta" style="margin-top:6px">根拠: ${esc(p.website_note)}</div>`:""}
-      ${src?`<div class="rmeta"><a href="${esc(src)}" target="_blank" rel="noopener">出典を見る →</a></div>`:""}
-    </div>`;}).join("");
-  $("#recoSection").style.display = "";
-}
-function formatRecoDate(iso){
-  const d = new Date(iso);
-  const pad = n=>String(n).padStart(2,"0");
-  return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-$("#btnToggleSearch").onclick = ()=>{
-  const bar = $("#rbar"); const open = bar.style.display!=="none";
-  bar.style.display = open?"none":"flex";
-  $("#btnToggleSearch").textContent = open? "＋ 自分で条件を指定して探す" : "－ 条件指定を閉じる";
-};
-
 /* init */
-renderCost(); renderProspects(); renderDemoBanner(); loadRecommendations();
+renderCost(); renderProspects(); renderDemoBanner();
 if(selectedId && assets[selectedId]) renderAsset(selectedId); else renderOutEmpty();
+if(!LS.get("eigyo.seen",false)){ setTimeout(openHelp,300); LS.set("eigyo.seen",true); }
 </script>
 </body>
 </html>
