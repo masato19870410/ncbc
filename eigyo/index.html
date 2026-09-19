@@ -174,6 +174,14 @@
     <div class="fld"><label>エリア</label><input id="fArea" placeholder="世田谷区 / Austin, TX"></div>
     <div class="fld"><label>業種</label><input id="fCategory" placeholder="美容室 / 工務店"></div>
     <div class="fld grow"><label>絞り込み（任意）</label><input id="fCondition" placeholder="Webサイトが無さそうな個人店 など"></div>
+    <div class="fld" style="min-width:140px"><label>検索対象サイト</label>
+      <select id="fSitePreset">
+        <option value="">指定なし（Web全体）</option>
+        <option value="indeed">Indeed（求人あり企業）</option>
+        <option value="gmap">Googleマップ</option>
+        <option value="epark">エキテン</option>
+        <option value="hotpepper">ホットペッパー</option>
+      </select></div>
     <div class="fld" style="min-width:80px"><label>件数</label>
       <select id="fCount"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>25</option></select></div>
   </div>
@@ -277,6 +285,7 @@
 
 <div class="toast-wrap" id="toastWrap"></div>
 
+<script src="site-presets.js"></script>
 <script>
 "use strict";
 const $ = (s,r=document)=>r.querySelector(s);
@@ -583,10 +592,16 @@ mode==="discover"
 async function runResearch(){
   const mode = currentMode;
   let userMsg;
+  let allowedDomains = null;
   if(mode==="discover"){
     const area=$("#fArea").value.trim(), cat=$("#fCategory").value.trim();
     if(!area||!cat){ toast("エリアと業種を入力してください"); return; }
+    const preset = SITE_PRESETS[$("#fSitePreset").value];
     userMsg = `エリア: ${area}\n業種: ${cat}\n絞り込み条件: ${$("#fCondition").value.trim()||"（なし）"}\n取得件数の上限: ${$("#fCount").value}`;
+    if(preset){
+      userMsg += `\n検索対象サイト: ${preset.label}（${preset.hint}）`;
+      allowedDomains = preset.domains;
+    }
   }else{
     const t=$("#fTarget").value.trim();
     if(!t){ toast("会社名またはURLを入力してください"); return; }
@@ -594,9 +609,11 @@ async function runResearch(){
   }
   setBusy(true);
   try{
+    const searchTool = { type:"web_search_20260209", name:"web_search", max_uses:8 };
+    if(allowedDomains) searchTool.allowed_domains = allowedDomains;
     const { text } = await callClaude({
       system: researchSystemPrompt(mode), user: userMsg,
-      tools:[{ type:"web_search_20260209", name:"web_search", max_uses:8 }], maxTokens:8000,
+      tools:[searchTool], maxTokens:8000,
     });
     const parsed = parseJsonLoose(text);
     if(!parsed || !Array.isArray(parsed.prospects)){
