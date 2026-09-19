@@ -980,7 +980,7 @@ async function loadRecommendations(){
       <div class="rname">${esc(p.name||"")}</div>
       <div class="rmeta">${esc(p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
       ${p.summary?`<div class="rjob">${esc(p.summary)}</div>`:""}
-      ${p.hypothesis?`<div class="rhyp"><b>課題仮説:</b> ${esc(p.hypothesis)}</div>`:""}
+      ${p.hypothesis?`<div class="rhyp"><b>想定される課題:</b> ${esc(p.hypothesis)}</div>`:""}
       ${p.website_note?`<div class="rmeta" style="margin-top:6px">根拠: ${esc(p.website_note)}</div>`:""}
       <div class="rmeta" style="display:flex;gap:10px;margin-top:2px">
         ${src?`<a href="${esc(src)}" target="_blank" rel="noopener">${sourceLabel(src)} →</a>`:""}
