@@ -949,7 +949,7 @@ async function loadRecommendations(){
   try{
     const { data, error } = await eigyoSb
       .from("prospects")
-      .select("name, category, area, summary, hypothesis, created_at")
+      .select("name, category, area, summary, hypothesis, website_note, sources, created_at")
       .order("created_at", { ascending:false })
       .limit(10);
     if(!error && Array.isArray(data) && data.length){ items = data; updatedAt = data[0].created_at; }
@@ -960,13 +960,17 @@ async function loadRecommendations(){
   }
   if(!items.length) return;
   $("#recoUpdated").textContent = updatedAt ? "更新: "+formatRecoDate(updatedAt) : "デモ表示（リサーチすると実データに切り替わります）";
-  $("#recoRow").innerHTML = items.map(p=>`
+  $("#recoRow").innerHTML = items.map(p=>{
+    const src = Array.isArray(p.sources) && p.sources[0];
+    return `
     <div class="reco-card">
       <div class="rname">${esc(p.name||"")}</div>
       <div class="rmeta">${esc(p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
       ${p.summary?`<div class="rjob">${esc(p.summary)}</div>`:""}
       ${p.hypothesis?`<div class="rhyp"><b>課題仮説:</b> ${esc(p.hypothesis)}</div>`:""}
-    </div>`).join("");
+      ${p.website_note?`<div class="rmeta" style="margin-top:6px">根拠: ${esc(p.website_note)}</div>`:""}
+      ${src?`<div class="rmeta"><a href="${esc(src)}" target="_blank" rel="noopener">出典を見る →</a></div>`:""}
+    </div>`;}).join("");
   $("#recoSection").style.display = "";
 }
 function formatRecoDate(iso){
