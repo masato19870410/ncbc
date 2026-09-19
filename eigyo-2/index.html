@@ -967,7 +967,10 @@ async function loadRecommendations(){
     if(/instagram\.com/.test(url)) return "Instagramで見る";
     if(/tabelog\.com/.test(url)) return "食べログで見る";
     if(/hotpepper\.jp/.test(url)) return "ホットペッパーで見る";
-    return "掲載ページを見る";
+    if(/onisanpo\.com/.test(url)) return "岡山おにさんぽで見る";
+    if(/x\.com|twitter\.com/.test(url)) return "Xで見る";
+    if(/facebook\.com/.test(url)) return "Facebookで見る";
+    return "紹介記事を見る";
   }
   $("#recoRow").innerHTML = items.map(p=>{
     const src = Array.isArray(p.sources) && p.sources[0];
