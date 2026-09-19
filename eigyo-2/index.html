@@ -218,7 +218,7 @@
   <div class="rstatus" id="rstatus"></div>
 </div>
 
-<div class="work">
+<div class="work" id="workArea" style="display:none">
   <div class="col left">
     <div class="col-head">
       <h2>見込み客 <span id="pCount" class="kv">0</span></h2>
@@ -983,7 +983,9 @@ $("#btnToggleSearch").onclick = ()=>{
   const bar = $("#rbar"); const open = bar.style.display!=="none";
   bar.style.display = open?"none":"flex";
   $("#btnToggleSearch").textContent = open? "＋ 自分で条件を指定して探す" : "－ 条件指定を閉じる";
+  $("#workArea").style.display = open?"none":"";
 };
+if(prospects.length) $("#workArea").style.display = "";
 
 /* init */
 renderCost(); renderProspects(); renderDemoBanner(); loadRecommendations();
