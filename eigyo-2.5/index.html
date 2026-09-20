@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eigyo 2.5 — 営業リサーチ＆アプローチ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Design system: neutral grayscale + single accent, quiet borders, no
+     gradients/shadows — modeled after Linear / Vercel / shadcn-ui tone. */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --panel-2:#f4f4f5; --border:#e4e4e7;
+    --text:#18181b; --muted:#71717a; --accent:#18181b; --accent-ink:#ffffff;
+    --ok:#15803d; --ok-bg:#f0fdf4; --warn:#a16207; --warn-bg:#fefce8;
+    --bad:#b91c1c; --bad-bg:#fef2f2;
+    --shadow:0 1px 2px rgba(0,0,0,.04);
+    --radius:6px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0a0a0b; --panel:#111113; --panel-2:#19191c; --border:#27272a;
+      --text:#f4f4f5; --muted:#8b8b93; --accent:#f4f4f5; --accent-ink:#111113;
+      --ok:#4ade80; --ok-bg:#0f2417; --warn:#facc15; --warn-bg:#2a2308;
+      --bad:#f87171; --bad-bg:#2a1414;
+      --shadow:0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Inter","Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.01em;
+    display:flex;flex-direction:column}
+  a{color:var(--text);text-decoration-color:var(--border)}
+  button{font-family:inherit;font-size:13.5px;cursor:pointer;border-radius:var(--radius);border:1px solid var(--border);
+    background:var(--panel);color:var(--text);padding:8px 14px;transition:.12s;font-weight:500}
+  button:hover{border-color:var(--text)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+  button.primary:hover{opacity:.88;border-color:var(--accent)}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.sm{padding:5px 10px;font-size:12px;border-radius:5px}
+  input,select,textarea{width:100%;font-family:inherit;font-size:13.5px;color:var(--text);
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--text)}
+  textarea{resize:vertical;min-height:60px}
+  label{display:block;font-size:11.5px;font-weight:500;margin:10px 0 3px;color:var(--muted);letter-spacing:.01em}
+
+  /* ---- top bar ---- */
+  header.top{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);
+    background:var(--panel);flex-shrink:0}
+  header.top h1{font-size:13.5px;margin:0;font-weight:600;white-space:nowrap;letter-spacing:-.005em}
+  header.top h1 .ver{font-family:"JetBrains Mono",monospace;font-weight:500;color:var(--muted);font-size:11px;
+    border:1px solid var(--border);border-radius:4px;padding:1px 6px;margin-left:8px;letter-spacing:0}
+  header.top .sp{flex:1}
+  .cost{font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--border);
+    border-radius:999px;padding:4px 10px;white-space:nowrap;font-family:"JetBrains Mono",monospace}
+
+  /* ---- research bar ---- */
+  .rbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);
+    background:var(--panel);flex-shrink:0}
+  .rbar .seg{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;flex-shrink:0}
+  .rbar .seg button{border:none;border-radius:0;background:transparent;color:var(--muted);padding:8px 12px;font-size:12px}
+  .rbar .seg button.active{background:var(--accent);color:var(--accent-ink);font-weight:600}
+  .rbar .fld{display:flex;flex-direction:column;min-width:130px}
+  .rbar .fld.grow{flex:1;min-width:180px}
+  .rbar .fld label{margin:0 0 2px}
+  .rbar .fld input,.rbar .fld select{padding:7px 9px}
+  .rbar button.go{flex-shrink:0}
+  .rstatus{font-size:11.5px;color:var(--muted);width:100%;margin-top:2px}
+
+  /* ---- workspace: two panes ---- */
+  .work{flex:1;display:grid;grid-template-columns:minmax(280px,340px) 1fr;min-height:0}
+  .col{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  .col.left{border-right:1px solid var(--border);background:var(--panel)}
+  .col-head{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .col-head h2{font-size:11px;margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .col-head .sp{flex:1}
+  .col-body{flex:1;overflow:auto;padding:8px}
+
+  /* prospect rows */
+  .prow{border:1px solid transparent;border-radius:var(--radius);padding:10px 11px;margin-bottom:2px;cursor:pointer;background:transparent}
+  .prow:hover{background:var(--panel-2)}
+  .prow.sel{background:var(--panel-2);border-color:var(--border)}
+  .prow .pname{font-weight:600;font-size:13px}
+  .prow .pmeta{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .prow .prow-b{display:flex;align-items:center;gap:6px;margin-top:7px}
+  .badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;
+    border:1px solid transparent}
+  .b-none{background:var(--bad-bg);color:var(--bad)}
+  .b-social{background:var(--warn-bg);color:var(--warn)}
+  .b-outdated{background:var(--warn-bg);color:var(--warn)}
+  .b-ok{background:var(--ok-bg);color:var(--ok)}
+  .spark{width:5px;height:5px;border-radius:50%;background:var(--text);display:inline-block;flex-shrink:0}
+
+  .empty{text-align:center;color:var(--muted);padding:32px 16px;font-size:13px}
+  .reco{padding:32px clamp(16px,4vw,40px) 8px;background:var(--bg)}
+  .reco-head{display:flex;align-items:baseline;gap:10px;margin-bottom:18px;max-width:1100px;margin-left:auto;margin-right:auto}
+  .reco-head h2{font-size:16px;margin:0;font-weight:600;letter-spacing:-.01em}
+  .reco-head .kv{font-size:12px;color:var(--muted)}
+  .reco-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1100px;margin:0 auto}
+  .reco-card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--panel);transition:border-color .15s}
+  .reco-card:hover{border-color:var(--text)}
+  .reco-card .rname{font-weight:600;font-size:13.5px;margin-bottom:3px}
+  .reco-card .rmeta{font-size:11px;color:var(--muted);margin-bottom:8px}
+  .reco-card .rjob{font-size:12.5px;margin-bottom:8px;line-height:1.55}
+  .reco-card .rhyp{font-size:12px;color:var(--text);border-top:1px solid var(--border);padding-top:8px;line-height:1.55}
+  .reco-card .rhyp b{color:var(--text)}
+  .hidden{display:none!important}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);
+    border-top-color:var(--text);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* output pane */
+  .out-body{flex:1;overflow:auto;padding:28px max(28px,(100% - 720px)/2) 48px}
+  .out-body h3.big{font-size:16px;margin:0 0 3px;letter-spacing:-.01em;font-weight:600}
+  .out-body .sub{font-size:12px;color:var(--muted);margin:0 0 8px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+  details.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:2px 18px;margin:12px 0}
+  details.card>summary{cursor:pointer;font-weight:600;padding:14px 0;font-size:12.5px;letter-spacing:.01em;color:var(--text);list-style:none}
+  details.card>summary::-webkit-details-marker{display:none}
+  details.card[open]>summary{border-bottom:1px solid var(--border);margin-bottom:16px}
+  details.card>:last-child{margin-bottom:16px}
+  .note-text{font-size:13px;line-height:1.85;color:var(--text);white-space:pre-wrap}
+  .hyp{margin:6px 0 0;padding:0;list-style:none;counter-reset:hyp}
+  .hyp li{counter-increment:hyp;position:relative;padding:0 0 13px 26px;margin-bottom:13px;
+    font-size:13px;line-height:1.8;border-bottom:1px solid var(--border)}
+  .hyp li:last-child{border-bottom:none;padding-bottom:0;margin-bottom:0}
+  .hyp li::before{content:counter(hyp);position:absolute;left:0;top:1px;font-weight:600;font-size:11.5px;
+    color:var(--muted);font-variant-numeric:tabular-nums;font-family:"JetBrains Mono",monospace}
+  .field-out{background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;
+    font-size:13px;line-height:1.8;white-space:pre-wrap;margin:6px 0 0}
+  .qa{margin:0 0 10px}
+  .qa b{color:var(--text);font-weight:600}
+  .out-body label{margin:16px 0 4px;letter-spacing:.03em;text-transform:none}
+  .out-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin:9px 0 18px}
+  iframe.preview{width:100%;height:440px;border:1px solid var(--border);border-radius:var(--radius);background:#fff;margin-top:4px}
+  .warnbox{background:var(--warn-bg);color:var(--warn);border-radius:var(--radius);padding:11px 13px;font-size:12.5px;margin-top:10px}
+  .kv{font-size:12px;color:var(--muted)}
+  code{background:var(--panel-2);padding:1px 5px;border-radius:4px;font-size:12px;font-family:"JetBrains Mono",monospace}
+
+  /* modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-start;
+    justify-content:center;padding:32px 16px;z-index:50;overflow:auto}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--border);border-radius:10px;max-width:560px;width:100%;
+    padding:22px;box-shadow:var(--shadow)}
+  .modal h2{margin:0 0 12px;font-size:15px;font-weight:600}
+  .modal .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  details.me{background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius);padding:0 13px;margin-top:12px}
+  details.me>summary{cursor:pointer;font-weight:600;padding:11px 0;font-size:12.5px}
+
+  .toast-wrap{position:fixed;left:0;right:0;bottom:18px;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:60;pointer-events:none}
+  .toast{background:var(--text);color:var(--bg);font-size:12.5px;padding:8px 15px;border-radius:6px;box-shadow:var(--shadow);animation:pop .2s}
+  @keyframes pop{from{transform:translateY(8px);opacity:0}}
+
+  @media (max-width:820px){
+    html,body{height:auto}
+    body{overflow:visible;min-height:100%}
+    header.top{flex-wrap:wrap;gap:6px 8px;position:sticky;top:0;z-index:20}
+    header.top h1{font-size:14px;width:100%}
+    header.top .sp{display:none}
+    .rbar{gap:8px 10px}
+    .rbar .fld{min-width:calc(50% - 5px)}
+    .rbar .fld.grow{min-width:100%}
+    .work{display:block;flex:none}
+    .col{overflow:visible}
+    .col.left{border-right:none;border-bottom:1px solid var(--border)}
+    .col-body{max-height:none;overflow:visible;padding:10px 12px}
+    .out-body{overflow:visible;padding:20px 16px 48px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>営業リサーチ＆アプローチ<span class="ver">2.5</span></h1>
+  <span class="sp"></span>
+  <button class="ghost sm hidden" id="btnSettings">設定</button>
+  <button class="ghost sm hidden" id="btnHelp" title="使い方を見る">?</button>
+  <button class="ghost sm hidden" id="costPill" title="このツールはAI（Anthropic社のClaude）を使います。設定したAPIキーのアカウントに、使った分だけ料金がかかります。ここはその概算です。クリックで詳細。">AIの利用料 約¥0</button>
+</header>
+
+<div class="reco" id="recoSection" style="display:none">
+  <div class="reco-head">
+    <h2>本日のおすすめ提案先</h2>
+    <span class="kv" id="recoUpdated"></span>
+  </div>
+  <div class="reco-grid" id="recoRow"></div>
+</div>
+
+<div style="text-align:center;padding:6px 0">
+  <button class="ghost sm" id="btnToggleSearch">＋ 自分で条件を指定して探す</button>
+</div>
+
+<div class="rbar" id="rbar" style="display:none">
+  <div class="seg" id="modeSeg">
+    <button data-mode="discover" class="active">エリア×業種</button>
+    <button data-mode="single">特定の1社</button>
+  </div>
+
+  <div id="fDiscover" style="display:contents">
+    <div class="fld"><label>エリア</label><input id="fArea" placeholder="世田谷区 / Austin, TX"></div>
+    <div class="fld"><label>業種</label><input id="fCategory" placeholder="美容室 / 工務店"></div>
+    <div class="fld grow"><label>絞り込み（任意）</label><input id="fCondition" placeholder="Webサイトが無さそうな個人店 など"></div>
+    <div class="fld" style="min-width:140px"><label>検索対象サイト</label>
+      <select id="fSitePreset">
+        <option value="indeed" selected>Indeed（求人あり企業）</option>
+        <option value="">指定なし（Web全体）</option>
+        <option value="gmap">Googleマップ</option>
+        <option value="epark">エキテン</option>
+        <option value="hotpepper">ホットペッパー</option>
+      </select></div>
+    <div class="fld" style="min-width:120px"><label>内訳</label>
+      <select id="fMix">
+        <option value="">指定なし</option>
+        <option value="half">企業:店舗 = 半々</option>
+        <option value="biz">企業中心</option>
+        <option value="shop">個人店・店舗中心</option>
+      </select></div>
+    <div class="fld" style="min-width:80px"><label>件数</label>
+      <select id="fCount"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>25</option><option>50</option><option>100</option></select></div>
+  </div>
+
+  <div id="fSingle" style="display:none">
+    <div class="fld grow" style="min-width:220px"><label>会社名 または URL</label><input id="fTarget" placeholder="株式会社〇〇 / https://example.com"></div>
+    <div class="fld grow"><label>補足（任意）</label><input id="fTargetNote" placeholder="決裁者は代表 など"></div>
+  </div>
+
+  <button class="primary go" id="btnResearch">調べる</button>
+  <div class="rstatus" id="rstatus"></div>
+</div>
+
+<div class="work" id="workArea" style="display:none">
+  <div class="col left">
+    <div class="col-head">
+      <h2>見込み客 <span id="pCount" class="kv">0</span></h2>
+      <span class="sp"></span>
+      <label style="display:flex;align-items:center;gap:5px;margin:0;font-size:11.5px">
+        <input type="checkbox" id="fltTarget" style="width:auto"> 攻略対象
+      </label>
+      <button class="ghost sm" id="btnCsv" title="見込み客をCSVで書き出す">書き出す</button>
+      <button class="ghost sm" id="btnClear" title="すべて消す">消す</button>
+    </div>
+    <div class="col-body" id="prospectList"></div>
+  </div>
+
+  <div class="col">
+    <div class="out-body" id="outBody"></div>
+  </div>
+</div>
+
+<!-- settings -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>設定</h2>
+    <label>APIキー（AIを動かすための鍵）</label>
+    <input type="password" id="sApiKey" placeholder="sk-ant-...">
+    <p class="kv" style="margin:5px 0 0">
+      このツールはAI（Anthropic社のClaude）で調査と文章生成を行います。動かすには「APIキー」が必要です。<br>
+      1. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> に登録（クレジットカード＋数ドルのチャージ）<br>
+      2. 「Create Key」で鍵を発行し、<code>sk-ant-</code> で始まる文字列をここに貼り付け<br>
+      鍵はこのブラウザにのみ保存され、外部には送信しません。共有PCでは使用しないでください。</p>
+    <details class="me">
+      <summary>自分の情報（任意・文面の質が上がります）</summary>
+      <div class="row">
+        <div><label>名前</label><input id="sMeName" placeholder="山田 太郎"></div>
+        <div><label>屋号・会社名</label><input id="sMeBrand" placeholder="〇〇制作所"></div>
+      </div>
+      <label>商材・提供サービス</label>
+      <textarea id="sMeServices" placeholder="例: 小規模店向けの1ページホームページ制作"></textarea>
+      <div class="row">
+        <div><label>強み・差別化</label><input id="sMeStrength" placeholder="3日納品 / 写真撮影込み"></div>
+        <div><label>料金感</label><input id="sMePrice" placeholder="初期5万円〜 月3千円"></div>
+      </div>
+      <div class="row">
+        <div><label>ポートフォリオURL</label><input id="sMePortfolio" placeholder="https://"></div>
+        <div><label>署名</label><input id="sMeSign" placeholder="山田 / 090-xxxx"></div>
+      </div>
+    </details>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="ghost" id="btnSettingsCancel">閉じる</button>
+      <button class="primary" id="btnSettingsSave">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- help -->
+<div class="modal-bg" id="helpModal">
+  <div class="modal">
+    <h2>このツールについて</h2>
+    <p style="font-size:13.5px;margin:0 0 10px">
+      会社名やエリア×業種を入れると、AIがその相手をネットで調べ、
+      <b>営業メール・DM・フォローアップの文面</b>、必要なら<b>サンプル提案のイメージ</b>（LP・チラシ・SNS投稿案など、商材に合わせて）まで作ります。
+    </p>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 8px">
+      <b>使う流れ：</b><br>
+      ① ⚙設定で「APIキー」を登録（AIを動かすための鍵。<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">こちら</a>で発行）<br>
+      ② 任意で「自分の情報」（商材・料金感など）を入力すると文面の質が上がります<br>
+      ③ 上のバーでリサーチ →左のリストで相手を選ぶ →「アプローチ一式を作る」
+    </p>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 8px">
+      <b>料金：</b>AIの利用料はご自身のAnthropicアカウントに課金されます（1回のリサーチ＋文面作成でおおよそ数十円〜数百円、モデルと件数による）。右上に概算を表示します。
+    </p>
+    <p style="font-size:12px;color:var(--muted);margin:0">
+      生成メールは下書きです。送信前に必ず確認し、公開されている連絡先のみに、
+      各国の法令（特定電子メール法など）を守って使ってください。
+    </p>
+    <div style="display:flex;justify-content:space-between;margin-top:16px;gap:8px">
+      <button class="ghost" id="btnHelpDemo">デモを見る（キー不要）</button>
+      <button class="primary" id="btnHelpClose">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="site-presets.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const EIGYO_SUPABASE_URL = "https://mqkuoygyatyalkynhauj.supabase.co";
+const EIGYO_SUPABASE_ANON_KEY = "sb_publishable_HONnw8Vn6XJAL94OaySFhw_RFmawq1Y";
+const eigyoSb = window.supabase.createClient(EIGYO_SUPABASE_URL, EIGYO_SUPABASE_ANON_KEY);
+
+"use strict";
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "id-"+Date.now()+Math.random().toString(16).slice(2));
+
+const LS = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ toast("保存に失敗（容量超過かも）"); return false; } },
+};
+const DEFAULT_SETTINGS = { apiKey:"", model:"claude-opus-5", lang:"ja",
+  me:{ name:"",brand:"",services:"",strength:"",price:"",portfolio:"",sign:"" } };
+let settings = Object.assign({}, DEFAULT_SETTINGS, LS.get("eigyo.settings",{}));
+settings.me = Object.assign({}, DEFAULT_SETTINGS.me, settings.me||{});
+let prospects = LS.get("eigyo.prospects",[]);
+let assets = LS.get("eigyo.assets",{});
+let usage = LS.get("eigyo.usage",{ inTok:0, outTok:0, searches:0 });
+let selectedId = null;
+
+/* ---------- demo data (APIキー不要で挙動を確認するための例) ---------- */
+const DEMO_LP = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>山田工務店</title><style>*{margin:0;box-sizing:border-box;font-family:system-ui,"Noto Sans JP",sans-serif}body{color:#1e2a24;line-height:1.7}.hero{background:linear-gradient(#2f5a43,#22483599),#3d6b52;color:#fff;padding:64px 24px;text-align:center}.hero h1{font-size:30px;margin-bottom:12px}.hero p{opacity:.9}.btn{display:inline-block;margin-top:22px;background:#f4a72c;color:#26331d;font-weight:700;padding:13px 26px;border-radius:8px;text-decoration:none}.sec{max-width:860px;margin:0 auto;padding:46px 24px}.sec h2{font-size:22px;margin-bottom:18px;color:#2f5a43}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}.card{border:1px solid #e0e4e0;border-radius:10px;padding:18px}.ph{background:#e8ede9;border-radius:8px;height:150px;display:flex;align-items:center;justify-content:center;color:#88968d;font-size:13px}footer{background:#22392b;color:#cdd8d0;text-align:center;padding:26px;font-size:13px}</style><div class="hero"><h1>山田工務店</h1><p>岡山で30年、住まいの新築・リフォーム・外構まで。地域密着でずっとお付き合いできる工務店です。</p><a class="btn" href="#">無料で現地調査を相談する</a></div><div class="sec"><h2>選ばれる理由</h2><div class="grid"><div class="card"><b>創業30年・地元施工1200件</b><p>岡山市内・近郊での実績多数。近所の施工例をその場でご案内できます。</p></div><div class="card"><b>下請けに丸投げしない自社大工</b><p>設計から施工まで顔の見える職人が担当します。</p></div><div class="card"><b>リフォーム後の定期点検つき</b><p>お引き渡し後も5年間、無料で点検にうかがいます。</p></div></div></div><div class="sec"><h2>施工事例</h2><div class="grid"><div class="ph">写真（外壁塗装）</div><div class="ph">写真（キッチン改装）</div><div class="ph">写真（新築外構）</div></div></div><div class="sec"><h2>ご相談の流れ</h2><p>お問い合わせ → 現地調査（無料） → お見積り → ご契約 → 着工 → お引き渡し・定期点検</p><a class="btn" href="tel:0000000000">☎ 086-000-0000 に電話する</a></div><footer>山田工務店 ／ 岡山市〇〇 ／ 受付 8:00-19:00（日曜定休）<br>※これは営業サンプルです。実在の内容ではありません。</footer></html>`;
+
+const DEMO_LP_3 = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>たなか整骨院</title><style>*{margin:0;box-sizing:border-box;font-family:system-ui,"Noto Sans JP",sans-serif}body{color:#1c2733;line-height:1.7;padding-bottom:60px}.hero{background:linear-gradient(#12557a,#0f4460);color:#fff;padding:48px 20px;text-align:center}.hero h1{font-size:25px;margin-bottom:10px}.hero .lead{opacity:.92;font-size:15px}.tag{display:inline-block;background:#e8b53d;color:#2a2100;font-weight:700;font-size:12px;padding:4px 12px;border-radius:999px;margin-bottom:14px}.sec{max-width:720px;margin:0 auto;padding:34px 20px}.sec h2{font-size:19px;color:#12557a;margin-bottom:14px}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.card{border:1px solid #dde3e8;border-radius:10px;padding:15px}.card b{color:#12557a}.hours{width:100%;border-collapse:collapse;font-size:14px}.hours td,.hours th{border-bottom:1px solid #e5e9ec;padding:8px;text-align:center}.ph{background:#e8edf0;border-radius:8px;height:140px;display:flex;align-items:center;justify-content:center;color:#8b98a3;font-size:13px}.bar{position:fixed;left:0;right:0;bottom:0;display:flex}.bar a{flex:1;text-align:center;padding:15px 8px;font-weight:700;text-decoration:none;color:#fff;font-size:15px}.bar .line{background:#06c755}.bar .web{background:#12557a}footer{text-align:center;color:#7c8894;font-size:12px;padding:18px}</style><div class="hero"><span class="tag">交通事故・むちうち治療 対応</span><h1>たなか整骨院</h1><p class="lead">倉敷で開業18年。事故後の痛み・スポーツのケガに。<br>予約はスマホから30秒、平日夜20時・土曜も診療。</p></div><div class="sec"><h2>こんな方へ</h2><div class="row"><div class="card"><b>交通事故に遭った</b><p>自賠責保険適用で窓口負担0円。保険会社への連絡もサポートします。</p></div><div class="card"><b>むちうち・首や腰の痛み</b><p>「レントゲンで異常なし」と言われたが痛みが続く方の相談が多いです。</p></div><div class="card"><b>部活・スポーツのケガ</b><p>捻挫・肉離れの応急処置と、競技復帰までのサポート。</p></div></div></div><div class="sec"><h2>診療時間</h2><table class="hours"><tr><th></th><th>平日</th><th>土</th><th>日祝</th></tr><tr><td>午前</td><td>9:00-12:30</td><td>9:00-13:00</td><td>休</td></tr><tr><td>午後</td><td>15:00-20:00</td><td>休</td><td>休</td></tr></table></div><div class="sec"><h2>アクセス</h2><div class="ph">地図（倉敷市〇〇・駐車場5台）</div></div><footer>たなか整骨院 ／ 倉敷市〇〇 ／ ※これは営業サンプルです。実在の内容ではありません。</footer><div class="bar"><a class="line" href="#">LINEで予約</a><a class="web" href="#">Webで予約（24時間）</a></div></html>`;
+
+const DEMO_LP_4 = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>岡山フラワーデザイン｜法人向け定期装花</title><style>*{margin:0;box-sizing:border-box;font-family:system-ui,"Noto Sans JP",serif}body{color:#2b2b28;line-height:1.8}.hero{background:#f3f1ea;padding:52px 24px;text-align:center}.hero .k{letter-spacing:.2em;font-size:12px;color:#8a7f5c}.hero h1{font-size:25px;margin:12px 0;font-weight:700}.hero p{color:#5c5a52;font-size:15px}.btn{display:inline-block;margin-top:20px;background:#3f5c3a;color:#fff;padding:13px 28px;border-radius:4px;text-decoration:none;font-size:14px}.sec{max-width:800px;margin:0 auto;padding:40px 24px}.sec h2{font-size:19px;color:#3f5c3a;margin-bottom:16px;text-align:center}.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}.plan{border:1px solid #e2ded2;border-radius:6px;padding:20px;text-align:center}.plan h3{font-size:16px;margin-bottom:6px}.plan .price{font-size:21px;color:#3f5c3a;font-weight:700;margin:8px 0}.plan ul{list-style:none;font-size:13px;color:#5c5a52;text-align:left;margin-top:10px}.plan li{padding:3px 0;border-bottom:1px dashed #e6e2d6}.ph{background:#ece9df;border-radius:6px;height:130px;display:flex;align-items:center;justify-content:center;color:#9a9276;font-size:13px}footer{background:#2f3b2c;color:#d6d9cf;text-align:center;padding:20px;font-size:12px}</style><div class="hero"><div class="k">FOR BUSINESS</div><h1>オフィス・店舗の第一印象は、<br>入口の花で決まります</h1><p>岡山フラワーデザインの、法人向け「定期装花」プラン。<br>毎週プロが活け替え、季節に合わせてご提案します。</p><a class="btn" href="#">無料のお試し1回を申し込む</a></div><div class="sec"><h2>3つのプラン</h2><div class="plans"><div class="plan"><h3>エントランス</h3><div class="price">¥4,400/週〜</div><ul><li>受付・入口に1アレンジ</li><li>週1回の活け替え</li><li>花器レンタル込み</li></ul></div><div class="plan"><h3>スタンダード</h3><div class="price">¥8,800/週〜</div><ul><li>入口＋応接に2アレンジ</li><li>週1回の活け替え</li><li>季節提案・記念日対応</li></ul></div><div class="plan"><h3>店舗まるごと</h3><div class="price">お見積り</div><ul><li>複数箇所・大型装花</li><li>開店祝い・催事にも対応</li><li>専任デザイナー</li></ul></div></div></div><div class="sec"><h2>納入イメージ</h2><div class="plans"><div class="ph">写真（受付の装花）</div><div class="ph">写真（応接テーブル）</div><div class="ph">写真（季節のアレンジ）</div></div></div><footer>岡山フラワーデザイン ／ 岡山市〇〇 ／ ※これは営業サンプルです。実在の内容ではありません。</footer></html>`;
+
+const DEMO_LP_5 = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>みらい進学塾</title><style>*{margin:0;box-sizing:border-box;font-family:system-ui,"Noto Sans JP",sans-serif}body{color:#1d2430;line-height:1.7;padding-bottom:60px}.hero{background:linear-gradient(#1b3a6b,#15305a);color:#fff;padding:50px 20px;text-align:center}.hero h1{font-size:25px;margin-bottom:8px}.hero p{opacity:.9;font-size:15px}.tag{display:inline-block;background:#f0a531;color:#2b1c00;font-weight:700;font-size:12px;padding:4px 12px;border-radius:999px;margin-bottom:14px}.stats{max-width:760px;margin:-26px auto 0;background:#fff;border:1px solid #e3e7ec;border-radius:12px;display:grid;grid-template-columns:repeat(3,1fr);overflow:hidden}.stats div{padding:18px 10px;text-align:center;border-right:1px solid #eef1f4}.stats div:last-child{border-right:none}.stats b{display:block;font-size:22px;color:#1b3a6b}.stats span{font-size:12px;color:#6b7784}.sec{max-width:760px;margin:0 auto;padding:34px 20px}.sec h2{font-size:19px;color:#1b3a6b;margin-bottom:14px}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.card{border:1px solid #e3e7ec;border-radius:10px;padding:15px}.card b{color:#1b3a6b}.price{width:100%;border-collapse:collapse;font-size:14px}.price td,.price th{border-bottom:1px solid #eef1f4;padding:9px;text-align:left}.ph{background:#eef1f4;border-radius:8px;height:130px;display:flex;align-items:center;justify-content:center;color:#8b96a3;font-size:13px}.bar{position:fixed;left:0;right:0;bottom:0;display:flex}.bar a{flex:1;text-align:center;padding:15px 8px;font-weight:700;text-decoration:none;color:#fff;font-size:15px}.bar .line{background:#06c755}.bar .form{background:#f0a531;color:#2b1c00}footer{text-align:center;color:#7c8894;font-size:12px;padding:18px}</style><div class="hero"><span class="tag">中学生の個別指導</span><h1>みらい進学塾</h1><p>岡山市・開校15年。「わかった」を毎回積み上げる、1対2の個別指導。</p></div><div class="stats"><div><b>92%</b><span>第一志望 合格率</span></div><div><b>15年</b><span>地域での指導実績</span></div><div><b>1対2</b><span>講師あたりの生徒数</span></div></div><div class="sec"><h2>選ばれる理由</h2><div class="row"><div class="card"><b>担当講師が固定</b><p>毎回同じ講師が担当。つまずきの履歴を引き継いで指導します。</p></div><div class="card"><b>定期テスト2週間前対策</b><p>学校のワークに合わせた対策授業を追加料金なしで実施。</p></div><div class="card"><b>保護者面談 年3回</b><p>成績と学習状況を数字で共有。ご家庭と方針をそろえます。</p></div></div></div><div class="sec"><h2>料金の目安（月額・税込）</h2><table class="price"><tr><th>学年</th><th>週1回</th><th>週2回</th></tr><tr><td>中1・中2</td><td>14,300円</td><td>25,300円</td></tr><tr><td>中3</td><td>16,500円</td><td>29,700円</td></tr></table><p style="font-size:12px;color:#6b7784;margin-top:8px">入塾金・教材費は別途。兄弟割引あり。</p></div><div class="sec"><h2>教室のようす</h2><div class="row"><div class="ph">写真（自習スペース）</div><div class="ph">写真（授業風景）</div><div class="ph">写真（合格実績の掲示）</div></div></div><footer>みらい進学塾 ／ 岡山市〇〇 ／ ※これは営業サンプルです。実在の内容ではありません。</footer><div class="bar"><a class="line" href="#">LINEで相談</a><a class="form" href="#">無料体験を申し込む</a></div></html>`;
+
+const DEMO_PROSPECTS = [
+  { id:"demo-1", name:"山田工務店", category:"工務店・リフォーム", area:"岡山市",
+    summary:"地域密着30年の工務店。新築・リフォーム・外構まで対応。施工写真は代表の個人ブログに点在し、まとまった紹介ページがない。",
+    contact:{email:"",phone:"086-000-0000",instagram:"",form_url:"",other:"問い合わせは電話のみ"},
+    website:{url:null,status:"none",note:"独自サイトなし。検索しても電話帳サイトと地図情報のみ。"},
+    isTarget:true, sources:["https://example.com/地域情報","https://example.com/施工ブログ"], createdAt:Date.now(), demo:true },
+  { id:"demo-2", name:"café のどか", category:"個人経営カフェ", area:"岡山市",
+    summary:"自家焙煎珈琲と手作り焼き菓子の小さなカフェ。営業時間や臨時休業の告知はInstagramのみ。",
+    contact:{email:"",phone:"",instagram:"@cafe_nodoka",form_url:"",other:""},
+    website:{url:null,status:"social_only",note:"Instagramのみ。Googleマップの情報は未整備で営業時間が『情報なし』。"},
+    isTarget:true, sources:["https://instagram.com/cafe_nodoka"], createdAt:Date.now()-1000, demo:true },
+  { id:"demo-3", name:"たなか整骨院", category:"整骨院", area:"倉敷市",
+    summary:"交通事故対応・スポーツ外傷が中心。サイトは2013年制作でスマホ非対応、予約は電話のみ。",
+    contact:{email:"info@example.com",phone:"086-111-1111",instagram:"",form_url:"",other:""},
+    website:{url:"http://example.com/tanaka-old",status:"outdated",note:"スマホ非対応・SSLなし・情報が古い。"},
+    isTarget:true, sources:["http://example.com/tanaka-old"], createdAt:Date.now()-2000, demo:true },
+  { id:"demo-4", name:"岡山フラワーデザイン", category:"生花店", area:"岡山市",
+    summary:"冠婚葬祭のスタンド花・アレンジメントが主力。予約サイトとオンライン決済を整備済み。",
+    contact:{email:"order@example.com",phone:"",instagram:"@okayama_flower",form_url:"https://example.com/order",other:""},
+    website:{url:"https://example.com/okayama-flower",status:"ok",note:"レスポンシブ・予約導線あり。当面の制作ニーズは低い。"},
+    isTarget:false, sources:["https://example.com/okayama-flower"], createdAt:Date.now()-3000, demo:true },
+  { id:"demo-5", name:"みらい進学塾", category:"個別指導塾", area:"岡山市",
+    summary:"中学生中心の個別指導塾。開校15年。生徒募集は新聞折込チラシと口コミが中心で、独自サイトがない。",
+    contact:{email:"",phone:"086-222-2222",instagram:"",form_url:"",other:"更新の止まった教室ブログあり"},
+    website:{url:null,status:"none",note:"独自サイトなし。検索すると塾ポータルの薄い掲載ページのみで、料金・合格実績・講師が分からない。"},
+    isTarget:true, sources:["https://example.com/juku-portal","https://example.com/kyoshitsu-blog"], createdAt:Date.now()-4000, demo:true },
+];
+
+const DEMO_ASSETS = {
+  "demo-1": {
+    demo:true, createdAt:Date.now(),
+    research_note:"創業30年で施工実績は豊富だが、その実績がネット上でまったく可視化されていない。施工写真は代表の個人ブログに散在し、屋号で検索しても電話帳サイトと地図しか出てこない。問い合わせ手段が電話のみで、日中に電話できない30〜40代の施主を取りこぼしている可能性が高い。",
+    hypotheses:[
+      "『岡山 リフォーム』等で検索されても候補に入らず、実績があるのに新規の相談が競合(大手リフォーム会社)に流れている",
+      "施工写真という一番の武器が、施主が見られる形で1か所にまとまっていない",
+      "問い合わせが電話のみで、フォームやLINEがないため“とりあえず相談”のハードルが高い"
+    ],
+    email:{
+      subject:"山田工務店さまの施工写真、もったいないと思いご連絡しました",
+      body:"山田工務店 ご担当者さま\n\n突然のご連絡失礼いたします。岡山で小規模事業者むけのホームページ制作をしております、山田制作所の山田と申します。\n\n先日『岡山 外構 リフォーム』で施工事例を探していたところ、御社の施工ブログにたどり着きました。外壁塗装やキッチン改装の写真がとても丁寧で、これは相談したくなる、と感じた一方で、屋号で検索しても独自のサイトが出てこず、この写真群が埋もれてしまっているのがもったいないと思いました。\n\n私の方では、御社の施工写真を1ページにまとめ、スマホから電話・フォームどちらでも相談できる形にした『施工事例ページ』を、初期5万円〜・約1週間でお作りしています。Googleマップの情報(営業時間・写真・クチコミ返信)の整備もあわせて行います。\n\nご参考までに、御社を想定して作ったサンプルページを用意しました。よろしければ一度ご覧いただけますでしょうか。ご不要でしたらこのメールは破棄いただいて構いません。\n\n山田制作所 山田太郎\n090-0000-0000 / yamada@example.com",
+    },
+    dm:{ text:"はじめまして。岡山で小規模店のホームページ制作をしている者です。御社の施工ブログの写真を拝見し、屋号で検索しても独自サイトが出てこないのがもったいないと感じてご連絡しました。施工事例を1ページにまとめてスマホから相談できる形にするサンプルを作ってみたので、よければご覧ください（不要でしたらスルーで大丈夫です）。" },
+    followups:[
+      { label:"3日後・未返信", body:"山田工務店さま\n\n先日ご連絡した山田制作所です。先日お送りしたサンプルページ、ご覧いただけましたでしょうか。\n『今すぐ作る予定はない』という場合でも、Googleマップの整備だけ先に行うと問い合わせが増えやすいので、その部分だけのご相談でも歓迎です。ご検討いただけますと幸いです。" },
+      { label:"1週間後・別角度", body:"山田工務店さま\n\n重ねてのご連絡失礼します。もし『文章を書くのが手間』という点がネックでしたら、ヒアリング30分いただければこちらで原稿まで用意します。作業は写真をお預かりするだけで進められます。ご興味あれば一度お電話でもお話しさせてください。" },
+    ],
+    objections:[
+      { q:"今のところ紹介で仕事は足りている", a:"承知しました。紹介中心のままで大丈夫だと思います。ただ紹介先の方も『念のため名前を検索』することが増えていて、その時に情報が出ないと不安にさせてしまう、という声をよく聞きます。名刺代わりの1ページだけ、という考え方で持っておくのはいかがでしょう。" },
+      { q:"ホームページを作っても更新できない", a:"更新が要らない構成にしています。施工事例だけは追加したくなると思うので、写真をメールで送っていただければ月1回こちらで追加する運用(月3千円)もご用意しています。" },
+      { q:"値段が高いのでは", a:"初期5万円〜で、大手のリフォームポータル1か月分の掲載料と同じくらいです。ポータルは掲載をやめると消えますが、自社ページは資産として残ります。" },
+    ],
+    sample:{ applicable:true, kind:"施工事例LP",
+      description:"『実績があるのにネットで見つからない・相談されない』という課題に対し、施工写真を1ページに集約し、スマホから電話とフォームで相談できる導線を付けた工務店向けLPのサンプル。",
+      html: DEMO_LP },
+  },
+  "demo-2": {
+    demo:true, createdAt:Date.now()-1000,
+    research_note:"味とファンづくりはInstagramで成立しているが、『今日開いているか』『どこにあるか』を知りたい初見客の導線がない。検索やGoogleマップからの新規来店を取りこぼしている。",
+    hypotheses:[
+      "Googleマップの営業時間が未整備で、『情報なし』を見た初見客が来店を諦めている",
+      "臨時休業がInstagram限定告知のため、フォロワー以外が無駄足になり悪い口コミにつながりやすい",
+      "焙煎豆の販売や予約の受け皿がなく、常連の『買いたい』を取りこぼしている"
+    ],
+    email:{
+      subject:"café のどかさん、Googleマップの営業時間だけ直すと来店が増えるかもしれません",
+      body:"café のどか ご担当者さま\n\nはじめまして。岡山で小さなお店のホームページ・Googleマップ整備をしている山田と申します。\n\nInstagramの焼き菓子の写真がいつも素敵で拝見しています。先日お店を検索したところ、Googleマップの営業時間が『情報なし』になっていて、これはInstagramを見ていない初めてのお客さんが来店をためらってしまうかもしれない、と気になりご連絡しました。\n\n私の方では、Googleマップの整備(営業時間・写真・臨時休業の反映)と、スマホで見やすい1ページのお店紹介(メニュー・地図・焙煎豆の予約フォーム)を、初期3万円〜でまとめてお作りしています。\n\n『のどかさん』を想定したサンプルページを作ってみました。よろしければご覧ください。不要でしたら破棄いただいて構いません。\n\n山田太郎 / 090-0000-0000",
+    },
+    dm:{ text:"はじめまして。焼き菓子の写真いつも拝見しています。先日お店を検索したらGoogleマップの営業時間が『情報なし』になっていて、初見のお客さんがもったいないなと思いご連絡しました。マップ整備＋スマホ用の1ページ紹介のサンプルを作ってみたので、よければ見てください。不要ならスルーで大丈夫です。" },
+    followups:[
+      { label:"3日後・未返信", body:"café のどかさん\n\n先日ご連絡した山田です。サンプルご覧いただけましたか。まず費用のかからないGoogleマップの整備だけでも、初見のお客さんの来店には効くので、その部分だけでもお手伝いできればと思っています。" },
+      { label:"1週間後・別角度", body:"café のどかさん\n\nもし焙煎豆の通販や予約に興味があれば、フォームだけ先に用意することもできます(初期1万円)。まずは小さく試してみるのはいかがでしょうか。" },
+    ],
+    objections:[
+      { q:"Instagramで足りている", a:"発信はInstagramのままで大丈夫です。困るのは『Instagramを見ていない初めてのお客さん』が営業時間や場所を確認できない点だけなので、そこを補う1ページ、という位置づけです。" },
+      { q:"忙しくて対応できない", a:"やり取りはLINEで写真とメニューを送っていただくだけです。原稿はこちらで整えます。" },
+    ],
+    sample:{ applicable:true, kind:"店舗紹介1ページ＋マップ整備イメージ",
+      description:"『初見客が営業時間や場所を確認できず来店を諦めている』課題に対し、メニュー・地図・営業時間・臨時休業・焙煎豆予約をスマホ1画面にまとめたカフェ向け紹介ページのサンプル。",
+      html: DEMO_LP.replace(/山田工務店/g,"café のどか").replace("岡山で30年、住まいの新築・リフォーム・外構まで。地域密着でずっとお付き合いできる工務店です。","自家焙煎の珈琲と、毎朝焼く焼き菓子。営業時間・臨時休業・お取り置きはこのページで。").replace("無料で現地調査を相談する","今日の営業時間を見る") },
+  },
+  "demo-3": {
+    demo:true, createdAt:Date.now()-2000,
+    research_note:"『交通事故対応』という単価も紹介価値も高い強みがあるのに、サイトが2013年制作でスマホ非対応・SSLなし。スマホで開くと文字が小さく、予約は電話のみ。事故直後という一番動いてほしいタイミングで離脱させている可能性が高い。",
+    hypotheses:[
+      "『倉敷 交通事故 整骨院』で検索されても古いサイトが評価されず、上位の競合に問い合わせが流れている",
+      "スマホで開くと拡大しないと読めず、事故直後で不安な人がその場で離脱している",
+      "予約が日中の電話のみで、仕事や通院の合間にLINE/Webで予約したい層を取りこぼしている"
+    ],
+    email:{
+      subject:"たなか整骨院さまのサイト、スマホで開くと読みにくい状態です",
+      body:"たなか整骨院 ご担当者さま\n\nはじめまして。倉敷で小規模事業者むけのホームページ制作をしております山田と申します。\n\n『倉敷 交通事故 整骨院』で調べていて御院のサイトを拝見しました。自賠責対応やスポーツ外傷の実績がしっかり書かれている一方で、スマホで開くと文字がとても小さく、事故直後で不安な方だと読む前に離れてしまうかもしれない、と気になりました。\n\n私の方では、既存の内容を活かしてスマホ最適化し、画面下にLINE予約・Web予約のボタンを固定表示する『予約が取りやすいページ』への作り替えを、初期6万円〜・約1週間で行っています。\n\n御院を想定したサンプルページを作ってみました。よろしければご覧ください。不要でしたら破棄いただいて構いません。\n\n山田太郎 / 090-0000-0000 / yamada@example.com",
+    },
+    dm:{ text:"はじめまして。倉敷でホームページ制作をしている者です。『倉敷 交通事故 整骨院』で御院のサイトを拝見しましたが、スマホで開くと文字が小さく、事故直後の方だと離脱してしまいそうで気になりました。内容を活かしてスマホ対応＋LINE/Web予約を付けたサンプルを作ってみたので、よければご覧ください（不要ならスルーで大丈夫です）。" },
+    followups:[
+      { label:"3日後・未返信", body:"たなか整骨院さま\n\n先日ご連絡した山田です。サンプルはご覧いただけましたでしょうか。まずはスマホ対応だけ先に行い、予約フォームは後から追加する、という進め方も可能です。ご検討いただけますと幸いです。" },
+      { label:"1週間後・別角度", body:"たなか整骨院さま\n\n重ねて失礼します。もしGoogleのクチコミ返信まで手が回っていないようでしたら、返信文の下書き作成もあわせてお手伝いできます。まずは一度お電話でお話しさせていただけませんか。" },
+    ],
+    objections:[
+      { q:"今のサイトで特に困っていない", a:"表示自体は問題ないと思います。気になるのは事故直後の方がスマホで開いたときに読みづらく、電話しか予約手段がない点です。そこだけ整えると、同じ広告費でも問い合わせが増えやすくなります。" },
+      { q:"予約は電話で受けたい", a:"電話予約はそのまま残せます。LINE/Webはあくまで『電話しづらい時間帯』の受け皿として追加する形です。通知はスマホに届きます。" },
+    ],
+    sample:{ applicable:true, kind:"スマホ最適化の予約LP",
+      description:"『サイトが古くスマホ非対応・予約が電話のみ』という課題に対し、交通事故対応を前面に出し、画面下にLINE予約とWeb予約を固定表示したスマホ向け整骨院LPのサンプル。",
+      html: DEMO_LP_3 },
+  },
+  "demo-4": {
+    demo:true, createdAt:Date.now()-3000,
+    research_note:"予約サイトもオンライン決済も整備済みで、個人客向けの導線は十分。伸びしろは、単価とリピート性が高い『法人の定期装花』。冠婚葬祭のスタンド花で企業との接点はあるはずだが、定期契約の提案パッケージが表に出ていない。",
+    hypotheses:[
+      "スポットのスタンド花注文は取れているが、毎週の定期装花という継続収益につながっていない",
+      "法人担当者が『いくらで何を頼めるか』を判断できる料金プランがサイトに無い",
+      "Instagramのフォロワーに企業アカウントもいるはずだが、法人向けの案内動線がない"
+    ],
+    email:{
+      subject:"岡山フラワーデザインさま、法人向け『定期装花プラン』のご提案",
+      body:"岡山フラワーデザイン ご担当者さま\n\nはじめまして。岡山で販促まわりのお手伝いをしている山田と申します。\n\n予約サイトやInstagramを拝見し、アレンジのセンスと運用の丁寧さが伝わってきました。冠婚葬祭のスタンド花で企業との取引もある一方で、『毎週活け替えるオフィス・店舗の定期装花』のプランが表に出ていないのがもったいないと感じ、ご連絡しました。\n\n私の方では、法人担当者がその場で申し込めるよう、料金プランを3段階に整理した『法人向け1ページ』の作成を初期4万円〜で行っています（既存サイトへの追加も可）。\n\n御社の強みを想定したサンプルを作ってみました。よろしければご覧ください。不要でしたら破棄いただいて構いません。\n\n山田太郎 / 090-0000-0000",
+    },
+    dm:{ text:"はじめまして。アレンジのセンスと運用の丁寧さ、いつも拝見しています。スタンド花で企業との取引はあるのに、毎週の『定期装花プラン』が表に出ていないのがもったいないと思いご連絡しました。法人担当者がその場で申し込める1ページのサンプルを作ってみたので、よければご覧ください。不要ならスルーで大丈夫です。" },
+    followups:[
+      { label:"3日後・未返信", body:"岡山フラワーデザインさま\n\n先日ご連絡した山田です。サンプルご覧いただけましたか。まずは『お試し1回無料』を入口にした簡単な案内ページから始めて、反応を見て広げる、という進め方もおすすめです。" },
+      { label:"1週間後・別角度", body:"岡山フラワーデザインさま\n\n重ねて失礼します。既存の予約サイトに1ページ足すだけでも対応できますので、作り替えの必要はありません。年末年始の装花需要の前に用意しておくと動きやすいかと思います。" },
+    ],
+    objections:[
+      { q:"定期契約は手間が増えそう", a:"ルートを固定できるので、実はスポット対応より段取りは楽になります。曜日と箇所を決めてしまえば、あとは活け替えだけです。" },
+      { q:"今の予約サイトで十分", a:"個人のお客様向けはそのままで大丈夫です。今回は『法人担当者が稟議に使える料金ページ』を1枚足すイメージです。" },
+    ],
+    sample:{ applicable:true, kind:"法人向け定期装花プランの提案1ページ",
+      description:"『単価とリピート性の高い法人契約が取れていない』という課題に対し、オフィス・店舗向けの月額定期装花プランを3段階で提示する、生花店の営業用1ページのサンプル。",
+      html: DEMO_LP_4 },
+  },
+  "demo-5": {
+    demo:true, createdAt:Date.now()-4000,
+    research_note:"開校15年で合格実績はあるはずだが、それがネット上に一切出ていない。今の保護者は折込チラシを見たあと必ず『塾名＋岡山＋評判』で検索してから動くため、料金・合格実績・講師の顔が見えない時点で候補から外れている。折込チラシは費用対効果が年々悪化しており、代わりの受け皿がない状態。",
+    hypotheses:[
+      "折込チラシを見た保護者が塾名を検索しても情報が出ず、不安から体験申込に至らない",
+      "塾ポータルの薄い掲載ページしかなく、料金や合格実績が具体的に見える大手塾に見劣りする",
+      "体験授業の申込が電話のみで、日中働く保護者が問い合わせのタイミングを逃している"
+    ],
+    email:{
+      subject:"みらい進学塾さま、折込チラシの反応が落ちていませんか",
+      body:"みらい進学塾 ご担当者さま\n\nはじめまして。岡山で小規模事業者むけのホームページ制作をしております山田と申します。\n\n『岡山 個別指導塾』で調べていて御塾を知りました。開校15年で地域に根ざした個別指導、という強みがある一方で、塾名で検索しても料金や合格実績が分かるページが出てこず、折込チラシを見た保護者が『調べて安心してから問い合わせる』という今の流れに乗れていないのがもったいないと感じました。\n\n私の方では、合格実績・指導の特徴・講師・料金・体験申込フォームを1ページにまとめた『塾の紹介ページ』を、初期6万円〜・約1週間でお作りしています。\n\n御塾を想定したサンプルページを用意しました。よろしければご覧ください。不要でしたら破棄いただいて構いません。\n\n山田制作所 山田太郎\n090-0000-0000 / yamada@example.com",
+    },
+    dm:{ text:"はじめまして。岡山で小規模事業者のホームページ制作をしている者です。『岡山 個別指導塾』で御塾を知りましたが、塾名で検索しても料金や合格実績の分かるページが出てこず、折込チラシを見た保護者が調べる段階で候補から外れていそうで気になりました。合格実績・料金・体験申込を1ページにまとめたサンプルを作ってみたので、よければご覧ください（不要ならスルーで大丈夫です）。" },
+    followups:[
+      { label:"3日後・未返信", body:"みらい進学塾さま\n\n先日ご連絡した山田です。サンプルはご覧いただけましたでしょうか。新学期・春期講習の募集前に用意しておくと、チラシの効果も上がりやすいので、時期的におすすめです。ご検討いただけますと幸いです。" },
+      { label:"1週間後・別角度", body:"みらい進学塾さま\n\n重ねて失礼します。もし『合格実績や文章をまとめるのが手間』ということでしたら、30分ヒアリングいただければこちらで原稿まで作成します。写真は教室で撮影も可能です。一度お電話でお話しさせていただけませんか。" },
+    ],
+    objections:[
+      { q:"チラシと紹介で生徒は集まっている", a:"その流れは変えなくて大丈夫です。困るのは、チラシを見た保護者が塾名を検索したときに情報が出ず、せっかくの興味が止まってしまう点だけなので、そこを補う1ページ、という位置づけです。" },
+      { q:"大手塾のような立派なサイトは要らない", a:"むしろ逆で、個人塾は『担当講師が固定』『面談が多い』といった大手にない強みが伝わる1ページのほうが刺さります。ボリュームは最小限で構いません。" },
+    ],
+    sample:{ applicable:true, kind:"生徒募集LP",
+      description:"『折込チラシを見た保護者が塾名で検索しても料金・実績・講師が分からず候補から外れている』という課題に対し、合格率などの実績数字・指導の特徴・料金表・体験申込フォームを1ページにまとめた学習塾向けLPのサンプル。",
+      html: DEMO_LP_5 },
+  },
+};
+
+function loadDemo(){
+  if(prospects.length && !prospects.every(p=>p.demo)){
+    if(!confirm("現在のデータを残したままデモの例を追加します。よろしいですか？")) return;
+  }
+  const ids = new Set(prospects.map(p=>p.id));
+  DEMO_PROSPECTS.forEach(p=>{ if(!ids.has(p.id)) prospects.unshift(JSON.parse(JSON.stringify(p))); });
+  Object.assign(assets, JSON.parse(JSON.stringify(DEMO_ASSETS)));
+  LS.set("eigyo.prospects",prospects); LS.set("eigyo.assets",assets);
+  LS.set("eigyo.demo",true);
+  renderProspects(); selectProspect("demo-1"); renderDemoBanner();
+  toast("デモの例を読み込みました");
+}
+function renderDemoBanner(){
+  let b = $("#demoBanner");
+  const on = prospects.some(p=>p.demo);
+  if(on && !b){
+    b = document.createElement("div"); b.id="demoBanner";
+    b.style.cssText="background:var(--warn-bg);color:var(--warn);font-size:12px;padding:6px 16px;text-align:center;flex-shrink:0";
+    b.innerHTML='デモ表示中：これはサンプルで、実際のAI生成ではありません。 <button class="ghost sm" id="btnDemoClear" style="margin-left:8px">デモを消す</button>';
+    document.querySelector(".rbar").after(b);
+    $("#btnDemoClear").onclick = ()=>{
+      prospects = prospects.filter(p=>!p.demo);
+      DEMO_PROSPECTS.forEach(p=> delete assets[p.id]);
+      LS.set("eigyo.prospects",prospects); LS.set("eigyo.assets",assets); LS.set("eigyo.demo",false);
+      if(String(selectedId||"").startsWith("demo-")){ selectedId=null; renderOutEmpty(); }
+      b.remove(); renderProspects();
+    };
+  }else if(!on && b){ b.remove(); }
+}
+
+const PRICING = { "claude-opus-5":{in:5,out:25}, "claude-sonnet-5":{in:2,out:10} };
+const USD_JPY = 155; // 概算用の固定レート
+function renderCost(){
+  const p = PRICING[settings.model]||PRICING["claude-opus-5"];
+  const usd = usage.inTok/1e6*p.in + usage.outTok/1e6*p.out + usage.searches*0.01;
+  $("#costPill").textContent = "AIの利用料 約¥"+Math.round(usd*USD_JPY).toLocaleString();
+}
+function addUsage(u){
+  if(!u) return;
+  usage.inTok += (u.input_tokens||0)+(u.cache_read_input_tokens||0)+(u.cache_creation_input_tokens||0);
+  usage.outTok += (u.output_tokens||0);
+  const ss = u.server_tool_use && u.server_tool_use.web_search_requests;
+  if(ss) usage.searches += ss;
+  LS.set("eigyo.usage",usage); renderCost();
+}
+
+let toastT;
+function toast(msg){
+  const el=document.createElement("div"); el.className="toast"; el.textContent=msg;
+  $("#toastWrap").appendChild(el); setTimeout(()=>el.remove(),2600);
+}
+
+/* ---------- Anthropic API ---------- */
+async function callClaude({ system, user, tools, maxTokens }){
+  if(!settings.apiKey){ openSettings(); throw new Error("APIキーが未設定です"); }
+  const baseBody = { model:settings.model, max_tokens:maxTokens||8000, system,
+    messages:[{ role:"user", content:user }] };
+  if(tools) baseBody.tools = tools;
+  let messages = baseBody.messages.slice();
+  for(let guard=0; guard<6; guard++){
+    let res;
+    try{
+      res = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{ "content-type":"application/json", "x-api-key":settings.apiKey,
+          "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+        body: JSON.stringify({ ...baseBody, messages }),
+      });
+    }catch(e){
+      const embedded = window.top !== window.self;
+      throw new Error(embedded
+        ? "この埋め込みプレビューでは外部AIに接続できません。フル機能は https://masato19870410.github.io/ncbc/eigyo/ でご利用ください。"
+        : "APIに接続できませんでした。ネットワーク状態を確認してください。");
+    }
+    if(!res.ok){
+      let detail=""; try{ detail=(await res.json()).error?.message||""; }catch(e){ detail=await res.text().catch(()=>""); }
+      if(res.status===401) throw new Error("APIキーが無効です。設定を確認してください。");
+      if(res.status===429) throw new Error("レート制限です。少し待って再実行してください。 "+detail);
+      throw new Error("APIエラー ("+res.status+"): "+detail);
+    }
+    const data = await res.json();
+    addUsage(data.usage);
+    if(data.stop_reason==="refusal") throw new Error("リクエストが安全機構により拒否されました。");
+    if(data.stop_reason==="pause_turn"){ messages = messages.concat([{ role:"assistant", content:data.content }]); continue; }
+    const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+    return { text, data };
+  }
+  throw new Error("応答が完了しませんでした（継続上限）。");
+}
+function parseJsonLoose(text){
+  let t = text.trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(fence) t = fence[1].trim();
+  try{ return JSON.parse(t); }catch(e){}
+  const s=t.indexOf("{"), e=t.lastIndexOf("}"), a=t.indexOf("["), b=t.lastIndexOf("]");
+  const start = (a!==-1 && (s===-1 || a<s)) ? a : s;
+  const end = (start===a) ? b : e;
+  if(start!==-1 && end!==-1){ try{ return JSON.parse(t.slice(start,end+1)); }catch(e){} }
+  return null;
+}
+
+/* ---------- research ---------- */
+const LANG_LABEL = { ja:"日本語", en:"English" };
+function researchSystemPrompt(mode){
+  const lang = LANG_LABEL[settings.lang];
+  return [
+`あなたは B2B 営業のためのリサーチャーです。ウェブ検索を使い、実在する企業・店舗の情報だけを集めます。`,
+`出力言語: ${lang}。推測は "note" に明記し、事実と分けること。`,
+mode==="discover"
+ ? `与えられたエリアと業種から、条件に合う実在の事業者を最大件数まで挙げます。各社について自社サイトの有無と品質を必ず評価します。`
+ : `与えられた1社を深掘りします。`,
+`必ず次の JSON のみを出力（前後に文章やコードフェンスを付けない）:`,
+`{"prospects":[{"name":"事業者名","category":"業種","area":"所在エリア","summary":"事業内容の要約(1-2文)","contact":{"email":"","phone":"","instagram":"","form_url":"","other":""},"website":{"url":null,"status":"none|social_only|outdated|ok","note":"評価の根拠"},"sources":["参照URL"]}]}`,
+`status: none=自社サイト無し, social_only=SNS/ポータルのみ, outdated=古い/低品質, ok=十分。`,
+`連絡先が公開情報から分からない項目は空文字。捏造しない。`
+  ].join("\n\n");
+}
+const MIX_LABEL = {
+  half:"企業(法人オフィス・事業所)と店舗(個人経営の小売・飲食・サービス店)を、件数のおよそ半々(5:5)で混在させる。",
+  biz:"企業(法人オフィス・事業所)を中心に選ぶ。店舗は少数でよい。",
+  shop:"個人経営の店舗(小売・飲食・美容・整体など)を中心に選ぶ。",
+};
+const BATCH_SIZE = 20; // 1回のリサーチで狙う件数の目安。これを超える要求は自動で複数回に分ける
+function mergeProspect(p, sitePreset){
+  if(!p||!p.name) return false;
+  const dup = prospects.find(x=>x.name.trim()===p.name.trim());
+  const st = (p.website&&p.website.status)||"none";
+  const rec = {
+    id: dup?dup.id:uid(), name:p.name, category:p.category||"", area:p.area||"", summary:p.summary||"",
+    contact: Object.assign({email:"",phone:"",instagram:"",form_url:"",other:""}, p.contact||{}),
+    website:{ url:(p.website&&p.website.url)||null, status:st, note:(p.website&&p.website.note)||"" },
+    isTarget: st!=="ok", sources: Array.isArray(p.sources)?p.sources:[],
+    createdAt: dup?dup.createdAt:Date.now(),
+  };
+  if(dup){ Object.assign(dup,rec); }else{ prospects.unshift(rec); }
+  if(rec.isTarget) saveProspectToSupabase(rec, sitePreset);
+  return !dup;
+}
+async function runResearch(){
+  const mode = currentMode;
+  if(mode!=="discover"){
+    const t=$("#fTarget").value.trim();
+    if(!t){ toast("会社名またはURLを入力してください"); return; }
+    const userMsg = `対象: ${t}\n補足: ${$("#fTargetNote").value.trim()||"（なし）"}`;
+    setBusy(true);
+    try{
+      const { text } = await callClaude({
+        system: researchSystemPrompt(mode), user: userMsg,
+        tools:[{ type:"web_search_20260209", name:"web_search", max_uses:8 }], maxTokens:8000,
+      });
+      const parsed = parseJsonLoose(text);
+      if(!parsed || !Array.isArray(parsed.prospects)){ renderOutRaw(text); toast("JSONの解析に失敗しました"); return; }
+      let added=0;
+      parsed.prospects.forEach(p=>{ if(mergeProspect(p,null)) added++; });
+      LS.set("eigyo.prospects",prospects); renderProspects();
+      toast(added?`${added}件を追加`:"見込み客を更新しました");
+    }catch(err){
+      $("#rstatus").innerHTML = `<span style="color:var(--bad)">${esc(err.message)}</span>`;
+    }finally{ setBusy(false); }
+    return;
+  }
+
+  const area=$("#fArea").value.trim(), cat=$("#fCategory").value.trim();
+  if(!area||!cat){ toast("エリアと業種を入力してください"); return; }
+  const preset = SITE_PRESETS[$("#fSitePreset").value];
+  const mix = $("#fMix").value;
+  const target = parseInt($("#fCount").value,10)||10;
+  const allowedDomains = preset ? preset.domains : null;
+  const sitePresetKey = $("#fSitePreset").value;
+
+  setBusy(true);
+  let totalAdded=0, seenNames=new Set(prospects.map(p=>p.name.trim()));
+  const batches = Math.max(1, Math.ceil(target/BATCH_SIZE));
+  try{
+    for(let i=0;i<batches;i++){
+      const wantThisBatch = Math.min(BATCH_SIZE, target - i*BATCH_SIZE);
+      if(wantThisBatch<=0) break;
+      if(batches>1) $("#rstatus").innerHTML = `<span class="spinner"></span> 調査中…（${i+1}/${batches}バッチ、目標${target}件）`;
+      let userMsg = `エリア: ${area}\n業種: ${cat}\n絞り込み条件: ${$("#fCondition").value.trim()||"（なし）"}\n取得件数の上限: ${wantThisBatch}`;
+      if(preset) userMsg += `\n検索対象サイト: ${preset.label}（${preset.hint}）`;
+      if(mix && MIX_LABEL[mix]) userMsg += `\n内訳の方針: ${MIX_LABEL[mix]}`;
+      if(seenNames.size) userMsg += `\n既出のため除外する事業者名: ${[...seenNames].slice(-120).join(" / ")}`;
+      const searchTool = { type:"web_search_20260209", name:"web_search", max_uses:8 };
+      if(allowedDomains) searchTool.allowed_domains = allowedDomains;
+      const { text } = await callClaude({
+        system: researchSystemPrompt(mode), user: userMsg,
+        tools:[searchTool], maxTokens:8000,
+      });
+      const parsed = parseJsonLoose(text);
+      if(!parsed || !Array.isArray(parsed.prospects)){
+        if(i===0){ renderOutRaw(text); toast("JSONの解析に失敗しました"); return; }
+        break; // 途中バッチの失敗はそこまでの結果を活かして打ち切る
+      }
+      let addedThisBatch=0;
+      parsed.prospects.forEach(p=>{
+        if(!p||!p.name) return;
+        const name=p.name.trim();
+        if(seenNames.has(name)) return;
+        seenNames.add(name);
+        if(mergeProspect(p, sitePresetKey)){ addedThisBatch++; totalAdded++; }
+      });
+      LS.set("eigyo.prospects",prospects); renderProspects();
+      if(!addedThisBatch && batches>1) break; // 新規0件が続くなら早めに切り上げ
+    }
+    toast(totalAdded?`${totalAdded}件を追加`:"見込み客を更新しました");
+  }catch(err){
+    $("#rstatus").innerHTML = `<span style="color:var(--bad)">${esc(err.message)}</span>`;
+  }finally{ setBusy(false); }
+}
+function setBusy(b){
+  $("#btnResearch").disabled=b;
+  if(b) $("#rstatus").innerHTML = '<span class="spinner"></span> 調査中…（30秒〜数分。件数が多いほど時間がかかります）';
+  else $("#rstatus").innerHTML = "";
+}
+
+/* ---------- prospect list ---------- */
+const STATUS_BADGE = {
+  none:['b-none','サイト無し'], social_only:['b-social','SNSのみ'],
+  outdated:['b-outdated','古い/低品質'], ok:['b-ok','サイトあり'],
+};
+function contactHint(c){
+  const p=[];
+  if(c.email) p.push("✉"); else if(c.form_url) p.push("フォーム");
+  if(c.instagram) p.push("IG"); if(c.phone) p.push("☎");
+  return p.join(" ");
+}
+function renderProspects(){
+  $("#pCount").textContent = prospects.length;
+  const onlyT = $("#fltTarget").checked;
+  const list = prospects.filter(p=>!onlyT||p.isTarget);
+  if(!list.length){
+    $("#prospectList").innerHTML = `<div class="empty">まだ見込み客がいません。<br>上のバーからリサーチしてください。</div>`;
+    return;
+  }
+  $("#prospectList").innerHTML = list.map(p=>{
+    const [cls,txt] = STATUS_BADGE[p.website.status]||STATUS_BADGE.none;
+    const done = !!assets[p.id];
+    return `<div class="prow ${p.id===selectedId?'sel':''}" data-id="${p.id}">
+      <div class="pname">${done?'<span class="spark"></span> ':''}${esc(p.name)}</div>
+      <div class="pmeta">${esc(p.category)}${p.area?" ・ "+esc(p.area):""}</div>
+      <div class="prow-b">
+        <span class="badge ${cls}">${txt}</span>
+        <span class="kv">${esc(contactHint(p.contact))}</span>
+        <span style="flex:1"></span>
+        <button class="ghost sm" data-del="${p.id}">✕</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- output pane ---------- */
+function renderOutEmpty(){
+  const needKey = !settings.apiKey;
+  $("#outBody").innerHTML = `<div class="empty" style="padding-top:56px;max-width:420px;margin:0 auto">
+    ${needKey
+      ? `AIを動かすには <b>⚙設定</b> で「APIキー」の登録が必要です。<br>
+         キーがなくても、まずは<b>デモ</b>で動きを確認できます。<br>
+         <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+           <button class="primary sm" id="btnEmptyDemo">デモを見る（キー不要）</button>
+           <button class="ghost sm" id="btnEmptySettings">設定を開く</button>
+           <button class="ghost sm" id="btnEmptyHelp">使い方を見る</button>
+         </div>`
+      : `上のバーでリサーチ →左のリストで相手を選ぶと、<br>ここに調査メモ・課題仮説・営業メール・サンプル提案が出ます。<br>
+         <button class="ghost sm" id="btnEmptyDemo" style="margin-top:12px">デモを見る</button>`}
+  </div>`;
+  const d = $("#btnEmptyDemo"); if(d) d.onclick = loadDemo;
+  const s = $("#btnEmptySettings"); if(s) s.onclick = openSettings;
+  const hp = $("#btnEmptyHelp"); if(hp) hp.onclick = openHelp;
+}
+function renderOutRaw(text){
+  $("#outBody").innerHTML = `<h3 class="big">応答（JSON解析に失敗）</h3>
+    <p class="sub">内容を確認してもう一度実行してください。</p>
+    <div class="field-out">${esc(text||"(空の応答)")}</div>`;
+}
+function selectProspect(id){
+  selectedId = id;
+  renderProspects();
+  const p = prospects.find(x=>x.id===id); if(!p) return;
+  if(assets[id]) renderAsset(id);
+  else{
+    const noKeyDemo = p.demo && !settings.apiKey;
+    $("#outBody").innerHTML = `
+      <div class="sub" style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <h3 class="big" style="margin:0">${esc(p.name)}</h3>
+        <span style="flex:1;min-width:80px">${esc(p.category)}${p.area?" ・ "+esc(p.area):""}${p.website.url?' ・ <a href="'+esc(p.website.url)+'" target="_blank" rel="noopener">サイト</a>':""}</span>
+      </div>
+      <div class="field-out">${esc(p.summary||"（要約なし）")}</div>
+      ${p.website.note?`<p class="kv" style="margin:10px 0 0">サイト評価: ${esc(p.website.note)}</p>`:""}
+      <div class="out-actions" style="justify-content:flex-start;margin-top:16px">
+        ${noKeyDemo
+          ? `<span class="kv">この相手のデモ例は未収録です。実際に作るには ⚙設定 でAPIキーを登録してください。</span>`
+          : `<button class="primary" id="btnAttack">この相手のアプローチ一式を作る</button>`}
+      </div>
+      ${noKeyDemo?"":`<p class="kv">自分の商材を設定しておくと精度が上がります（⚙ 設定）。</p>`}`;
+    const ba = $("#btnAttack"); if(ba) ba.onclick = ()=>runAttack(id);
+  }
+}
+
+/* ---------- asset generation ---------- */
+function assetSystemPrompt(){
+  const m = settings.me, lang = LANG_LABEL[settings.lang];
+  const meLines = [
+    m.name && `担当者名: ${m.name}`, m.brand && `屋号/会社: ${m.brand}`,
+    m.services && `商材/サービス: ${m.services}`, m.strength && `強み: ${m.strength}`,
+    m.price && `料金感: ${m.price}`, m.portfolio && `実績URL: ${m.portfolio}`, m.sign && `署名: ${m.sign}`,
+  ].filter(Boolean).join("\n") || "（自分の情報は未設定。商材は汎用的に、当たり障りなく仮定する）";
+  return [
+`あなたは経験豊富なB2B営業兼コピーライターです。出力言語: ${lang}。`,
+`次の「自分（送り手）の情報」を踏まえ、渡されたターゲット企業への初回アプローチ一式を作ります。`,
+`--- 自分の情報 ---\n${meLines}\n---`,
+`メールは「具体的な言及 → 相手の状況/課題への共感 → 提供価値 → 軽いCTA(押し付けない)」。誇大表現・不確かな断定は避ける。`,
+`電話・訪問については、実際にその場で読み上げられる「台本(トークスクリプト)」を作る。名乗り→要件→相手の反応別の分岐→次の約束、まで含め、間の取り方が分かるよう改行を入れる。`,
+`必ず次の JSON のみを出力（前後に文章やコードフェンスを付けない）:`,
+`{"research_note":"調査からわかったこと・所感(2-4文)","hypotheses":["課題の仮説"],"email":{"subject":"件名","body":"本文（署名込み）"},"dm":{"text":"Instagram/フォーム向けの短い文面"},"script":{"phone":"電話でのトークスクリプト（名乗り〜要件〜反応別分岐〜次の約束）","visit":"直接訪問（飛び込み）用のトークスクリプト（受付突破〜要件〜反応別分岐〜次の約束）"},"followups":[{"label":"3日後・未返信","body":""},{"label":"1週間後・別角度","body":""}],"objections":[{"q":"断り文句","a":"返し方"}],"sample":{"applicable":true,"kind":"サンプルの種類（例: LP / チラシ / Instagram投稿案 / メニュー表 / 提案スライド1枚 / 広告バナー案）","description":"このサンプルで何を提案しているかの説明(1-2文)","html":"<!doctype html>..."}}`,
+`sample: まず「相手企業が抱えていそうな課題」を1つ特定し（集客・認知・予約導線・客単価・採用・リピートなど、調査内容から具体的に）、それを解決して見せる“サンプル提案のイメージ”を作る。表現形式は自分の商材に合わせる（Web制作ならLP、飲食コンサルならメニュー表や店頭POP、SNS運用ならInstagram投稿3枚のモックなど）。1ファイルHTML（インラインCSS、外部依存なし）で、実在しそうなダミーの文言・写真枠・キャッチコピーを入れ、viewport幅に収める。description には「どの課題に対する提案か」を明記する。視覚的なサンプルが本当に無意味な商材のときだけ applicable=false, html=""。`
+  ].join("\n\n");
+}
+async function runAttack(id){
+  const p = prospects.find(x=>x.id===id); if(!p) return;
+  if(p.demo && !settings.apiKey){
+    toast("デモの例です。作り直すにはAPIキーの登録が必要です");
+    if(assets[id]) renderAsset(id);
+    return;
+  }
+  selectedId = id; renderProspects();
+  $("#outBody").innerHTML = `<div class="empty" style="padding-top:64px"><span class="spinner"></span> 生成中…（30秒〜2分ほど）</div>`;
+  try{
+    const { text } = await callClaude({
+      system: assetSystemPrompt(),
+      user: "ターゲット企業（JSON）:\n"+JSON.stringify({
+        name:p.name, category:p.category, area:p.area, summary:p.summary,
+        contact:p.contact, website:p.website, sources:p.sources }, null, 2),
+      maxTokens: 16000,
+    });
+    const a = parseJsonLoose(text);
+    if(!a || !a.email){ renderOutRaw(text); toast("JSONの解析に失敗しました"); return; }
+    a.createdAt = Date.now();
+    assets[id] = a; LS.set("eigyo.assets",assets);
+    renderProspects(); renderAsset(id);
+    toast("成果物を生成しました");
+  }catch(err){
+    $("#outBody").innerHTML = `<div class="warnbox">${esc(err.message)}</div>
+      <button class="ghost sm" id="btnRetry" style="margin-top:10px">もう一度試す</button>`;
+    $("#btnRetry").onclick = ()=>runAttack(id);
+  }
+}
+function outBlock(label, txt, copyLabel){
+  const idc = "c"+Math.random().toString(16).slice(2);
+  return `<label>${esc(label)}</label>
+    <div class="field-out" id="${idc}">${esc(txt)}</div>
+    <div class="out-actions"><button class="ghost sm" data-copy="${idc}">${copyLabel||"コピーする"}</button></div>`;
+}
+function renderAsset(id){
+  const p = prospects.find(x=>x.id===id); const a = assets[id]; if(!a) return;
+  let h = `<div class="sub" style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+      <h3 class="big" style="margin:0">${esc(p.name)}</h3>
+      <span style="flex:1;min-width:80px">${esc(p.category)}${p.area?" ・ "+esc(p.area):""}</span>
+      <button class="ghost sm" id="btnRegen">作り直す</button>
+    </div>`;
+  if(a.research_note) h += `<details class="card" open><summary>調査メモ</summary><div class="note-text">${esc(a.research_note)}</div></details>`;
+  if(Array.isArray(a.hypotheses)&&a.hypotheses.length)
+    h += `<details class="card" open><summary>課題の仮説</summary><ul class="hyp">${a.hypotheses.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`;
+  h += `<details class="card" open><summary>営業メール</summary>
+    ${outBlock("件名", a.email.subject||"")}
+    ${outBlock("本文", a.email.body||"")}</details>`;
+  if(a.dm && a.dm.text)
+    h += `<details class="card"><summary>DM / フォーム用</summary>${outBlock("文面", a.dm.text)}</details>`;
+  if(a.script && (a.script.phone||a.script.visit)){
+    h += `<details class="card"><summary>トークスクリプト（電話・直接訪問）</summary>`;
+    if(a.script.phone) h += outBlock("電話", a.script.phone);
+    if(a.script.visit) h += outBlock("直接訪問", a.script.visit);
+    h += `</details>`;
+  }
+  if(Array.isArray(a.followups)&&a.followups.length){
+    h += `<details class="card"><summary>フォローアップ</summary>`;
+    a.followups.forEach(f=> h += outBlock(f.label||"フォローアップ", f.body||""));
+    h += `</details>`;
+  }
+  if(Array.isArray(a.objections)&&a.objections.length){
+    h += `<details class="card"><summary>想定反論と返し</summary>`;
+    a.objections.forEach(o=> h += `<div class="field-out qa"><b>Q.</b> ${esc(o.q)}<br><br><b>A.</b> ${esc(o.a)}</div>`);
+    h += `</details>`;
+  }
+  if(a.sample && a.sample.applicable && a.sample.html){
+    h += `<details class="card" open><summary>サンプル提案${a.sample.kind?"（"+esc(a.sample.kind)+"）":""}</summary>
+      <div class="kv">${esc(a.sample.description||"")}</div>
+      <div class="out-actions">
+        <button class="ghost sm" id="btnSampleDl">HTMLをダウンロード</button>
+        <button class="ghost sm" id="btnSampleOpen">新しいタブで開く</button></div>
+      <iframe class="preview" id="sampleFrame"></iframe></details>`;
+  }
+  $("#outBody").innerHTML = h;
+  $("#btnRegen").onclick = ()=>runAttack(id);
+  if(a.sample && a.sample.applicable && a.sample.html){
+    $("#sampleFrame").srcdoc = a.sample.html;
+    const blobUrl = ()=>URL.createObjectURL(new Blob([a.sample.html],{type:"text/html"}));
+    $("#btnSampleDl").onclick = ()=>{
+      const u=blobUrl(); const link=document.createElement("a");
+      link.href=u; link.download=(p.name.replace(/[^\w一-龠ぁ-んァ-ヶー]+/g,"_")||"sample")+".html";
+      link.click(); setTimeout(()=>URL.revokeObjectURL(u),4000);
+    };
+    $("#btnSampleOpen").onclick = ()=> window.open(blobUrl(),"_blank");
+  }
+  $$("[data-copy]",$("#outBody")).forEach(b=> b.onclick = ()=>{
+    navigator.clipboard.writeText(document.getElementById(b.dataset.copy).textContent).then(()=>toast("コピーしました"));
+  });
+}
+
+/* ---------- CSV ---------- */
+function exportCsv(){
+  if(!prospects.length){ toast("データがありません"); return; }
+  const head = ["name","category","area","summary","website_status","website_url","email","phone","instagram","form_url","sources"];
+  const rows = prospects.map(p=>[p.name,p.category,p.area,p.summary,p.website.status,p.website.url||"",
+    p.contact.email,p.contact.phone,p.contact.instagram,p.contact.form_url,(p.sources||[]).join(" | ")]);
+  const csv = [head,...rows].map(r=>r.map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const u = URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv"}));
+  const a=document.createElement("a"); a.href=u; a.download="prospects.csv"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(u),4000);
+}
+
+/* ---------- wiring ---------- */
+let currentMode="discover";
+$$("#modeSeg button").forEach(b=> b.onclick=()=>{
+  currentMode=b.dataset.mode;
+  $$("#modeSeg button").forEach(x=>x.classList.toggle("active",x===b));
+  $("#fDiscover").style.display = currentMode==="discover"?"contents":"none";
+  $("#fSingle").style.display = currentMode==="single"?"contents":"none";
+});
+$("#btnResearch").onclick = runResearch;
+$("#fltTarget").onchange = renderProspects;
+$("#btnCsv").onclick = exportCsv;
+$("#btnClear").onclick = ()=>{
+  if(!prospects.length){ toast("データがありません"); return; }
+  if(!confirm("見込み客と成果物をすべて削除します。よろしいですか？")) return;
+  prospects=[]; assets={}; selectedId=null;
+  LS.set("eigyo.prospects",prospects); LS.set("eigyo.assets",assets);
+  renderProspects(); renderOutEmpty();
+};
+$("#prospectList").addEventListener("click",e=>{
+  const del = e.target.closest("[data-del]");
+  if(del){
+    const id=del.dataset.del; const p=prospects.find(x=>x.id===id);
+    if(!confirm(`「${p.name}」を削除しますか？`)) return;
+    prospects=prospects.filter(x=>x.id!==id); delete assets[id];
+    if(selectedId===id){ selectedId=null; renderOutEmpty(); }
+    LS.set("eigyo.prospects",prospects); LS.set("eigyo.assets",assets);
+    renderProspects();
+    return;
+  }
+  const row = e.target.closest(".prow");
+  if(row) selectProspect(row.dataset.id);
+});
+
+/* settings */
+function openSettings(){
+  $("#sApiKey").value=settings.apiKey;
+  const m=settings.me;
+  $("#sMeName").value=m.name; $("#sMeBrand").value=m.brand; $("#sMeServices").value=m.services;
+  $("#sMeStrength").value=m.strength; $("#sMePrice").value=m.price;
+  $("#sMePortfolio").value=m.portfolio; $("#sMeSign").value=m.sign;
+  $("#settingsModal").classList.add("open");
+}
+function closeSettings(){ $("#settingsModal").classList.remove("open"); }
+function openHelp(){ $("#helpModal").classList.add("open"); }
+function closeHelp(){ $("#helpModal").classList.remove("open"); }
+$("#btnHelp").onclick = openHelp;
+$("#costPill").onclick = openHelp;
+$("#btnHelpClose").onclick = closeHelp;
+$("#btnHelpDemo").onclick = ()=>{ closeHelp(); loadDemo(); };
+$("#helpModal").addEventListener("click",e=>{ if(e.target===$("#helpModal")) closeHelp(); });
+$("#btnSettings").onclick = openSettings;
+$("#btnSettingsCancel").onclick = closeSettings;
+$("#settingsModal").addEventListener("click",e=>{ if(e.target===$("#settingsModal")) closeSettings(); });
+$("#btnSettingsSave").onclick = ()=>{
+  settings.apiKey=$("#sApiKey").value.trim();
+  settings.me = { name:$("#sMeName").value.trim(), brand:$("#sMeBrand").value.trim(),
+    services:$("#sMeServices").value.trim(), strength:$("#sMeStrength").value.trim(),
+    price:$("#sMePrice").value.trim(), portfolio:$("#sMePortfolio").value.trim(), sign:$("#sMeSign").value.trim() };
+  LS.set("eigyo.settings",settings); renderCost(); closeSettings(); toast("設定を保存しました");
+  if(settings.apiKey && !settings.apiKey.startsWith("sk-ant-")) toast("キーの形式が想定と異なります");
+};
+
+/* recommendations: 開いた瞬間にSupabaseの prospects から自動表示（操作不要） */
+async function saveProspectToSupabase(rec, preset){
+  try{
+    await eigyoSb.from("prospects").insert({
+      name: rec.name, category: rec.category, area: rec.area, summary: rec.summary,
+      hypothesis: rec.summary, website_status: rec.website.status, website_url: rec.website.url,
+      website_note: rec.website.note, contact: rec.contact, sources: rec.sources, source_preset: preset||null,
+    });
+  }catch(e){ /* DB未設定でも本体機能は継続。静かに無視 */ }
+}
+async function loadRecommendations(){
+  let items = []; let updatedAt = null;
+  try{
+    const { data, error } = await eigyoSb
+      .from("prospects")
+      .select("name, category, area, summary, hypothesis, website_note, sources, created_at")
+      .order("created_at", { ascending:false })
+      .limit(10);
+    if(!error && Array.isArray(data) && data.length){ items = data; updatedAt = data[0].created_at; }
+  }catch(e){ /* 未接続時はフォールバックへ */ }
+  if(!items.length){
+    // Supabase未接続・データ0件の間は、既存のデモ企業（攻略対象のみ）を「おすすめ」として表示
+    items = DEMO_PROSPECTS.filter(p=>p.isTarget).map(p=>({ name:p.name, category:p.category, area:p.area, summary:p.summary, hypothesis:p.summary }));
+  }
+  if(!items.length) return;
+  $("#recoUpdated").textContent = updatedAt ? "更新: "+formatRecoDate(updatedAt) : "デモ表示（リサーチすると実データに切り替わります）";
+  function sourceLabel(url){
+    if(/retty\.me/.test(url)) return "Rettyで見る";
+    if(/ekiten\.jp/.test(url)) return "エキテンで見る";
+    if(/instagram\.com/.test(url)) return "Instagramで見る";
+    if(/tabelog\.com/.test(url)) return "食べログで見る";
+    if(/hotpepper\.jp/.test(url)) return "ホットペッパーで見る";
+    if(/onisanpo\.com/.test(url)) return "岡山おにさんぽで見る";
+    if(/x\.com|twitter\.com/.test(url)) return "Xで見る";
+    if(/facebook\.com/.test(url)) return "Facebookで見る";
+    return "紹介記事を見る";
+  }
+  $("#recoRow").innerHTML = items.map(p=>{
+    const src = Array.isArray(p.sources) && p.sources[0];
+    const indeedUrl = "https://jp.indeed.com/jobs?q=" + encodeURIComponent(p.name||"") + "&l=" + encodeURIComponent(p.area||"岡山県");
+    return `
+    <div class="reco-card">
+      <div class="rname">${esc(p.name||"")}</div>
+      <div class="rmeta">${esc(p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
+      ${p.summary?`<div class="rjob">${esc(p.summary)}</div>`:""}
+      ${p.hypothesis?`<div class="rhyp"><b>想定される課題:</b> ${esc(p.hypothesis)}</div>`:""}
+      ${p.website_note?`<div class="rmeta" style="margin-top:6px">根拠: ${esc(p.website_note)}</div>`:""}
+      <div class="rmeta" style="display:flex;gap:10px;margin-top:2px">
+        ${src?`<a href="${esc(src)}" target="_blank" rel="noopener">${sourceLabel(src)} →</a>`:""}
+        <a href="${indeedUrl}" target="_blank" rel="noopener">Indeedで求人を見る →</a>
+      </div>
+    </div>`;}).join("");
+  $("#recoSection").style.display = "";
+}
+function formatRecoDate(iso){
+  const d = new Date(iso);
+  const pad = n=>String(n).padStart(2,"0");
+  return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+$("#btnToggleSearch").onclick = ()=>{
+  const bar = $("#rbar"); const open = bar.style.display!=="none";
+  bar.style.display = open?"none":"flex";
+  $("#btnToggleSearch").textContent = open? "＋ 自分で条件を指定して探す" : "－ 条件指定を閉じる";
+  $("#workArea").style.display = open?"none":"";
+  $("#btnSettings").classList.toggle("hidden", open);
+};
+if(prospects.length) $("#workArea").style.display = "";
+
+/* init */
+renderCost(); renderProspects(); renderDemoBanner(); loadRecommendations();
+if(selectedId && assets[selectedId]) renderAsset(selectedId); else renderOutEmpty();
+</script>
+</body>
+</html>
