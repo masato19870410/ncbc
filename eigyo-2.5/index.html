@@ -58,6 +58,22 @@
   .card .block{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
   .card .block b{font-weight:600}
   .card .block .txt{white-space:pre-wrap;margin:3px 0 0}
+  .card .dist{font-size:11px;color:var(--muted);margin-top:6px}
+
+  .toolbar{max-width:1100px;margin:0 auto 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+  .toolbar .grp{display:flex;align-items:center;gap:6px}
+  .toolbar label{font-size:11.5px;color:var(--muted)}
+  .toolbar .seg{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .toolbar .seg button{font-family:inherit;font-size:12px;cursor:pointer;border:none;border-right:1px solid var(--border);
+    background:var(--panel);color:var(--muted);padding:6px 11px}
+  .toolbar .seg button:last-child{border-right:none}
+  .toolbar .seg button.active{background:var(--text);color:var(--bg);font-weight:600}
+  .toolbar select{font-family:inherit;font-size:12px;color:var(--text);background:var(--panel);
+    border:1px solid var(--border);border-radius:var(--radius);padding:6px 9px}
+  .toolbar .locbtn{font-family:inherit;font-size:12px;cursor:pointer;border-radius:var(--radius);border:1px solid var(--border);
+    background:var(--panel);color:var(--text);padding:6px 11px}
+  .toolbar .locbtn:hover{border-color:var(--text)}
+  .toolbar .locbtn.on{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
 </style>
 </head>
 <body>
@@ -68,6 +84,36 @@
 </header>
 
 <div class="wrap">
+  <div class="toolbar">
+    <div class="grp">
+      <label>種別</label>
+      <div class="seg" id="typeSeg">
+        <button data-v="all" class="active">すべて</button>
+        <button data-v="企業">企業</button>
+        <button data-v="店舗">店舗</button>
+      </div>
+    </div>
+    <div class="grp">
+      <label>サイト状態</label>
+      <div class="seg" id="statusSeg">
+        <button data-v="all" class="active">すべて</button>
+        <button data-v="none">サイトなし</button>
+        <button data-v="social_only">SNS/ポータルのみ</button>
+        <button data-v="outdated">古い/低品質</button>
+      </div>
+    </div>
+    <div class="grp">
+      <label>並び替え</label>
+      <select id="sortSel">
+        <option value="new">新着順</option>
+        <option value="kana">五十音順</option>
+        <option value="dist">現在地から近い順</option>
+      </select>
+    </div>
+    <div class="grp">
+      <button class="locbtn" id="locBtn">現在地を使う</button>
+    </div>
+  </div>
   <div class="list-head">
     <h2>リストアップ結果</h2>
     <span class="kv" id="updated"></span>
@@ -96,6 +142,109 @@ function formatDate(iso){
 function indeedUrl(name, area){
   return "https://jp.indeed.com/jobs?q=" + encodeURIComponent(name||"") + "&l=" + encodeURIComponent(area||"岡山県");
 }
+function haversineKm(lat1,lng1,lat2,lng2){
+  const R = 6371, toRad = d=>d*Math.PI/180;
+  const dLat = toRad(lat2-lat1), dLng = toRad(lng2-lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+
+let allItems = [];
+let state = { type:"all", status:"all", sort:"new", myPos:null };
+
+function applyAndRender(){
+  let list = allItems.filter(p=>{
+    if(state.type!=="all" && bizType(p.name)!==state.type) return false;
+    if(state.status!=="all" && p.website_status!==state.status) return false;
+    return true;
+  });
+  if(state.sort==="kana"){
+    list = list.slice().sort((a,b)=> (a.name||"").localeCompare(b.name||"","ja"));
+  }else if(state.sort==="dist" && state.myPos){
+    list = list.slice().map(p=>{
+      const c = p.contact||{};
+      const d = (typeof c.lat==="number" && typeof c.lng==="number")
+        ? haversineKm(state.myPos.lat, state.myPos.lng, c.lat, c.lng) : Infinity;
+      return Object.assign({}, p, { _dist:d });
+    }).sort((a,b)=> a._dist - b._dist);
+  } // "new" は取得順（created_at desc）のまま
+
+  const grid = document.getElementById("grid");
+  if(!list.length){
+    grid.innerHTML = `<div class="empty">条件に合うデータがありません。</div>`;
+    document.getElementById("updated").textContent = "";
+    return;
+  }
+  document.getElementById("updated").textContent =
+    "更新: " + formatDate(allItems[0].created_at) + "（" + list.length + "/" + allItems.length + "件）";
+  grid.innerHTML = list.map((p)=>{
+    const [cls,txt] = STATUS_BADGE[p.website_status] || STATUS_BADGE.none;
+    const type = bizType(p.name);
+    const src = Array.isArray(p.sources) && p.sources[0];
+    const c = p.contact || {};
+    const distTxt = (typeof p._dist==="number" && isFinite(p._dist)) ? `現在地から約${p._dist.toFixed(1)}km` : "";
+    return `<div class="card">
+      <div>
+        <span class="badge b-type">${type}</span>
+        <span class="badge ${cls}">${txt}</span>
+      </div>
+      <div class="name">${esc(p.name||"")}</div>
+      <div class="meta">${esc(p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
+      ${p.summary?`<div class="summary">${esc(p.summary)}</div>`:""}
+      ${p.hypothesis?`<div class="issue"><b>課題:</b> ${esc(p.hypothesis)}</div>`:""}
+      ${c.proposal?`<div class="block"><b>提案:</b><div class="txt">${esc(c.proposal)}</div></div>`:""}
+      ${c.pitch?`<div class="block"><b>文面:</b><div class="txt">${esc(c.pitch)}</div></div>`:""}
+      ${c.script?`<div class="block"><b>台本:</b><div class="txt">${esc(c.script)}</div></div>`:""}
+      ${distTxt?`<div class="dist">${distTxt}</div>`:""}
+      <div class="meta" style="display:flex;gap:10px;margin-top:8px">
+        ${src?`<a href="${esc(src)}" target="_blank" rel="noopener">情報源を見る →</a>`:""}
+        <a href="${indeedUrl(p.name,p.area)}" target="_blank" rel="noopener">Indeedで求人を見る →</a>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function wireToolbar(){
+  document.querySelectorAll("#typeSeg button").forEach(b=>{
+    b.onclick = ()=>{
+      state.type = b.dataset.v;
+      document.querySelectorAll("#typeSeg button").forEach(x=>x.classList.toggle("active", x===b));
+      applyAndRender();
+    };
+  });
+  document.querySelectorAll("#statusSeg button").forEach(b=>{
+    b.onclick = ()=>{
+      state.status = b.dataset.v;
+      document.querySelectorAll("#statusSeg button").forEach(x=>x.classList.toggle("active", x===b));
+      applyAndRender();
+    };
+  });
+  document.getElementById("sortSel").onchange = (e)=>{
+    state.sort = e.target.value;
+    if(state.sort==="dist" && !state.myPos){ requestLocation(); }
+    else applyAndRender();
+  };
+  document.getElementById("locBtn").onclick = requestLocation;
+}
+function requestLocation(){
+  const btn = document.getElementById("locBtn");
+  if(!navigator.geolocation){ alert("この端末では現在地が取得できません。"); return; }
+  btn.textContent = "取得中…";
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      state.myPos = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+      btn.textContent = "現在地を使用中"; btn.classList.add("on");
+      document.getElementById("sortSel").value = "dist";
+      state.sort = "dist";
+      applyAndRender();
+    },
+    ()=>{
+      btn.textContent = "現在地を使う";
+      alert("現在地を取得できませんでした。位置情報の利用を許可してください。");
+    },
+    { timeout:8000 }
+  );
+}
 
 async function load(){
   const { data, error } = await sb
@@ -109,34 +258,12 @@ async function load(){
     return;
   }
   const seen = new Set();
-  const list = data.filter(p=>{
+  allItems = data.filter(p=>{
     if(seen.has(p.name)) return false;
     seen.add(p.name); return true;
   }).slice(0, 20);
-  document.getElementById("updated").textContent = "更新: " + formatDate(list[0].created_at) + "（" + list.length + "件）";
-  grid.innerHTML = list.map((p,i)=>{
-    const [cls,txt] = STATUS_BADGE[p.website_status] || STATUS_BADGE.none;
-    const type = bizType(p.name);
-    const src = Array.isArray(p.sources) && p.sources[0];
-    const c = p.contact || {};
-    return `<div class="card" data-i="${i}">
-      <div>
-        <span class="badge b-type">${type}</span>
-        <span class="badge ${cls}">${txt}</span>
-      </div>
-      <div class="name">${esc(p.name||"")}</div>
-      <div class="meta">${esc(p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
-      ${p.summary?`<div class="summary">${esc(p.summary)}</div>`:""}
-      ${p.hypothesis?`<div class="issue"><b>課題:</b> ${esc(p.hypothesis)}</div>`:""}
-      ${c.proposal?`<div class="block"><b>提案:</b><div class="txt">${esc(c.proposal)}</div></div>`:""}
-      ${c.pitch?`<div class="block"><b>文面:</b><div class="txt">${esc(c.pitch)}</div></div>`:""}
-      ${c.script?`<div class="block"><b>台本:</b><div class="txt">${esc(c.script)}</div></div>`:""}
-      <div class="meta" style="display:flex;gap:10px;margin-top:8px">
-        ${src?`<a href="${esc(src)}" target="_blank" rel="noopener">情報源を見る →</a>`:""}
-        <a href="${indeedUrl(p.name,p.area)}" target="_blank" rel="noopener">Indeedで求人を見る →</a>
-      </div>
-    </div>`;
-  }).join("");
+  wireToolbar();
+  applyAndRender();
 }
 load();
 </script>
