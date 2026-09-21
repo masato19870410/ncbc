@@ -48,11 +48,29 @@
   .card .summary{font-size:12.5px;margin-bottom:10px;line-height:1.55}
   .card .issue{font-size:12px;border-top:1px solid var(--border);padding-top:8px;line-height:1.55}
   .card .issue b{font-weight:600}
-  .badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;margin-bottom:6px}
+  .badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;margin:0 6px 6px 0}
   .b-none{background:var(--bad-bg);color:var(--bad)}
   .b-social{background:var(--warn-bg);color:var(--warn)}
   .b-ok{background:var(--ok-bg);color:var(--ok)}
+  .b-type{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px}
+
+  .keybar{max-width:1100px;margin:0 auto 18px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+  .keybar input{font-family:inherit;font-size:12.5px;color:var(--text);background:var(--panel);
+    border:1px solid var(--border);border-radius:var(--radius);padding:6px 9px;width:260px;max-width:60vw}
+  .keybar button{font-family:inherit;font-size:12px;cursor:pointer;border-radius:var(--radius);border:1px solid var(--border);
+    background:var(--panel);color:var(--text);padding:6px 12px}
+  .keybar button:hover{border-color:var(--text)}
+
+  .card .gen{margin-top:10px}
+  .card .gen-btn{font-family:inherit;font-size:11.5px;cursor:pointer;border-radius:var(--radius);border:1px solid var(--border);
+    background:var(--panel-2);color:var(--text);padding:6px 10px}
+  .card .gen-btn:hover{border-color:var(--text)}
+  .card .gen-btn:disabled{opacity:.5;cursor:default}
+  .card .gen-out{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
+  .card .gen-out h4{font-size:11px;margin:0 0 3px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .card .gen-out .txt{white-space:pre-wrap;background:var(--panel-2);border-radius:4px;padding:8px 9px;margin:0 0 10px}
+  .card .gen-out .txt:last-child{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -63,6 +81,12 @@
 </header>
 
 <div class="wrap">
+  <div class="keybar">
+    <span>文面・台本の生成には任意でAPIキーが必要（一覧の閲覧には不要）:</span>
+    <input type="password" id="apiKey" placeholder="sk-ant-...">
+    <button id="saveKey">保存</button>
+    <span id="keyStatus"></span>
+  </div>
   <div class="list-head">
     <h2>リストアップ結果</h2>
     <span class="kv" id="updated"></span>
@@ -81,6 +105,8 @@ const STATUS_BADGE = {
   none:['b-none','サイトなし'], social_only:['b-social','SNS/ポータルのみ'],
   outdated:['b-social','古い/低品質'], ok:['b-ok','サイトあり'],
 };
+const CORP_RE = /(株式会社|有限会社|合同会社|合資会社|㈱|㈲)/;
+function bizType(name){ return CORP_RE.test(name||"") ? "企業" : "店舗"; }
 function formatDate(iso){
   const d = new Date(iso);
   const pad = n=>String(n).padStart(2,"0");
@@ -89,6 +115,74 @@ function formatDate(iso){
 function indeedUrl(name, area){
   return "https://jp.indeed.com/jobs?q=" + encodeURIComponent(name||"") + "&l=" + encodeURIComponent(area||"岡山県");
 }
+
+/* ---------- API key (optional, only for per-card generation) ---------- */
+const apiKeyInput = document.getElementById("apiKey");
+const keyStatus = document.getElementById("keyStatus");
+function getApiKey(){ try{ return localStorage.getItem("eigyo25.apiKey")||""; }catch(e){ return ""; } }
+function setKeyStatus(){
+  keyStatus.textContent = getApiKey() ? "設定済み" : "未設定";
+}
+apiKeyInput.value = getApiKey();
+setKeyStatus();
+document.getElementById("saveKey").onclick = ()=>{
+  try{ localStorage.setItem("eigyo25.apiKey", apiKeyInput.value.trim()); }catch(e){}
+  setKeyStatus();
+};
+
+/* ---------- generation (email / call-visit script / proposal outline) ---------- */
+function parseJsonLoose(t){
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(fence){ try{ return JSON.parse(fence[1]); }catch(e){} }
+  try{ return JSON.parse(t); }catch(e){}
+  const a=t.indexOf("{"), b=t.lastIndexOf("}");
+  if(a!==-1 && b!==-1){ try{ return JSON.parse(t.slice(a,b+1)); }catch(e){} }
+  return null;
+}
+async function generate(p, btn, outEl){
+  const key = getApiKey();
+  if(!key){ apiKeyInput.focus(); keyStatus.textContent = "先にAPIキーを入力してください"; return; }
+  btn.disabled = true; btn.textContent = "生成中…";
+  const system = [
+    "あなたは経験豊富なB2B営業のコピーライターです。出力言語: 日本語。",
+    "渡された事業者情報をもとに、初回アプローチ用の営業メール、電話・直接訪問用のトークスクリプト、提案の骨子を作成します。",
+    "誇大表現・不確かな断定は避け、簡潔にまとめてください。",
+    "必ず次のJSONのみを出力（前後に文章やコードフェンスを付けない）:",
+    '{"email":{"subject":"件名","body":"本文"},"script":{"phone":"電話用トークスクリプト（名乗り〜要件〜反応別分岐〜次の約束）","visit":"直接訪問用トークスクリプト"},"proposal":"提案の骨子（3行程度）"}',
+  ].join("\n");
+  const user = "事業者情報（JSON）:\n" + JSON.stringify({
+    name:p.name, type:bizType(p.name), category:p.category, area:p.area,
+    summary:p.summary, issue:p.hypothesis, website_status:p.website_status, website_note:p.website_note,
+  }, null, 2);
+  try{
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{ "content-type":"application/json", "x-api-key":key,
+        "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+      body: JSON.stringify({ model:"claude-opus-5", max_tokens:4000, system, messages:[{role:"user", content:user}] }),
+    });
+    if(!res.ok){
+      let detail=""; try{ detail=(await res.json()).error?.message||""; }catch(e){}
+      throw new Error("APIエラー ("+res.status+") "+detail);
+    }
+    const data = await res.json();
+    const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+    const a = parseJsonLoose(text);
+    if(!a || !a.email){ throw new Error("応答の解析に失敗しました"); }
+    outEl.innerHTML = `
+      <h4>営業メール</h4>
+      <div class="txt">${esc(a.email.subject||"")}\n\n${esc(a.email.body||"")}</div>
+      ${a.proposal?`<h4>提案の骨子</h4><div class="txt">${esc(a.proposal)}</div>`:""}
+      ${a.script&&a.script.phone?`<h4>トークスクリプト（電話）</h4><div class="txt">${esc(a.script.phone)}</div>`:""}
+      ${a.script&&a.script.visit?`<h4>トークスクリプト（訪問）</h4><div class="txt">${esc(a.script.visit)}</div>`:""}
+    `;
+    btn.remove();
+  }catch(err){
+    outEl.innerHTML = `<div class="txt" style="color:var(--bad)">${esc(err.message)}</div>`;
+    btn.disabled = false; btn.textContent = "文面・台本を作る";
+  }
+}
+
 async function load(){
   const { data, error } = await sb
     .from("prospects")
@@ -106,11 +200,15 @@ async function load(){
     seen.add(p.name); return true;
   }).slice(0, 20);
   document.getElementById("updated").textContent = "更新: " + formatDate(list[0].created_at) + "（" + list.length + "件）";
-  grid.innerHTML = list.map(p=>{
+  grid.innerHTML = list.map((p,i)=>{
     const [cls,txt] = STATUS_BADGE[p.website_status] || STATUS_BADGE.none;
+    const type = bizType(p.name);
     const src = Array.isArray(p.sources) && p.sources[0];
-    return `<div class="card">
-      <span class="badge ${cls}">${txt}</span>
+    return `<div class="card" data-i="${i}">
+      <div>
+        <span class="badge b-type">${type}</span>
+        <span class="badge ${cls}">${txt}</span>
+      </div>
       <div class="name">${esc(p.name||"")}</div>
       <div class="meta">${esc(p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
       ${p.summary?`<div class="summary">${esc(p.summary)}</div>`:""}
@@ -119,8 +217,18 @@ async function load(){
         ${src?`<a href="${esc(src)}" target="_blank" rel="noopener">情報源を見る →</a>`:""}
         <a href="${indeedUrl(p.name,p.area)}" target="_blank" rel="noopener">Indeedで求人を見る →</a>
       </div>
+      <div class="gen">
+        <button class="gen-btn">文面・台本を作る</button>
+        <div class="gen-out"></div>
+      </div>
     </div>`;
   }).join("");
+  grid.querySelectorAll(".card").forEach(card=>{
+    const p = list[+card.dataset.i];
+    const btn = card.querySelector(".gen-btn");
+    const out = card.querySelector(".gen-out");
+    btn.onclick = ()=> generate(p, btn, out);
+  });
 }
 load();
 </script>
