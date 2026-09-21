@@ -59,10 +59,21 @@
   .card .block{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
   .card .block b{font-weight:600}
   .card .block .txt{white-space:pre-wrap;margin:3px 0 0}
-  .card .block .more{background:none;border:none;padding:0;margin-top:2px;font-size:11px;color:var(--muted);
-    cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px}
+  .card .block .more{display:block;background:none;border:none;padding:0;margin-top:2px;font-size:11px;color:var(--muted);
+    cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px;text-align:right;width:100%}
   .card .block .more:hover{color:var(--text)}
   .card .dist{font-size:11px;color:var(--muted);margin-top:6px}
+
+  .card .ch-list{margin:6px 0 0;list-style:none;padding:0}
+  .card .ch-list li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
+  .card .ch-list .r{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
+    border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0}
+  .card .ch-list .r-good{background:var(--ok-bg);color:var(--ok)}
+  .card .ch-list .r-mid{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+  .card .ch-list .r-weak{background:var(--warn-bg);color:var(--warn)}
+  .card .ch-list .r-none{background:var(--bad-bg);color:var(--bad)}
+  .card .ch-list .n{flex:1}
+  .card .ch-list a.n{color:var(--text);text-decoration:underline;text-underline-offset:2px}
 
   .toolbar{max-width:1100px;margin:0 auto 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
   .toolbar .grp{display:flex;align-items:center;gap:6px}
@@ -160,6 +171,21 @@ function truncBlock(label, text){
     <button class="more" data-more>続きを見る</button>
   </div>`;
 }
+const RATING_CLASS = { "◎":"r-good", "○":"r-mid", "△":"r-weak", "✕":"r-none" };
+function channelsBlock(name, area, channels){
+  if(!Array.isArray(channels) || !channels.length) return "";
+  const items = channels.map(ch=>{
+    const url = ch.u==="__INDEED__" ? indeedUrl(name, area) : ch.u;
+    const label = url ? `<a class="n" href="${esc(url)}" target="_blank" rel="noopener">${esc(ch.n)}</a>` : `<span class="n">${esc(ch.n)}</span>`;
+    const cls = RATING_CLASS[ch.r] || "r-mid";
+    return `<li><span class="r ${cls}">${esc(ch.r)}</span>${label}</li>`;
+  }).join("");
+  return `<div class="block">
+    <b>現状:</b>
+    <ul class="ch-list hidden" data-ch-list>${items}</ul>
+    <button class="more" data-more data-more-labels="現状を見る,閉じる">現状を見る</button>
+  </div>`;
+}
 function haversineKm(lat1,lng1,lat2,lng2){
   const R = 6371, toRad = d=>d*Math.PI/180;
   const dLat = toRad(lat2-lat1), dLng = toRad(lng2-lng1);
@@ -198,7 +224,6 @@ function applyAndRender(){
   grid.innerHTML = list.map((p)=>{
     const [cls,txt] = STATUS_BADGE[p.website_status] || STATUS_BADGE.none;
     const type = bizType(p.name);
-    const src = Array.isArray(p.sources) && p.sources[0];
     const c = p.contact || {};
     const distTxt = (typeof p._dist==="number" && isFinite(p._dist)) ? `現在地から約${p._dist.toFixed(1)}km` : "";
     return `<div class="card">
@@ -210,14 +235,11 @@ function applyAndRender(){
       <div class="meta">${esc(p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
       ${p.summary?`<div class="summary">${esc(p.summary)}</div>`:""}
       ${p.hypothesis?`<div class="issue"><b>課題:</b> ${esc(p.hypothesis)}</div>`:""}
+      ${channelsBlock(p.name, p.area, c.channels)}
       ${c.proposal?truncBlock("提案", c.proposal):""}
       ${c.pitch?truncBlock("文面", c.pitch):""}
       ${c.script?truncBlock("台本", c.script):""}
       ${distTxt?`<div class="dist">${distTxt}</div>`:""}
-      <div class="meta" style="display:flex;gap:10px;margin-top:8px">
-        ${src?`<a href="${esc(src)}" target="_blank" rel="noopener">情報源を見る →</a>`:""}
-        <a href="${indeedUrl(p.name,p.area)}" target="_blank" rel="noopener">Indeedで求人を見る →</a>
-      </div>
     </div>`;
   }).join("");
 }
@@ -226,6 +248,14 @@ document.getElementById("grid").addEventListener("click", e=>{
   const btn = e.target.closest("[data-more]");
   if(!btn) return;
   const block = btn.closest(".block");
+  const chList = block.querySelector("[data-ch-list]");
+  if(chList){
+    const [labelClosed, labelOpen] = (btn.dataset.moreLabels||"現状を見る,閉じる").split(",");
+    const nowOpening = chList.classList.contains("hidden");
+    chList.classList.toggle("hidden", !nowOpening);
+    btn.textContent = nowOpening ? labelOpen : labelClosed;
+    return;
+  }
   const short = block.querySelector(".txt-short");
   const full = block.querySelector(".txt-full");
   const nowOpening = full.classList.contains("hidden");
