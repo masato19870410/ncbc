@@ -94,14 +94,19 @@ async function load(){
     .from("prospects")
     .select("name, category, area, summary, hypothesis, website_status, website_note, sources, created_at")
     .order("created_at", { ascending:false })
-    .limit(10);
+    .limit(30);
   const grid = document.getElementById("grid");
   if(error || !Array.isArray(data) || !data.length){
     grid.innerHTML = `<div class="empty">まだデータがありません。</div>`;
     return;
   }
-  document.getElementById("updated").textContent = "更新: " + formatDate(data[0].created_at);
-  grid.innerHTML = data.map(p=>{
+  const seen = new Set();
+  const list = data.filter(p=>{
+    if(seen.has(p.name)) return false;
+    seen.add(p.name); return true;
+  }).slice(0, 20);
+  document.getElementById("updated").textContent = "更新: " + formatDate(list[0].created_at) + "（" + list.length + "件）";
+  grid.innerHTML = list.map(p=>{
     const [cls,txt] = STATUS_BADGE[p.website_status] || STATUS_BADGE.none;
     const src = Array.isArray(p.sources) && p.sources[0];
     return `<div class="card">
