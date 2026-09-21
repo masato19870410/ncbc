@@ -157,7 +157,7 @@ function formatDate(iso){
 function indeedUrl(name, area){
   return "https://jp.indeed.com/jobs?q=" + encodeURIComponent(name||"") + "&l=" + encodeURIComponent(area||"岡山県");
 }
-const TRUNC_LEN = 50;
+const TRUNC_LEN = 25;
 function truncBlock(label, text){
   text = text||"";
   if(text.length <= TRUNC_LEN){
@@ -172,18 +172,31 @@ function truncBlock(label, text){
   </div>`;
 }
 const RATING_CLASS = { "◎":"r-good", "○":"r-mid", "△":"r-weak", "✕":"r-none" };
+const PEEK_N = 2;
+function channelUrl(ch, name, area){
+  if(ch.u==="__INDEED__") return indeedUrl(name, area);
+  if(ch.u==="__GMAP__") return "https://www.google.com/maps/search/" + encodeURIComponent(`${name} ${area||""}`);
+  if(ch.u) return ch.u;
+  return "https://www.google.com/search?q=" + encodeURIComponent(`${name} ${ch.n} ${area||""}`);
+}
+function channelLi(ch, name, area){
+  const url = channelUrl(ch, name, area);
+  const cls = RATING_CLASS[ch.r] || "r-mid";
+  return `<li><span class="r ${cls}">${esc(ch.r)}</span><a class="n" href="${esc(url)}" target="_blank" rel="noopener">${esc(ch.n)}</a></li>`;
+}
 function channelsBlock(name, area, channels){
   if(!Array.isArray(channels) || !channels.length) return "";
-  const items = channels.map(ch=>{
-    const url = ch.u==="__INDEED__" ? indeedUrl(name, area) : ch.u;
-    const label = url ? `<a class="n" href="${esc(url)}" target="_blank" rel="noopener">${esc(ch.n)}</a>` : `<span class="n">${esc(ch.n)}</span>`;
-    const cls = RATING_CLASS[ch.r] || "r-mid";
-    return `<li><span class="r ${cls}">${esc(ch.r)}</span>${label}</li>`;
-  }).join("");
+  const peek = channels.slice(0, PEEK_N).map(ch=>channelLi(ch, name, area)).join("");
+  const rest = channels.slice(PEEK_N);
+  if(!rest.length){
+    return `<div class="block"><b>現状:</b><ul class="ch-list">${peek}</ul></div>`;
+  }
+  const restHtml = rest.map(ch=>channelLi(ch, name, area)).join("");
   return `<div class="block">
     <b>現状:</b>
-    <ul class="ch-list hidden" data-ch-list>${items}</ul>
-    <button class="more" data-more data-more-labels="現状を見る,閉じる">現状を見る</button>
+    <ul class="ch-list">${peek}</ul>
+    <ul class="ch-list hidden" data-ch-list>${restHtml}</ul>
+    <button class="more" data-more data-more-labels="他${rest.length}件を見る,閉じる">他${rest.length}件を見る</button>
   </div>`;
 }
 function haversineKm(lat1,lng1,lat2,lng2){
