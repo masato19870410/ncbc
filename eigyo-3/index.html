@@ -51,8 +51,7 @@
   .card .detail-section{margin-bottom:12px}
   .card .detail-section>b{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px}
   .card .issue-row{display:flex;gap:8px;align-items:baseline;margin-top:6px}
-  .card .dept-value{flex-shrink:0;display:inline-block;font-size:11px;font-weight:700;color:var(--text);
-    background:var(--panel-2);border:1px solid var(--border);border-radius:4px;padding:1px 7px}
+  .card .dept-value{flex-shrink:0;font-size:11px;font-weight:700;color:var(--muted)}
   .card .ch-group{margin-top:6px}
   .card .ch-group b{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px}
   .card .meta a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
@@ -136,8 +135,10 @@ function cardHtml(p){
           ${issueRow("人事", p.hypothesisHr)}
           ${issueRow("広報", p.hypothesisPr)}
         </div>
-        ${c.proposal?`<div class="txt">${esc(c.proposal)}</div>`:""}
-        ${c.script?`<div class="txt">${esc(c.script)}</div>`:""}
+        ${(c.proposal||c.script)?`<div class="detail-section"><b>提案</b>
+          ${issueRow("骨子", c.proposal)}
+          ${issueRow("台本", c.script)}
+        </div>`:""}
       </div>
     </div>`;
 }
