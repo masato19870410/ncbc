@@ -48,10 +48,12 @@
 
   .card-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
   .card-detail .txt{white-space:pre-wrap;margin:8px 0 0;color:var(--muted)}
-  .card .dept-label{display:inline-block;font-size:10px;font-weight:700;color:#4338ca;background:#eef2ff;
-    border-radius:4px;padding:2px 7px;margin-bottom:10px}
-  @media (prefers-color-scheme:dark){ .card .dept-label{background:#1e1b4b;color:#a5b4fc} }
-  .card .ch-group{margin-top:10px}
+  .card .detail-section{margin-bottom:12px}
+  .card .detail-section>b{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px}
+  .card .dept-value{display:inline-block;font-size:12px;font-weight:700;color:#4338ca;background:#eef2ff;
+    border-radius:4px;padding:2px 8px}
+  @media (prefers-color-scheme:dark){ .card .dept-value{background:#1e1b4b;color:#a5b4fc} }
+  .card .ch-group{margin-top:6px}
   .card .ch-group b{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px}
   .card .meta a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 
@@ -100,7 +102,7 @@ function sortChannels(channels){
 }
 
 const OWN_MEDIA = new Set(["自社サイト", "Instagram"]);
-const DEPT_LABEL = { "営業":"営業課題", "人事":"人事課題", "広報":"広報課題", "その他":"その他" };
+const DEPT_LABEL = { "営業":"営業", "人事":"人事", "広報":"広報", "その他":"他" };
 function channelGroup(label, channels){
   if(!channels.length) return "";
   return `<div class="ch-group"><b>${esc(label)}</b><ul class="ch-list">${channels.map(channelLi).join("")}</ul></div>`;
@@ -118,9 +120,11 @@ function cardHtml(p){
       ${p.phone?`<div class="meta"><a href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">${esc(p.phone)}</a></div>`:""}
       ${p.hypothesis?`<div class="pitch">${esc(p.hypothesis)}</div>`:""}
       <div class="card-detail hidden" data-card-detail>
-        ${deptLabel?`<div class="dept-label">${esc(deptLabel)}</div>`:""}
-        ${channelGroup("自媒体", own)}
-        ${channelGroup("他媒体", other)}
+        <div class="detail-section"><b>リンク</b>
+          ${channelGroup("自", own)}
+          ${channelGroup("他", other)}
+        </div>
+        ${deptLabel?`<div class="detail-section"><b>課題</b><div class="dept-value">${esc(deptLabel)}</div></div>`:""}
         ${c.proposal?`<div class="txt">${esc(c.proposal)}</div>`:""}
         ${c.script?`<div class="txt">${esc(c.script)}</div>`:""}
       </div>
