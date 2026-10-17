@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Eigyo 3 — 営業リサーチ</title>
+<title>営業アプリ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -43,12 +43,12 @@
   .list-head .kv{font-size:12px;color:var(--muted)}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1400px;margin:0 auto}
   @media (min-width:1180px){ .grid{grid-template-columns:repeat(5,1fr)} }
-  .card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--panel)}
+  .card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--panel);cursor:pointer}
+  .card:active{background:var(--panel-2)}
+  .card .badges{margin-bottom:4px}
   .card .name{font-weight:600;font-size:13.5px;margin-bottom:3px}
   .card .meta{font-size:11px;color:var(--muted);margin-bottom:8px}
-  .card .summary{font-size:12.5px;margin-bottom:10px;line-height:1.55}
-  .card .issue{font-size:12px;border-top:1px solid var(--border);padding-top:8px;line-height:1.55}
-  .card .issue b{font-weight:600}
+  .card .pitch{font-size:12.5px;margin-bottom:10px;line-height:1.55}
   .badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;margin:0 6px 6px 0}
   .b-none{background:var(--bad-bg);color:var(--bad)}
   .b-social{background:var(--warn-bg);color:var(--warn)}
@@ -59,13 +59,10 @@
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px}
   .hidden{display:none!important}
 
-  .card .block{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
-  .card .block b{font-weight:600}
-  .card .block .txt{white-space:pre-wrap;margin:3px 0 0}
-  .card .block .more{display:block;background:none;border:none;padding:0;margin-top:2px;font-size:11px;color:var(--muted);
-    cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px;text-align:right;width:100%}
-  .card .block .more:hover{color:var(--text)}
+  .card-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
+  .card-detail .txt{white-space:pre-wrap;margin:8px 0 0;color:var(--muted)}
   .card .dist{font-size:11px;color:var(--muted);margin-top:6px}
+  .detail-hint{margin-top:8px;font-size:11px;color:var(--muted);text-align:center}
 
   .card .ch-list{margin:6px 0 0;list-style:none;padding:0}
   .card .ch-list li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
@@ -99,31 +96,11 @@
 <body>
 
 <header class="top">
-  <h1>営業リサーチ<span class="ver">3</span></h1>
-  <p>Indeed・Googleマップなどのネット上の公開情報をもとに、岡山市内の事業者をリストアップしています。</p>
+  <h1>営業アプリ</h1>
 </header>
 
 <div class="wrap">
-  <div class="toolbar">
-    <div class="grp">
-      <label>種別</label>
-      <div class="seg" id="typeSeg">
-        <button data-v="all">すべて</button>
-        <button data-v="企業" class="active">企業</button>
-        <button data-v="店舗">店舗</button>
-      </div>
-    </div>
-    <div class="grp">
-      <label>並び替え</label>
-      <select id="sortSel">
-        <option value="new">登録順</option>
-        <option value="kana">名前順</option>
-        <option value="dist">距離順</option>
-      </select>
-    </div>
-  </div>
   <div class="list-head">
-    <h2>リストアップ結果</h2>
     <span class="kv" id="updated"></span>
   </div>
   <div class="grid" id="grid"><div class="empty">読み込み中…</div></div>
@@ -142,22 +119,7 @@ const STATUS_BADGE = {
 const CORP_RE = /(株式会社|有限会社|合同会社|合資会社|㈱|㈲)/;
 function bizType(name){ return CORP_RE.test(name||"") ? "企業" : "店舗"; }
 
-const TRUNC_LEN = 40;
-function truncBlock(label, text){
-  text = text||"";
-  if(text.length <= TRUNC_LEN){
-    return `<div class="block"><b>${label}:</b><div class="txt">${esc(text)}</div></div>`;
-  }
-  const shortTxt = text.slice(0, TRUNC_LEN) + "…";
-  return `<div class="block">
-    <b>${label}:</b>
-    <div class="txt txt-short">${esc(shortTxt)}</div>
-    <div class="txt txt-full hidden">${esc(text)}</div>
-    <button class="more" data-more>続きを見る</button>
-  </div>`;
-}
 const RATING_CLASS = { "◎":"r-good", "○":"r-mid", "△":"r-weak", "✕":"r-none" };
-const PEEK_N = 2;
 function channelLi(ch){
   const cls = RATING_CLASS[ch.r] || "r-mid";
   const note = ch.m ? ` title="${esc(ch.m)}"` : "";
@@ -173,22 +135,6 @@ function sortChannels(channels){
     .map((ch, i) => ({ ch, i }))
     .sort((a, b) => rank(a.ch.n) - rank(b.ch.n) || a.i - b.i)
     .map(x => x.ch);
-}
-function channelsBlock(channels){
-  if(!Array.isArray(channels) || !channels.length) return "";
-  channels = sortChannels(channels);
-  const peek = channels.slice(0, PEEK_N).map(channelLi).join("");
-  const rest = channels.slice(PEEK_N);
-  if(!rest.length){
-    return `<div class="block"><b>現状:</b><ul class="ch-list">${peek}</ul></div>`;
-  }
-  const restHtml = rest.map(channelLi).join("");
-  return `<div class="block">
-    <b>現状:</b>
-    <ul class="ch-list">${peek}</ul>
-    <ul class="ch-list hidden" data-ch-list>${restHtml}</ul>
-    <button class="more" data-more data-more-labels="続きを見る,閉じる">続きを見る</button>
-  </div>`;
 }
 const CONTACTED_LS = "eigyo3.contacted";
 function getContactedMap(){
@@ -223,7 +169,7 @@ function haversineKm(lat1,lng1,lat2,lng2){
 }
 
 let allItems = [];
-let state = { type:"企業", status:"all", sort:"new", myPos:null };
+let state = { type:"all", status:"all", sort:"new", myPos:null };
 
 function applyAndRender(){
   let list = allItems.filter(p=>{
@@ -258,21 +204,24 @@ function cardHtml(p){
   const type = bizType(p.name);
   const c = p.contact || {};
   const distTxt = (typeof p._dist==="number" && isFinite(p._dist)) ? `現在地から約${p._dist.toFixed(1)}km` : "";
+  const channels = Array.isArray(c.channels) ? sortChannels(c.channels) : [];
+  const chHtml = channels.length ? `<ul class="ch-list">${channels.map(channelLi).join("")}</ul>` : "";
   return `<div class="card">
-      <div>
+      <div class="badges">
         <span class="badge b-type">${type}</span>
         ${p.dept?`<span class="badge b-dept">${esc(p.dept)}</span>`:""}
       </div>
       <div class="name">${esc(p.name||"")}</div>
       <div class="meta">${esc(p.industry||p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
-      ${p.summary?`<div class="summary">${esc(p.summary)}</div>`:""}
-      ${p.hypothesis?`<div class="issue"><b>課題:</b> ${esc(p.hypothesis)}</div>`:""}
-      ${channelsBlock(c.channels)}
-      ${c.proposal?truncBlock("提案", c.proposal):""}
-      ${c.pitch?truncBlock("文面", c.pitch):""}
-      ${c.script?truncBlock("台本", c.script):""}
-      ${distTxt?`<div class="dist">${distTxt}</div>`:""}
+      ${p.hypothesis?`<div class="pitch">${esc(p.hypothesis)}</div>`:""}
       ${contactBtnHtml(p)}
+      <div class="card-detail hidden" data-card-detail>
+        ${chHtml}
+        ${c.proposal?`<div class="txt">${esc(c.proposal)}</div>`:""}
+        ${c.script?`<div class="txt">${esc(c.script)}</div>`:""}
+        ${distTxt?`<div class="dist">${distTxt}</div>`:""}
+      </div>
+      <div class="detail-hint" data-detail-hint>詳しく見る ▾</div>
     </div>`;
 }
 
@@ -293,62 +242,17 @@ document.getElementById("grid").addEventListener("click", e=>{
     setTimeout(()=>{ contactBtn.textContent = "✓ 連絡済み（もう一度コピー）"; }, 1300);
     return;
   }
-  const btn = e.target.closest("[data-more]");
-  if(!btn) return;
-  const block = btn.closest(".block");
-  const chList = block.querySelector("[data-ch-list]");
-  if(chList){
-    const [labelClosed, labelOpen] = (btn.dataset.moreLabels||"続きを見る,閉じる").split(",");
-    const nowOpening = chList.classList.contains("hidden");
-    chList.classList.toggle("hidden", !nowOpening);
-    btn.textContent = nowOpening ? labelOpen : labelClosed;
-    return;
-  }
-  const short = block.querySelector(".txt-short");
-  const full = block.querySelector(".txt-full");
-  const nowOpening = full.classList.contains("hidden");
-  short.classList.toggle("hidden", nowOpening);
-  full.classList.toggle("hidden", !nowOpening);
-  btn.textContent = nowOpening ? "閉じる" : "続きを見る";
+  if(e.target.closest("a")) return;
+  const card = e.target.closest(".card");
+  if(!card) return;
+  const detail = card.querySelector("[data-card-detail]");
+  const hint = card.querySelector("[data-detail-hint]");
+  if(!detail) return;
+  const opening = detail.classList.contains("hidden");
+  detail.classList.toggle("hidden", !opening);
+  if(hint) hint.textContent = opening ? "閉じる ▴" : "詳しく見る ▾";
 });
 
-function wireToolbar(){
-  document.querySelectorAll("#typeSeg button").forEach(b=>{
-    b.onclick = ()=>{
-      state.type = b.dataset.v;
-      document.querySelectorAll("#typeSeg button").forEach(x=>x.classList.toggle("active", x===b));
-      applyAndRender();
-    };
-  });
-  document.querySelectorAll("#statusSeg button").forEach(b=>{
-    b.onclick = ()=>{
-      state.status = b.dataset.v;
-      document.querySelectorAll("#statusSeg button").forEach(x=>x.classList.toggle("active", x===b));
-      applyAndRender();
-    };
-  });
-  document.getElementById("sortSel").onchange = (e)=>{
-    state.sort = e.target.value;
-    if(state.sort==="dist" && !state.myPos){ requestLocation(); }
-    else applyAndRender();
-  };
-}
-function requestLocation(){
-  const sel = document.getElementById("sortSel");
-  const revert = ()=>{ sel.value = "new"; state.sort = "new"; applyAndRender(); };
-  if(!navigator.geolocation){ alert("この端末では現在地が取得できません。"); revert(); return; }
-  navigator.geolocation.getCurrentPosition(
-    (pos)=>{
-      state.myPos = { lat:pos.coords.latitude, lng:pos.coords.longitude };
-      applyAndRender();
-    },
-    ()=>{
-      alert("現在地を取得できませんでした。位置情報の利用を許可してください。");
-      revert();
-    },
-    { timeout:8000 }
-  );
-}
 
 // --- CSV parser (RFC4180準拠。channels_json内のカンマ・引用符を正しく扱う) ---
 function parseCSV(text){
@@ -422,7 +326,6 @@ async function load(){
     grid.innerHTML = `<div class="empty">データを読み込めませんでした。</div>`;
     return;
   }
-  wireToolbar();
   applyAndRender();
 }
 load();
