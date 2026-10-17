@@ -43,19 +43,12 @@
   .list-head .kv{font-size:12px;color:var(--muted)}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1400px;margin:0 auto}
   @media (min-width:1180px){ .grid{grid-template-columns:repeat(5,1fr)} }
-  .card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--panel);cursor:pointer}
+  .card{border:1px solid var(--border);border-radius:10px;padding:18px;background:var(--panel);cursor:pointer;
+    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04)}
   .card:active{background:var(--panel-2)}
-  .card .badges{margin-bottom:4px}
-  .card .name{font-weight:600;font-size:13.5px;margin-bottom:3px}
-  .card .meta{font-size:11px;color:var(--muted);margin-bottom:8px}
-  .card .pitch{font-size:12.5px;margin-bottom:10px;line-height:1.55}
-  .badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;margin:0 6px 6px 0}
-  .b-none{background:var(--bad-bg);color:var(--bad)}
-  .b-social{background:var(--warn-bg);color:var(--warn)}
-  .b-ok{background:var(--ok-bg);color:var(--ok)}
-  .b-type{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
-  .b-dept{background:#eef2ff;color:#4338ca}
-  @media (prefers-color-scheme:dark){ .b-dept{background:#1e1b4b;color:#a5b4fc} }
+  .card .name{font-weight:700;font-size:15px;margin-bottom:4px;letter-spacing:-.01em}
+  .card .meta{font-size:11.5px;color:var(--muted);margin-bottom:10px}
+  .card .pitch{font-size:13px;margin-bottom:12px;line-height:1.6}
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px}
   .hidden{display:none!important}
 
@@ -86,10 +79,9 @@
   .toolbar select{font-family:inherit;font-size:12px;color:var(--text);background:var(--panel);
     border:1px solid var(--border);border-radius:var(--radius);padding:6px 9px}
 
-  .card .contact-btn{display:block;width:100%;margin-top:10px;font-family:inherit;font-size:12px;font-weight:600;
-    cursor:pointer;color:var(--bg);background:var(--text);border:none;border-radius:var(--radius);padding:8px 10px}
+  .card .contact-btn{display:block;width:100%;margin-top:10px;font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;color:var(--bg);background:var(--text);border:none;border-radius:8px;padding:11px 10px}
   .card .contact-btn:hover{opacity:.88}
-  .card .contact-btn.done{background:var(--panel-2);color:var(--muted);border:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -109,9 +101,6 @@ const SHEET_ID = "1OmKyrwSlLxOEPetl5Q17Aox05Ata8FHMxhDEYgtDkX4";
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
 const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const STATUS_BADGE = {
-  none:['b-none','サイトなし'], outdated:['b-social','古い/低品質'], ok:['b-ok','サイトあり'],
-};
 const CORP_RE = /(株式会社|有限会社|合同会社|合資会社|㈱|㈲)/;
 function bizType(name){ return CORP_RE.test(name||"") ? "企業" : "店舗"; }
 
@@ -132,16 +121,6 @@ function sortChannels(channels){
     .sort((a, b) => rank(a.ch.n) - rank(b.ch.n) || a.i - b.i)
     .map(x => x.ch);
 }
-const CONTACTED_LS = "eigyo3.contacted";
-function getContactedMap(){
-  try{ return JSON.parse(localStorage.getItem(CONTACTED_LS) || "{}"); }catch(e){ return {}; }
-}
-function markContacted(name){
-  const m = getContactedMap();
-  m[name] = Date.now();
-  localStorage.setItem(CONTACTED_LS, JSON.stringify(m));
-}
-let contactedMap = getContactedMap();
 function pickContactChannel(channels){
   if(!Array.isArray(channels)) return null;
   const byName = n => channels.find(ch=>ch.n===n && ch.u);
@@ -152,10 +131,8 @@ function contactBtnHtml(p){
   const text = c.pitch || c.script || c.proposal || "";
   const ch = pickContactChannel(c.channels);
   if(!text && !ch) return "";
-  const done = !!contactedMap[p.name];
-  const label = done ? "✓ 連絡済み（もう一度コピー）" : "文面をコピーして連絡先を開く";
-  return `<button type="button" class="contact-btn${done?' done':''}" data-contact
-      data-name="${esc(p.name)}" data-text="${esc(text)}" data-url="${ch?esc(ch.u):''}">${esc(label)}</button>`;
+  return `<button type="button" class="contact-btn" data-contact
+      data-text="${esc(text)}" data-url="${ch?esc(ch.u):''}">文面をコピーして連絡先を開く</button>`;
 }
 function haversineKm(lat1,lng1,lat2,lng2){
   const R = 6371, toRad = d=>d*Math.PI/180;
@@ -193,22 +170,17 @@ function applyAndRender(){
 }
 
 function cardHtml(p){
-  const type = bizType(p.name);
   const c = p.contact || {};
   const distTxt = (typeof p._dist==="number" && isFinite(p._dist)) ? `現在地から約${p._dist.toFixed(1)}km` : "";
   const channels = Array.isArray(c.channels) ? sortChannels(c.channels) : [];
   const chHtml = channels.length ? `<ul class="ch-list">${channels.map(channelLi).join("")}</ul>` : "";
   return `<div class="card">
-      <div class="badges">
-        <span class="badge b-type">${type}</span>
-        ${p.dept?`<span class="badge b-dept">${esc(p.dept)}</span>`:""}
-      </div>
       <div class="name">${esc(p.name||"")}</div>
       <div class="meta">${esc(p.industry||p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
       ${p.hypothesis?`<div class="pitch">${esc(p.hypothesis)}</div>`:""}
+      ${chHtml}
       ${contactBtnHtml(p)}
       <div class="card-detail hidden" data-card-detail>
-        ${chHtml}
         ${c.proposal?`<div class="txt">${esc(c.proposal)}</div>`:""}
         ${c.script?`<div class="txt">${esc(c.script)}</div>`:""}
         ${distTxt?`<div class="dist">${distTxt}</div>`:""}
@@ -223,11 +195,9 @@ document.getElementById("grid").addEventListener("click", e=>{
     const url = contactBtn.dataset.url;
     if(url) window.open(url, "_blank", "noopener");
     if(text && navigator.clipboard){ navigator.clipboard.writeText(text).catch(()=>{}); }
-    markContacted(contactBtn.dataset.name);
-    contactedMap = getContactedMap();
-    contactBtn.classList.add("done");
+    const original = contactBtn.textContent;
     contactBtn.textContent = text ? "✓ コピーしました" : "✓ 開きました";
-    setTimeout(()=>{ contactBtn.textContent = "✓ 連絡済み（もう一度コピー）"; }, 1300);
+    setTimeout(()=>{ contactBtn.textContent = original; }, 1300);
     return;
   }
   if(e.target.closest("a")) return;
