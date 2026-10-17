@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eigyo 3 — 営業リサーチ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Design system: neutral grayscale + single accent, quiet borders, no
+     gradients/shadows — modeled after Linear / Vercel / shadcn-ui tone. */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --panel-2:#f4f4f5; --border:#e4e4e7;
+    --text:#18181b; --muted:#71717a;
+    --ok:#15803d; --ok-bg:#f0fdf4; --warn:#a16207; --warn-bg:#fefce8;
+    --bad:#b91c1c; --bad-bg:#fef2f2;
+    --radius:6px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0a0a0b; --panel:#111113; --panel-2:#19191c; --border:#27272a;
+      --text:#f4f4f5; --muted:#8b8b93;
+      --ok:#4ade80; --ok-bg:#0f2417; --warn:#facc15; --warn-bg:#2a2308;
+      --bad:#f87171; --bad-bg:#2a1414;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Inter","Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  a{color:var(--text)}
+
+  header.top{padding:20px 20px 14px;border-bottom:1px solid var(--border);background:var(--panel)}
+  header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em}
+  header.top .ver{font-family:"JetBrains Mono",monospace;font-weight:500;color:var(--muted);font-size:11px;
+    border:1px solid var(--border);border-radius:4px;padding:1px 6px;margin-left:8px;letter-spacing:0}
+  header.top p{margin:6px 0 0;font-size:12px;color:var(--muted)}
+
+  .wrap{padding:28px clamp(16px,4vw,40px) 56px}
+  .list-head{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;max-width:1400px;margin-left:auto;margin-right:auto}
+  .list-head h2{font-size:15px;margin:0;font-weight:600;letter-spacing:-.01em}
+  .list-head .kv{font-size:12px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1400px;margin:0 auto}
+  @media (min-width:1180px){ .grid{grid-template-columns:repeat(5,1fr)} }
+  .card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--panel)}
+  .card .name{font-weight:600;font-size:13.5px;margin-bottom:3px}
+  .card .meta{font-size:11px;color:var(--muted);margin-bottom:8px}
+  .card .summary{font-size:12.5px;margin-bottom:10px;line-height:1.55}
+  .card .issue{font-size:12px;border-top:1px solid var(--border);padding-top:8px;line-height:1.55}
+  .card .issue b{font-weight:600}
+  .badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;margin:0 6px 6px 0}
+  .b-none{background:var(--bad-bg);color:var(--bad)}
+  .b-social{background:var(--warn-bg);color:var(--warn)}
+  .b-ok{background:var(--ok-bg);color:var(--ok)}
+  .b-type{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+  .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px}
+  .hidden{display:none!important}
+
+  .card .block{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
+  .card .block b{font-weight:600}
+  .card .block .txt{white-space:pre-wrap;margin:3px 0 0}
+  .card .block .more{display:block;background:none;border:none;padding:0;margin-top:2px;font-size:11px;color:var(--muted);
+    cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:2px;text-align:right;width:100%}
+  .card .block .more:hover{color:var(--text)}
+  .card .dist{font-size:11px;color:var(--muted);margin-top:6px}
+
+  .card .ch-list{margin:6px 0 0;list-style:none;padding:0}
+  .card .ch-list li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
+  .card .ch-list .r{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
+    border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0}
+  .card .ch-list .r-good{background:var(--ok-bg);color:var(--ok)}
+  .card .ch-list .r-mid{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+  .card .ch-list .r-weak{background:var(--warn-bg);color:var(--warn)}
+  .card .ch-list .r-none{background:var(--bad-bg);color:var(--bad)}
+  .card .ch-list .n{flex:1}
+  .card .ch-list a.n{color:var(--text);text-decoration:underline;text-underline-offset:2px}
+  .card .ch-list .n-nolink{color:var(--muted)}
+
+  .toolbar{max-width:1400px;margin:0 auto 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+  .toolbar .grp{display:flex;align-items:center;gap:6px}
+  .toolbar label{font-size:11.5px;color:var(--muted)}
+  .toolbar .seg{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .toolbar .seg button{font-family:inherit;font-size:12px;cursor:pointer;border:none;border-right:1px solid var(--border);
+    background:var(--panel);color:var(--muted);padding:6px 11px}
+  .toolbar .seg button:last-child{border-right:none}
+  .toolbar .seg button.active{background:var(--text);color:var(--bg);font-weight:600}
+  .toolbar select{font-family:inherit;font-size:12px;color:var(--text);background:var(--panel);
+    border:1px solid var(--border);border-radius:var(--radius);padding:6px 9px}
+
+  .card .contact-btn{display:block;width:100%;margin-top:10px;font-family:inherit;font-size:12px;font-weight:600;
+    cursor:pointer;color:var(--bg);background:var(--text);border:none;border-radius:var(--radius);padding:8px 10px}
+  .card .contact-btn:hover{opacity:.88}
+  .card .contact-btn.done{background:var(--panel-2);color:var(--muted);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>営業リサーチ<span class="ver">3</span></h1>
+  <p>Indeed・Googleマップなどのネット上の公開情報をクロールし、岡山市内の事業者が抱える経営課題（自社サイトの弱さに限らない）をリストアップ。データはGoogleスプレッドシートで管理しています。</p>
+</header>
+
+<div class="wrap">
+  <div class="toolbar">
+    <div class="grp">
+      <label>種別</label>
+      <div class="seg" id="typeSeg">
+        <button data-v="all" class="active">すべて</button>
+        <button data-v="企業">企業</button>
+        <button data-v="店舗">店舗</button>
+      </div>
+    </div>
+    <div class="grp">
+      <label>サイト状態</label>
+      <div class="seg" id="statusSeg">
+        <button data-v="all" class="active">すべて</button>
+        <button data-v="none">サイトなし</button>
+        <button data-v="outdated">古い/低品質</button>
+        <button data-v="ok">サイトあり</button>
+      </div>
+    </div>
+    <div class="grp">
+      <label>並び替え</label>
+      <select id="sortSel">
+        <option value="new">登録順</option>
+        <option value="kana">名前順</option>
+        <option value="dist">距離順</option>
+      </select>
+    </div>
+  </div>
+  <div class="list-head">
+    <h2>リストアップ結果</h2>
+    <span class="kv" id="updated"></span>
+  </div>
+  <div class="grid" id="grid"><div class="empty">読み込み中…</div></div>
+</div>
+
+<script>
+// v3: Supabaseをやめ、Googleスプレッドシート(CSV公開)を直接読むだけの構成。
+// シートの行を直接編集すれば即反映される（UPDATE/DELETE制限なし）。
+const SHEET_ID = "1OmKyrwSlLxOEPetl5Q17Aox05Ata8FHMxhDEYgtDkX4";
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+
+const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const STATUS_BADGE = {
+  none:['b-none','サイトなし'], outdated:['b-social','古い/低品質'], ok:['b-ok','サイトあり'],
+};
+const CORP_RE = /(株式会社|有限会社|合同会社|合資会社|㈱|㈲)/;
+function bizType(name){ return CORP_RE.test(name||"") ? "企業" : "店舗"; }
+
+const TRUNC_LEN = 40;
+function truncBlock(label, text){
+  text = text||"";
+  if(text.length <= TRUNC_LEN){
+    return `<div class="block"><b>${label}:</b><div class="txt">${esc(text)}</div></div>`;
+  }
+  const shortTxt = text.slice(0, TRUNC_LEN) + "…";
+  return `<div class="block">
+    <b>${label}:</b>
+    <div class="txt txt-short">${esc(shortTxt)}</div>
+    <div class="txt txt-full hidden">${esc(text)}</div>
+    <button class="more" data-more>続きを見る</button>
+  </div>`;
+}
+const RATING_CLASS = { "◎":"r-good", "○":"r-mid", "△":"r-weak", "✕":"r-none" };
+const PEEK_N = 2;
+function channelLi(ch){
+  const cls = RATING_CLASS[ch.r] || "r-mid";
+  const note = ch.m ? ` title="${esc(ch.m)}"` : "";
+  const label = ch.u
+    ? `<a class="n" href="${esc(ch.u)}" target="_blank" rel="noopener"${note}>${esc(ch.n)}</a>`
+    : `<span class="n n-nolink"${note}>${esc(ch.n)}</span>`;
+  return `<li><span class="r ${cls}">${esc(ch.r)}</span>${label}</li>`;
+}
+const CH_ORDER = ["Indeed", "自社サイト", "Googleマップ", "Instagram"];
+function sortChannels(channels){
+  const rank = n => { const i = CH_ORDER.indexOf(n); return i === -1 ? CH_ORDER.length : i; };
+  return channels
+    .map((ch, i) => ({ ch, i }))
+    .sort((a, b) => rank(a.ch.n) - rank(b.ch.n) || a.i - b.i)
+    .map(x => x.ch);
+}
+function channelsBlock(channels){
+  if(!Array.isArray(channels) || !channels.length) return "";
+  channels = sortChannels(channels);
+  const peek = channels.slice(0, PEEK_N).map(channelLi).join("");
+  const rest = channels.slice(PEEK_N);
+  if(!rest.length){
+    return `<div class="block"><b>現状:</b><ul class="ch-list">${peek}</ul></div>`;
+  }
+  const restHtml = rest.map(channelLi).join("");
+  return `<div class="block">
+    <b>現状:</b>
+    <ul class="ch-list">${peek}</ul>
+    <ul class="ch-list hidden" data-ch-list>${restHtml}</ul>
+    <button class="more" data-more data-more-labels="続きを見る,閉じる">続きを見る</button>
+  </div>`;
+}
+const CONTACTED_LS = "eigyo3.contacted";
+function getContactedMap(){
+  try{ return JSON.parse(localStorage.getItem(CONTACTED_LS) || "{}"); }catch(e){ return {}; }
+}
+function markContacted(name){
+  const m = getContactedMap();
+  m[name] = Date.now();
+  localStorage.setItem(CONTACTED_LS, JSON.stringify(m));
+}
+let contactedMap = getContactedMap();
+function pickContactChannel(channels){
+  if(!Array.isArray(channels)) return null;
+  const byName = n => channels.find(ch=>ch.n===n && ch.u);
+  return byName("Instagram") || byName("自社サイト") || channels.find(ch=>ch.u) || null;
+}
+function contactBtnHtml(p){
+  const c = p.contact || {};
+  const text = c.pitch || c.script || c.proposal || "";
+  const ch = pickContactChannel(c.channels);
+  if(!text && !ch) return "";
+  const done = !!contactedMap[p.name];
+  const label = done ? "✓ 連絡済み（もう一度コピー）" : "文面をコピーして連絡先を開く";
+  return `<button type="button" class="contact-btn${done?' done':''}" data-contact
+      data-name="${esc(p.name)}" data-text="${esc(text)}" data-url="${ch?esc(ch.u):''}">${esc(label)}</button>`;
+}
+function haversineKm(lat1,lng1,lat2,lng2){
+  const R = 6371, toRad = d=>d*Math.PI/180;
+  const dLat = toRad(lat2-lat1), dLng = toRad(lng2-lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+
+let allItems = [];
+let state = { type:"all", status:"all", sort:"new", myPos:null };
+
+function applyAndRender(){
+  let list = allItems.filter(p=>{
+    if(state.type!=="all" && bizType(p.name)!==state.type) return false;
+    if(state.status!=="all" && p.website_status!==state.status) return false;
+    return true;
+  });
+  if(state.sort==="kana"){
+    list = list.slice().sort((a,b)=> (a.name||"").localeCompare(b.name||"","ja"));
+  }else if(state.sort==="dist" && state.myPos){
+    list = list.slice().map(p=>{
+      const c = p.contact||{};
+      const d = (typeof c.lat==="number" && typeof c.lng==="number")
+        ? haversineKm(state.myPos.lat, state.myPos.lng, c.lat, c.lng) : Infinity;
+      return Object.assign({}, p, { _dist:d });
+    }).sort((a,b)=> a._dist - b._dist);
+  }
+
+  const grid = document.getElementById("grid");
+  if(!list.length){
+    grid.innerHTML = `<div class="empty">条件に合うデータがありません。</div>`;
+    document.getElementById("updated").textContent = "";
+    return;
+  }
+  document.getElementById("updated").textContent =
+    "裏取り: " + (allItems[0].verified_at||"") + "（" + list.length + "/" + allItems.length + "件）";
+  grid.innerHTML = list.map(p=>cardHtml(p)).join("");
+}
+
+function cardHtml(p){
+  const [cls,txt] = STATUS_BADGE[p.website_status] || STATUS_BADGE.none;
+  const type = bizType(p.name);
+  const c = p.contact || {};
+  const distTxt = (typeof p._dist==="number" && isFinite(p._dist)) ? `現在地から約${p._dist.toFixed(1)}km` : "";
+  return `<div class="card">
+      <div>
+        <span class="badge b-type">${type}</span>
+        <span class="badge ${cls}">${txt}</span>
+      </div>
+      <div class="name">${esc(p.name||"")}</div>
+      <div class="meta">${esc(p.industry||p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
+      ${p.summary?`<div class="summary">${esc(p.summary)}</div>`:""}
+      ${p.hypothesis?`<div class="issue"><b>課題:</b> ${esc(p.hypothesis)}</div>`:""}
+      ${channelsBlock(c.channels)}
+      ${c.proposal?truncBlock("提案", c.proposal):""}
+      ${c.pitch?truncBlock("文面", c.pitch):""}
+      ${c.script?truncBlock("台本", c.script):""}
+      ${distTxt?`<div class="dist">${distTxt}</div>`:""}
+      ${contactBtnHtml(p)}
+    </div>`;
+}
+
+document.getElementById("grid").addEventListener("click", e=>{
+  const contactBtn = e.target.closest("[data-contact]");
+  if(contactBtn){
+    const text = contactBtn.dataset.text;
+    const url = contactBtn.dataset.url;
+    if(text && navigator.clipboard){ navigator.clipboard.writeText(text).catch(()=>{}); }
+    if(url) window.open(url, "_blank", "noopener");
+    markContacted(contactBtn.dataset.name);
+    contactedMap = getContactedMap();
+    contactBtn.classList.add("done");
+    contactBtn.textContent = text ? "✓ コピーしました" : "✓ 開きました";
+    setTimeout(()=>{ contactBtn.textContent = "✓ 連絡済み（もう一度コピー）"; }, 1300);
+    return;
+  }
+  const btn = e.target.closest("[data-more]");
+  if(!btn) return;
+  const block = btn.closest(".block");
+  const chList = block.querySelector("[data-ch-list]");
+  if(chList){
+    const [labelClosed, labelOpen] = (btn.dataset.moreLabels||"続きを見る,閉じる").split(",");
+    const nowOpening = chList.classList.contains("hidden");
+    chList.classList.toggle("hidden", !nowOpening);
+    btn.textContent = nowOpening ? labelOpen : labelClosed;
+    return;
+  }
+  const short = block.querySelector(".txt-short");
+  const full = block.querySelector(".txt-full");
+  const nowOpening = full.classList.contains("hidden");
+  short.classList.toggle("hidden", nowOpening);
+  full.classList.toggle("hidden", !nowOpening);
+  btn.textContent = nowOpening ? "閉じる" : "続きを見る";
+});
+
+function wireToolbar(){
+  document.querySelectorAll("#typeSeg button").forEach(b=>{
+    b.onclick = ()=>{
+      state.type = b.dataset.v;
+      document.querySelectorAll("#typeSeg button").forEach(x=>x.classList.toggle("active", x===b));
+      applyAndRender();
+    };
+  });
+  document.querySelectorAll("#statusSeg button").forEach(b=>{
+    b.onclick = ()=>{
+      state.status = b.dataset.v;
+      document.querySelectorAll("#statusSeg button").forEach(x=>x.classList.toggle("active", x===b));
+      applyAndRender();
+    };
+  });
+  document.getElementById("sortSel").onchange = (e)=>{
+    state.sort = e.target.value;
+    if(state.sort==="dist" && !state.myPos){ requestLocation(); }
+    else applyAndRender();
+  };
+}
+function requestLocation(){
+  const sel = document.getElementById("sortSel");
+  const revert = ()=>{ sel.value = "new"; state.sort = "new"; applyAndRender(); };
+  if(!navigator.geolocation){ alert("この端末では現在地が取得できません。"); revert(); return; }
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      state.myPos = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+      applyAndRender();
+    },
+    ()=>{
+      alert("現在地を取得できませんでした。位置情報の利用を許可してください。");
+      revert();
+    },
+    { timeout:8000 }
+  );
+}
+
+// --- CSV parser (RFC4180準拠。channels_json内のカンマ・引用符を正しく扱う) ---
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i=0; i<text.length; i++){
+    const ch = text[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      }else field += ch;
+    }else{
+      if(ch === '"') inQuotes = true;
+      else if(ch === ','){ row.push(field); field = ""; }
+      else if(ch === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+      else if(ch === '\r'){ /* skip, \n handles the break */ }
+      else field += ch;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+function websiteStatus(channels){
+  const site = (channels||[]).find(ch=>ch.n==="自社サイト");
+  if(!site) return "ok";
+  if(site.r==="✕") return "none";
+  if(site.r==="△") return "outdated";
+  return "ok";
+}
+function rowsToItems(rows){
+  if(!rows.length) return [];
+  const header = rows[0];
+  const idx = {};
+  header.forEach((h,i)=> idx[h.trim()] = i);
+  return rows.slice(1).filter(r=>r.length>1 || r[0]).map(r=>{
+    let channels = [];
+    try{ channels = JSON.parse(r[idx.channels_json] || "[]"); }catch(e){}
+    const lat = parseFloat(r[idx.lat]), lng = parseFloat(r[idx.lng]);
+    return {
+      name: r[idx.name],
+      category: r[idx.category],
+      industry: r[idx.industry],
+      area: r[idx.area],
+      summary: r[idx.summary],
+      hypothesis: r[idx.hypothesis],
+      verified_at: r[idx.verified_at],
+      website_status: websiteStatus(channels),
+      contact: {
+        channels,
+        lat: isNaN(lat) ? null : lat,
+        lng: isNaN(lng) ? null : lng,
+        proposal: r[idx.proposal],
+        pitch: r[idx.message],
+        script: r[idx.script],
+      },
+    };
+  }).filter(p=>p.name);
+}
+
+async function load(){
+  const grid = document.getElementById("grid");
+  try{
+    const res = await fetch("./data/prospects.json");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const rows = await res.json();
+    allItems = rowsToItems(rows);
+    if(!allItems.length) throw new Error("no rows");
+  }catch(err){
+    grid.innerHTML = `<div class="empty">データを読み込めませんでした。</div>`;
+    return;
+  }
+  wireToolbar();
+  applyAndRender();
+}
+load();
+</script>
+</body>
+</html>
