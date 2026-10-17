@@ -264,7 +264,6 @@ function applyAndRender(){
 }
 
 function cardHtml(p){
-  const [cls,txt] = STATUS_BADGE[p.website_status] || STATUS_BADGE.none;
   const type = bizType(p.name);
   const c = p.contact || {};
   const distTxt = (typeof p._dist==="number" && isFinite(p._dist)) ? `現在地から約${p._dist.toFixed(1)}km` : "";
@@ -272,7 +271,6 @@ function cardHtml(p){
       <div>
         <span class="badge b-type">${type}</span>
         ${p.dept?`<span class="badge b-dept">${esc(p.dept)}</span>`:""}
-        <span class="badge ${cls}">${txt}</span>
       </div>
       <div class="name">${esc(p.name||"")}</div>
       <div class="meta">${esc(p.industry||p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
