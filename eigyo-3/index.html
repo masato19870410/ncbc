@@ -33,14 +33,8 @@
 
   header.top{padding:20px 20px 14px;border-bottom:1px solid var(--border);background:var(--panel)}
   header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em}
-  header.top .ver{font-family:"JetBrains Mono",monospace;font-weight:500;color:var(--muted);font-size:11px;
-    border:1px solid var(--border);border-radius:4px;padding:1px 6px;margin-left:8px;letter-spacing:0}
-  header.top p{margin:6px 0 0;font-size:12px;color:var(--muted)}
 
   .wrap{padding:28px clamp(16px,4vw,40px) 56px}
-  .list-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin-bottom:16px;max-width:1400px;margin-left:auto;margin-right:auto}
-  .list-head h2{font-size:15px;margin:0;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
-  .list-head .kv{font-size:12px;color:var(--muted)}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1400px;margin:0 auto}
   @media (min-width:1180px){ .grid{grid-template-columns:repeat(5,1fr)} }
   .card{border:1px solid var(--border);border-radius:10px;padding:18px;background:var(--panel);cursor:pointer;
@@ -67,21 +61,6 @@
   .card .ch-list .n{flex:1}
   .card .ch-list a.n{color:var(--text);text-decoration:underline;text-underline-offset:2px}
   .card .ch-list .n-nolink{color:var(--muted)}
-
-  .toolbar{max-width:1400px;margin:0 auto 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
-  .toolbar .grp{display:flex;align-items:center;gap:6px}
-  .toolbar label{font-size:11.5px;color:var(--muted)}
-  .toolbar .seg{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-  .toolbar .seg button{font-family:inherit;font-size:12px;cursor:pointer;border:none;border-right:1px solid var(--border);
-    background:var(--panel);color:var(--muted);padding:6px 11px}
-  .toolbar .seg button:last-child{border-right:none}
-  .toolbar .seg button.active{background:var(--text);color:var(--bg);font-weight:600}
-  .toolbar select{font-family:inherit;font-size:12px;color:var(--text);background:var(--panel);
-    border:1px solid var(--border);border-radius:var(--radius);padding:6px 9px}
-
-  .card .contact-btn{display:block;width:100%;margin-top:10px;font-family:inherit;font-size:13px;font-weight:600;
-    cursor:pointer;color:var(--bg);background:var(--text);border:none;border-radius:8px;padding:11px 10px}
-  .card .contact-btn:hover{opacity:.88}
 </style>
 </head>
 <body>
@@ -95,14 +74,7 @@
 </div>
 
 <script>
-// v3: Supabaseをやめ、Googleスプレッドシート(CSV公開)を直接読むだけの構成。
-// シートの行を直接編集すれば即反映される（UPDATE/DELETE制限なし）。
-const SHEET_ID = "1OmKyrwSlLxOEPetl5Q17Aox05Ata8FHMxhDEYgtDkX4";
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-
 const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const CORP_RE = /(株式会社|有限会社|合同会社|合資会社|㈱|㈲)/;
-function bizType(name){ return CORP_RE.test(name||"") ? "企業" : "店舗"; }
 
 const RATING_CLASS = { "◎":"r-good", "○":"r-mid", "△":"r-weak", "✕":"r-none" };
 function channelLi(ch){
@@ -121,57 +93,9 @@ function sortChannels(channels){
     .sort((a, b) => rank(a.ch.n) - rank(b.ch.n) || a.i - b.i)
     .map(x => x.ch);
 }
-function pickContactChannel(channels){
-  if(!Array.isArray(channels)) return null;
-  const byName = n => channels.find(ch=>ch.n===n && ch.u);
-  return byName("Instagram") || byName("自社サイト") || channels.find(ch=>ch.u) || null;
-}
-function contactBtnHtml(p){
-  const c = p.contact || {};
-  const text = c.pitch || c.script || c.proposal || "";
-  const ch = pickContactChannel(c.channels);
-  if(!text && !ch) return "";
-  return `<button type="button" class="contact-btn" data-contact
-      data-text="${esc(text)}" data-url="${ch?esc(ch.u):''}">文面をコピーして連絡先を開く</button>`;
-}
-function haversineKm(lat1,lng1,lat2,lng2){
-  const R = 6371, toRad = d=>d*Math.PI/180;
-  const dLat = toRad(lat2-lat1), dLng = toRad(lng2-lng1);
-  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
-  return 2*R*Math.asin(Math.sqrt(a));
-}
-
-let allItems = [];
-let state = { type:"all", status:"all", sort:"new", myPos:null };
-
-function applyAndRender(){
-  let list = allItems.filter(p=>{
-    if(state.type!=="all" && bizType(p.name)!==state.type) return false;
-    if(state.status!=="all" && p.website_status!==state.status) return false;
-    return true;
-  });
-  if(state.sort==="kana"){
-    list = list.slice().sort((a,b)=> (a.name||"").localeCompare(b.name||"","ja"));
-  }else if(state.sort==="dist" && state.myPos){
-    list = list.slice().map(p=>{
-      const c = p.contact||{};
-      const d = (typeof c.lat==="number" && typeof c.lng==="number")
-        ? haversineKm(state.myPos.lat, state.myPos.lng, c.lat, c.lng) : Infinity;
-      return Object.assign({}, p, { _dist:d });
-    }).sort((a,b)=> a._dist - b._dist);
-  }
-
-  const grid = document.getElementById("grid");
-  if(!list.length){
-    grid.innerHTML = `<div class="empty">条件に合うデータがありません。</div>`;
-    return;
-  }
-  grid.innerHTML = list.map(p=>cardHtml(p)).join("");
-}
 
 function cardHtml(p){
   const c = p.contact || {};
-  const distTxt = (typeof p._dist==="number" && isFinite(p._dist)) ? `現在地から約${p._dist.toFixed(1)}km` : "";
   const channels = Array.isArray(c.channels) ? sortChannels(c.channels) : [];
   const chHtml = channels.length ? `<ul class="ch-list">${channels.map(channelLi).join("")}</ul>` : "";
   return `<div class="card">
@@ -179,27 +103,14 @@ function cardHtml(p){
       <div class="meta">${esc(p.industry||p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
       ${p.hypothesis?`<div class="pitch">${esc(p.hypothesis)}</div>`:""}
       ${chHtml}
-      ${contactBtnHtml(p)}
       <div class="card-detail hidden" data-card-detail>
         ${c.proposal?`<div class="txt">${esc(c.proposal)}</div>`:""}
         ${c.script?`<div class="txt">${esc(c.script)}</div>`:""}
-        ${distTxt?`<div class="dist">${distTxt}</div>`:""}
       </div>
     </div>`;
 }
 
 document.getElementById("grid").addEventListener("click", e=>{
-  const contactBtn = e.target.closest("[data-contact]");
-  if(contactBtn){
-    const text = contactBtn.dataset.text;
-    const url = contactBtn.dataset.url;
-    if(url) window.open(url, "_blank", "noopener");
-    if(text && navigator.clipboard){ navigator.clipboard.writeText(text).catch(()=>{}); }
-    const original = contactBtn.textContent;
-    contactBtn.textContent = text ? "✓ コピーしました" : "✓ 開きました";
-    setTimeout(()=>{ contactBtn.textContent = original; }, 1300);
-    return;
-  }
   if(e.target.closest("a")) return;
   const card = e.target.closest(".card");
   if(!card) return;
@@ -208,36 +119,6 @@ document.getElementById("grid").addEventListener("click", e=>{
   detail.classList.toggle("hidden");
 });
 
-
-// --- CSV parser (RFC4180準拠。channels_json内のカンマ・引用符を正しく扱う) ---
-function parseCSV(text){
-  const rows = [];
-  let row = [], field = "", inQuotes = false;
-  for(let i=0; i<text.length; i++){
-    const ch = text[i];
-    if(inQuotes){
-      if(ch === '"'){
-        if(text[i+1] === '"'){ field += '"'; i++; }
-        else inQuotes = false;
-      }else field += ch;
-    }else{
-      if(ch === '"') inQuotes = true;
-      else if(ch === ','){ row.push(field); field = ""; }
-      else if(ch === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
-      else if(ch === '\r'){ /* skip, \n handles the break */ }
-      else field += ch;
-    }
-  }
-  if(field.length || row.length){ row.push(field); rows.push(row); }
-  return rows;
-}
-function websiteStatus(channels){
-  const site = (channels||[]).find(ch=>ch.n==="自社サイト");
-  if(!site) return "ok";
-  if(site.r==="✕") return "none";
-  if(site.r==="△") return "outdated";
-  return "ok";
-}
 function rowsToItems(rows){
   if(!rows.length) return [];
   const header = rows[0];
@@ -246,23 +127,16 @@ function rowsToItems(rows){
   return rows.slice(1).filter(r=>r.length>1 || r[0]).map(r=>{
     let channels = [];
     try{ channels = JSON.parse(r[idx.channels_json] || "[]"); }catch(e){}
-    const lat = parseFloat(r[idx.lat]), lng = parseFloat(r[idx.lng]);
     return {
       name: r[idx.name],
       category: r[idx.category],
       industry: r[idx.industry],
       area: r[idx.area],
       dept: r[idx.dept],
-      summary: r[idx.summary],
       hypothesis: r[idx.hypothesis],
-      verified_at: r[idx.verified_at],
-      website_status: websiteStatus(channels),
       contact: {
         channels,
-        lat: isNaN(lat) ? null : lat,
-        lng: isNaN(lng) ? null : lng,
         proposal: r[idx.proposal],
-        pitch: r[idx.message],
         script: r[idx.script],
       },
     };
@@ -275,13 +149,12 @@ async function load(){
     const res = await fetch("./data/prospects.json");
     if(!res.ok) throw new Error("HTTP " + res.status);
     const rows = await res.json();
-    allItems = rowsToItems(rows);
-    if(!allItems.length) throw new Error("no rows");
+    const items = rowsToItems(rows);
+    if(!items.length) throw new Error("no rows");
+    grid.innerHTML = items.map(p=>cardHtml(p)).join("");
   }catch(err){
     grid.innerHTML = `<div class="empty">データを読み込めませんでした。</div>`;
-    return;
   }
-  applyAndRender();
 }
 load();
 </script>
