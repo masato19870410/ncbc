@@ -54,6 +54,8 @@
   .b-social{background:var(--warn-bg);color:var(--warn)}
   .b-ok{background:var(--ok-bg);color:var(--ok)}
   .b-type{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+  .b-dept{background:#eef2ff;color:#4338ca}
+  @media (prefers-color-scheme:dark){ .b-dept{background:#1e1b4b;color:#a5b4fc} }
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px}
   .hidden{display:none!important}
 
@@ -98,7 +100,7 @@
 
 <header class="top">
   <h1>営業リサーチ<span class="ver">3</span></h1>
-  <p>Indeed・Googleマップなどのネット上の公開情報をクロールし、岡山市内の事業者が抱える経営課題（自社サイトの弱さに限らない）をリストアップ。データはGoogleスプレッドシートで管理しています。</p>
+  <p>Indeed・Googleマップなどのネット上の公開情報をもとに、岡山市内の事業者をリストアップしています。</p>
 </header>
 
 <div class="wrap">
@@ -106,8 +108,8 @@
     <div class="grp">
       <label>種別</label>
       <div class="seg" id="typeSeg">
-        <button data-v="all" class="active">すべて</button>
-        <button data-v="企業">企業</button>
+        <button data-v="all">すべて</button>
+        <button data-v="企業" class="active">企業</button>
         <button data-v="店舗">店舗</button>
       </div>
     </div>
@@ -230,7 +232,7 @@ function haversineKm(lat1,lng1,lat2,lng2){
 }
 
 let allItems = [];
-let state = { type:"all", status:"all", sort:"new", myPos:null };
+let state = { type:"企業", status:"all", sort:"new", myPos:null };
 
 function applyAndRender(){
   let list = allItems.filter(p=>{
@@ -255,8 +257,9 @@ function applyAndRender(){
     document.getElementById("updated").textContent = "";
     return;
   }
+  const todoCount = list.filter(p=>!contactedMap[p.name]).length;
   document.getElementById("updated").textContent =
-    "裏取り: " + (allItems[0].verified_at||"") + "（" + list.length + "/" + allItems.length + "件）";
+    "裏取り: " + (allItems[0].verified_at||"") + "（" + list.length + "件中、未対応 " + todoCount + "件）";
   grid.innerHTML = list.map(p=>cardHtml(p)).join("");
 }
 
@@ -268,6 +271,7 @@ function cardHtml(p){
   return `<div class="card">
       <div>
         <span class="badge b-type">${type}</span>
+        ${p.dept?`<span class="badge b-dept">${esc(p.dept)}</span>`:""}
         <span class="badge ${cls}">${txt}</span>
       </div>
       <div class="name">${esc(p.name||"")}</div>
@@ -288,12 +292,15 @@ document.getElementById("grid").addEventListener("click", e=>{
   if(contactBtn){
     const text = contactBtn.dataset.text;
     const url = contactBtn.dataset.url;
-    if(text && navigator.clipboard){ navigator.clipboard.writeText(text).catch(()=>{}); }
     if(url) window.open(url, "_blank", "noopener");
+    if(text && navigator.clipboard){ navigator.clipboard.writeText(text).catch(()=>{}); }
     markContacted(contactBtn.dataset.name);
     contactedMap = getContactedMap();
     contactBtn.classList.add("done");
     contactBtn.textContent = text ? "✓ コピーしました" : "✓ 開きました";
+    const updatedEl = document.getElementById("updated");
+    const todoCount = allItems.filter(p=>!contactedMap[p.name]).length;
+    updatedEl.textContent = updatedEl.textContent.replace(/未対応 \d+件/, "未対応 " + todoCount + "件");
     setTimeout(()=>{ contactBtn.textContent = "✓ 連絡済み（もう一度コピー）"; }, 1300);
     return;
   }
@@ -397,6 +404,7 @@ function rowsToItems(rows){
       category: r[idx.category],
       industry: r[idx.industry],
       area: r[idx.area],
+      dept: r[idx.dept],
       summary: r[idx.summary],
       hypothesis: r[idx.hypothesis],
       verified_at: r[idx.verified_at],
