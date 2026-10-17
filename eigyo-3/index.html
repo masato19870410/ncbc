@@ -116,8 +116,9 @@ function cardHtml(p){
   const deptLabel = DEPT_LABEL[p.dept] || p.dept || "";
   return `<div class="card">
       <div class="name">${esc(p.name||"")}</div>
-      <div class="meta">${esc(p.industry||p.category||"")}${p.area?" ・ "+esc(p.area):""}</div>
+      ${p.area?`<div class="meta">${esc(p.area)}</div>`:""}
       ${p.phone?`<div class="meta"><a href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">${esc(p.phone)}</a></div>`:""}
+      ${p.email?`<div class="meta"><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div>`:""}
       ${p.hypothesis?`<div class="pitch">${esc(p.hypothesis)}</div>`:""}
       <div class="card-detail hidden" data-card-detail>
         <div class="detail-section"><b>リンク</b>
@@ -154,6 +155,7 @@ function rowsToItems(rows){
       industry: r[idx.industry],
       area: r[idx.area],
       phone: r[idx.phone],
+      email: r[idx.email],
       dept: r[idx.dept],
       hypothesis: r[idx.hypothesis],
       contact: {
