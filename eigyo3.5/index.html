@@ -137,10 +137,6 @@ function cardHtml(p, idx){
       ${p.email?`<div class="meta"><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div>`:""}
       ${primaryText?`<div class="pitch">${esc(primaryText)}</div>`:""}
       <div class="card-detail hidden" data-card-detail>
-        <div class="detail-section"><b>リンク</b>
-          ${channelGroup("自", own)}
-          ${channelGroup("他", other)}
-        </div>
         <div class="detail-section"><b>課題</b>
           ${issueRow("営業", p.hypothesisSales)}
           ${issueRow("人事", p.hypothesisHr)}
@@ -150,6 +146,10 @@ function cardHtml(p, idx){
           ${issueRow("骨子", c.proposal)}
           ${issueRow("台本", c.script)}
         </div>`:""}
+        <div class="detail-section"><b>リンク</b>
+          ${channelGroup("自", own)}
+          ${channelGroup("他", other)}
+        </div>
       </div>
     </div>`;
 }
