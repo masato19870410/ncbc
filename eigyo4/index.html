@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>営業アプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Design system: neutral grayscale + single accent, quiet borders, no
+     gradients/shadows — modeled after Linear / Vercel / shadcn-ui tone. */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --panel-2:#f4f4f5; --border:#e4e4e7;
+    --text:#18181b; --muted:#71717a;
+    --ok:#15803d; --ok-bg:#f0fdf4; --warn:#a16207; --warn-bg:#fefce8;
+    --bad:#b91c1c; --bad-bg:#fef2f2;
+    --radius:6px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0a0a0b; --panel:#111113; --panel-2:#19191c; --border:#27272a;
+      --text:#f4f4f5; --muted:#8b8b93;
+      --ok:#4ade80; --ok-bg:#0f2417; --warn:#facc15; --warn-bg:#2a2308;
+      --bad:#f87171; --bad-bg:#2a1414;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Inter","Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  a{color:var(--text)}
+
+  header.top{padding:20px 20px 14px;border-bottom:1px solid var(--border);background:var(--panel)}
+  header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em}
+  header.top .src{margin-top:4px;font-size:11px;color:var(--muted)}
+
+  .wrap{padding:28px clamp(16px,4vw,40px) 56px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1400px;margin:0 auto;align-items:start}
+  @media (min-width:1180px){ .grid{grid-template-columns:repeat(5,1fr)} }
+  .card{border:1px solid var(--border);border-radius:10px;padding:18px;background:var(--panel);cursor:pointer;
+    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04)}
+  .card:active{background:var(--panel-2)}
+  .card .name{font-weight:700;font-size:15px;margin-bottom:6px;letter-spacing:-.01em}
+  .card .meta{font-size:11.5px;color:var(--muted);line-height:1.6}
+  .card .pitch{font-size:13px;margin-top:10px;margin-bottom:12px;line-height:1.6}
+  .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px}
+  .hidden{display:none!important}
+
+  .card-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
+  .card-detail .txt{white-space:pre-wrap;margin:8px 0 0;color:var(--muted)}
+  .card .detail-section{margin-bottom:16px}
+  .card .detail-section>b{display:block;font-size:13px;color:var(--text);font-weight:700;margin-bottom:8px}
+  .card .issue-row{display:flex;gap:8px;align-items:baseline;margin-top:6px}
+  .card .dept-value{flex-shrink:0;font-size:11px;font-weight:500;color:var(--muted)}
+  .card .ch-group{margin-top:8px}
+  .card .ch-group b{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-bottom:2px}
+  .card .meta a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+
+  .card .ch-list{margin:6px 0 0;list-style:none;padding:0}
+  .card .ch-list li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
+  .card .ch-list .r{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
+    border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0}
+  .card .ch-list .r-good{background:var(--ok-bg);color:var(--ok)}
+  .card .ch-list .r-mid{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+  .card .ch-list .r-weak{background:var(--warn-bg);color:var(--warn)}
+  .card .ch-list .r-none{background:var(--bad-bg);color:var(--bad)}
+  .card .ch-list .n{flex:1}
+  .card .ch-list a.n{color:var(--text);text-decoration:underline;text-underline-offset:2px}
+  .card .ch-list .n-nolink{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>営業アプリ</h1>
+  <div class="src">データ: Googleスプレッドシート直読み(v4)</div>
+</header>
+
+<div class="wrap">
+  <div class="grid" id="grid"><div class="empty">読み込み中…</div></div>
+</div>
+
+<script>
+/* =======================================================================
+   v4: データ取得元を Googleスプレッドシートの「ウェブに公開」CSVに変更。
+   UI/CSS/チェックリスト表示ロジックは eigyo3.5 からそのまま流用している。
+
+   ★ユーザー作業が必要★
+   下の SHEET_CSV_URL に、Googleスプレッドシート側で
+   「ファイル→共有→ウェブに公開」した後に発行されるCSVエクスポートURLを
+   設定すること。手順は README.md を参照。
+   ======================================================================= */
+const SHEET_CSV_URL = "__SET_SHEET_CSV_URL_HERE__";
+
+const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const RATING_CLASS = { "◎":"r-good", "○":"r-mid", "△":"r-weak", "✕":"r-none" };
+function channelLi(ch){
+  const cls = RATING_CLASS[ch.r] || "r-mid";
+  const note = ch.m ? ` title="${esc(ch.m)}"` : "";
+  const label = ch.u
+    ? `<a class="n" href="${esc(ch.u)}" target="_blank" rel="noopener"${note}>${esc(ch.n)}</a>`
+    : `<span class="n n-nolink"${note}>${esc(ch.n)}</span>`;
+  return `<li><span class="r ${cls}">${esc(ch.r)}</span>${label}</li>`;
+}
+const CH_ORDER = ["自社サイト", "Instagram", "X", "Facebook", "LINE公式", "YouTube", "note", "TikTok", "Googleマップ", "Yahoo!マップ", "ホットペッパービューティー", "Indeed"];
+function sortChannels(channels){
+  const rank = n => { const i = CH_ORDER.indexOf(n); return i === -1 ? CH_ORDER.length : i; };
+  return channels
+    .map((ch, i) => ({ ch, i }))
+    .sort((a, b) => rank(a.ch.n) - rank(b.ch.n) || a.i - b.i)
+    .map(x => x.ch);
+}
+
+const OWN_MEDIA = new Set(["自社サイト", "Instagram", "X", "Facebook", "LINE公式", "YouTube", "note", "TikTok"]);
+function channelGroup(label, channels){
+  if(!channels.length) return "";
+  return `<div class="ch-group"><b>${esc(label)}</b><ul class="ch-list">${channels.map(channelLi).join("")}</ul></div>`;
+}
+
+function issueRow(label, text){
+  if(!text) return "";
+  return `<div class="issue-row"><span class="dept-value">${esc(label)}</span><span>${esc(text)}</span></div>`;
+}
+
+function cardHtml(p){
+  const c = p.contact || {};
+  const channels = Array.isArray(c.channels) ? c.channels : [];
+  const own = sortChannels(channels.filter(ch=>OWN_MEDIA.has(ch.n)));
+  const other = sortChannels(channels.filter(ch=>!OWN_MEDIA.has(ch.n)));
+  const primaryText = p.dept==="営業" ? p.hypothesisSales
+    : p.dept==="広報" ? p.hypothesisPr
+    : p.hypothesisHr;
+  return `<div class="card">
+      <div class="name">${esc(p.name||"")}</div>
+      ${p.area?`<div class="meta">${esc(p.area)}</div>`:""}
+      ${p.phone?`<div class="meta"><a href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">${esc(p.phone)}</a></div>`:""}
+      ${p.email?`<div class="meta"><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div>`:""}
+      ${primaryText?`<div class="pitch">${esc(primaryText)}</div>`:""}
+      <div class="card-detail hidden" data-card-detail>
+        <div class="detail-section"><b>リンク</b>
+          ${channelGroup("自", own)}
+          ${channelGroup("他", other)}
+        </div>
+        <div class="detail-section"><b>課題</b>
+          ${issueRow("営業", p.hypothesisSales)}
+          ${issueRow("人事", p.hypothesisHr)}
+          ${issueRow("広報", p.hypothesisPr)}
+        </div>
+        ${(c.proposal||c.script)?`<div class="detail-section"><b>提案</b>
+          ${issueRow("骨子", c.proposal)}
+          ${issueRow("台本", c.script)}
+        </div>`:""}
+      </div>
+    </div>`;
+}
+
+document.getElementById("grid").addEventListener("click", e=>{
+  if(e.target.closest("a")) return;
+  const card = e.target.closest(".card");
+  if(!card) return;
+  const detail = card.querySelector("[data-card-detail]");
+  if(!detail) return;
+  detail.classList.toggle("hidden");
+});
+
+/* ---- CSVパース（RFC4180相当。カンマ/改行/二重引用符を含むフィールドに対応） ---- */
+function parseCsv(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        field += ch;
+      }
+    } else {
+      if(ch === '"'){
+        inQuotes = true;
+      } else if(ch === ','){
+        row.push(field); field = "";
+      } else if(ch === '\n'){
+        row.push(field); field = "";
+        rows.push(row); row = [];
+      } else if(ch === '\r'){
+        // skip, \n (or end) will close the row
+      } else {
+        field += ch;
+      }
+    }
+  }
+  // 末尾に改行が無いファイルの最終フィールド/行を回収
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.length > 1 || (r.length===1 && r[0] !== ""));
+}
+
+function rowsToItems(rows){
+  if(!rows.length) return [];
+  const header = rows[0];
+  const idx = {};
+  header.forEach((h,i)=> idx[h.trim()] = i);
+  return rows.slice(1).filter(r=>r.length>1 || r[0]).map(r=>{
+    let channels = [];
+    try{ channels = JSON.parse(r[idx.channels_json] || "[]"); }catch(e){}
+    return {
+      name: r[idx.name],
+      category: r[idx.category],
+      industry: r[idx.industry],
+      area: r[idx.area],
+      phone: r[idx.phone],
+      email: r[idx.email],
+      dept: r[idx.dept],
+      hypothesisSales: r[idx.hypothesis_sales],
+      hypothesisHr: r[idx.hypothesis_hr],
+      hypothesisPr: r[idx.hypothesis_pr],
+      contact: {
+        channels,
+        proposal: r[idx.proposal],
+        script: r[idx.script],
+      },
+    };
+  }).filter(p=>p.name);
+}
+
+async function load(){
+  const grid = document.getElementById("grid");
+  try{
+    if(!SHEET_CSV_URL || SHEET_CSV_URL.indexOf("__SET_SHEET_CSV_URL_HERE__") !== -1){
+      throw new Error("SHEET_CSV_URL未設定");
+    }
+    const res = await fetch(SHEET_CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const rows = parseCsv(text);
+    const items = rowsToItems(rows);
+    if(!items.length) throw new Error("no rows");
+    grid.innerHTML = items.map(p=>cardHtml(p)).join("");
+  }catch(err){
+    console.error(err);
+    grid.innerHTML = `<div class="empty">データを読み込めませんでした。(${esc(err.message)})<br>SHEET_CSV_URLの設定、またはシートの「ウェブに公開」設定を確認してください。README.mdを参照。</div>`;
+  }
+}
+load();
+</script>
+</body>
+</html>
