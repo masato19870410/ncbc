@@ -172,12 +172,6 @@ function modalBodyHtml(p){
     <button class="close" aria-label="閉じる" data-close>×</button>
     <div class="m-name">${esc(p.name||"")}</div>
     ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
-    ${p.phone?`<div class="m-meta"><a href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">${esc(p.phone)}</a></div>`:""}
-    ${p.email?`<div class="m-meta">${esc(p.email)}</div>`:""}
-    ${(p.phone||c.script||c.message)?`<div class="action-row">
-      ${p.phone?`<a class="action-btn" href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">電話営業</a>`:""}
-      ${(c.script||c.message)?`<button class="action-btn" type="button" data-copy="${esc(c.message||c.script||"")}">文面をコピー</button>`:""}
-    </div>`:""}
     <div class="card-detail">
       <div class="detail-section"><b>課題</b>
         ${issueRow("営業", p.hypothesisSales)}
@@ -192,6 +186,14 @@ function modalBodyHtml(p){
       <div class="detail-section"><b>リンク</b>
         ${channelGroup("自社媒体", own)}
         ${channelGroup("他社媒体", other)}
+      </div>
+      <div class="detail-section"><b>連絡先</b>
+        ${issueRow("電話", p.phone || "なし")}
+        ${issueRow("メール", p.email || "なし")}
+        ${(p.phone||c.script||c.message)?`<div class="action-row">
+          ${p.phone?`<a class="action-btn" href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">電話営業</a>`:""}
+          ${(c.script||c.message)?`<button class="action-btn" type="button" data-copy="${esc(c.message||c.script||"")}">営業文面をコピー</button>`:""}
+        </div>`:""}
       </div>
     </div>`;
 }
