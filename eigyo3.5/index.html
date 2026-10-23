@@ -191,8 +191,8 @@ function modalBodyHtml(p){
         ${issueRow("電話", p.phone || "なし")}
         ${issueRow("メール", p.email || "なし")}
         ${(p.phone||c.script||c.message)?`<div class="action-row">
-          ${p.phone?`<a class="action-btn" href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">電話営業</a>`:""}
-          ${(c.script||c.message)?`<button class="action-btn" type="button" data-copy="${esc(c.message||c.script||"")}">営業文面をコピー</button>`:""}
+          ${p.phone?`<a class="action-btn" href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">電話する</a>`:""}
+          ${(c.script||c.message)?`<button class="action-btn" type="button" data-copy="${esc(c.message||c.script||"")}">文面をコピー</button>`:""}
         </div>`:""}
       </div>
     </div>`;
