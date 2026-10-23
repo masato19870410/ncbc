@@ -92,6 +92,11 @@
   .modal .m-name{font-weight:700;font-size:16px;margin:0 28px 4px 0}
   .modal .m-meta{font-size:12px;color:var(--muted);margin-bottom:2px}
   .modal .m-meta a{color:var(--muted)}
+  .action-row{display:flex;gap:8px;margin-top:12px}
+  .action-btn{flex:1;font-family:inherit;font-size:12.5px;font-weight:600;text-align:center;
+    padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel-2);
+    color:var(--text);text-decoration:none;cursor:pointer}
+  .action-btn:active{opacity:.7}
 </style>
 </head>
 <body>
@@ -168,16 +173,21 @@ function modalBodyHtml(p){
     <div class="m-name">${esc(p.name||"")}</div>
     ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
     ${p.phone?`<div class="m-meta"><a href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">${esc(p.phone)}</a></div>`:""}
-    ${p.email?`<div class="m-meta"><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div>`:""}
+    ${p.email?`<div class="m-meta">${esc(p.email)}</div>`:""}
+    ${(p.phone||c.script||c.message)?`<div class="action-row">
+      ${p.phone?`<a class="action-btn" href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">電話営業</a>`:""}
+      ${(c.script||c.message)?`<button class="action-btn" type="button" data-copy="${esc(c.message||c.script||"")}">文面をコピー</button>`:""}
+    </div>`:""}
     <div class="card-detail">
       <div class="detail-section"><b>課題</b>
         ${issueRow("営業", p.hypothesisSales)}
         ${issueRow("人事", p.hypothesisHr)}
         ${issueRow("広報", p.hypothesisPr)}
       </div>
-      ${(c.proposal||c.script)?`<div class="detail-section"><b>提案</b>
+      ${(c.proposal||c.script||c.message)?`<div class="detail-section"><b>提案</b>
         ${issueRow("骨子", c.proposal)}
-        ${issueRow("台本", c.script)}
+        ${issueRow("文面(メール/DM)", c.message)}
+        ${issueRow("台本(電話)", c.script)}
       </div>`:""}
       <div class="detail-section"><b>リンク</b>
         ${channelGroup("自社媒体", own)}
@@ -204,7 +214,15 @@ document.getElementById("grid").addEventListener("click", e=>{
   openModal(Number(card.dataset.idx));
 });
 overlay.addEventListener("click", e=>{
-  if(e.target === overlay || e.target.closest("[data-close]")) closeModal();
+  if(e.target === overlay || e.target.closest("[data-close]")) { closeModal(); return; }
+  const copyBtn = e.target.closest("[data-copy]");
+  if(copyBtn){
+    navigator.clipboard?.writeText(copyBtn.dataset.copy).then(()=>{
+      const orig = copyBtn.textContent;
+      copyBtn.textContent = "コピーしました";
+      setTimeout(()=>{ copyBtn.textContent = orig; }, 1500);
+    });
+  }
 });
 document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeModal(); });
 
@@ -230,6 +248,7 @@ function rowsToItems(rows){
       contact: {
         channels,
         proposal: r[idx.proposal],
+        message: r[idx.message],
         script: r[idx.script],
       },
     };
