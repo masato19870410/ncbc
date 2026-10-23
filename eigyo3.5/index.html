@@ -34,17 +34,20 @@
   header.top{padding:20px 20px 14px;border-bottom:1px solid var(--border);background:var(--panel)}
   header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em}
 
-  .wrap{padding:28px clamp(16px,4vw,40px) 56px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1400px;margin:0 auto;align-items:start}
-  @media (min-width:1180px){ .grid{grid-template-columns:repeat(5,1fr)} }
-  .card{border:1px solid var(--border);border-radius:10px;padding:18px;background:var(--panel);cursor:pointer;
-    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0}
-  .card:active{background:var(--panel-2)}
-  .card .name{font-weight:700;font-size:15px;margin-bottom:6px;letter-spacing:-.01em;
+  /* モバイルファースト: PC含め常にノースクロール優先の薄いリスト行にする。
+     1行=社名+エリアのみ。詳細はクリック/タップで展開。 */
+  .wrap{padding:0;max-width:720px;margin:0 auto}
+  .grid{display:block}
+  .card{padding:10px 16px;border-bottom:1px solid var(--border);background:var(--panel);cursor:pointer;min-width:0}
+  .card:hover,.card:active{background:var(--panel-2)}
+  .card .row-head{display:flex;align-items:baseline;gap:8px;min-width:0;margin:0}
+  .card .name{font-weight:700;font-size:13.5px;letter-spacing:-.01em;flex:1;min-width:0;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .card .meta{font-size:11.5px;color:var(--muted);line-height:1.6;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .card .pitch{font-size:13px;margin-top:10px;margin-bottom:12px;line-height:1.6}
+  .card .area-inline{font-size:11px;color:var(--muted);flex-shrink:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
+  .card .meta,.card .pitch{display:none}
+  .card .card-detail{margin-top:8px}
+  .card .card-detail .meta,.card .card-detail .pitch{display:block}
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px}
   .hidden{display:none!important}
 
@@ -122,7 +125,10 @@ function cardHtml(p){
     : p.dept==="広報" ? p.hypothesisPr
     : p.hypothesisHr;
   return `<div class="card">
-      <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
+      <div class="row-head">
+        <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
+        ${p.area?`<div class="area-inline" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
+      </div>
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
       ${p.phone?`<div class="meta"><a href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">${esc(p.phone)}</a></div>`:""}
       ${p.email?`<div class="meta"><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div>`:""}
