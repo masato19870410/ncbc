@@ -48,31 +48,38 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card .meta{font-size:11px;color:var(--muted);line-height:1.6;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55}
+  .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px;grid-column:1/-1}
   .hidden{display:none!important}
 
-  .card-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
+  .card-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
   .card-detail .txt{white-space:pre-wrap;margin:8px 0 0;color:var(--muted)}
-  .card .detail-section{margin-bottom:16px}
-  .card .detail-section>b{display:block;font-size:13px;color:var(--text);font-weight:700;margin-bottom:8px}
-  .card .issue-row{display:flex;gap:8px;align-items:baseline;margin-top:6px}
-  .card .dept-value{flex-shrink:0;font-size:11px;font-weight:500;color:var(--muted)}
-  .card .ch-group{margin-top:8px}
-  .card .ch-group b{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-bottom:2px}
-  .card .meta a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+  .detail-section{margin-bottom:20px}
+  .detail-section:last-child{margin-bottom:0}
+  .detail-section>b{display:block;font-size:11px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+  .issue-row{margin-top:10px}
+  .issue-row:first-child{margin-top:0}
+  .dept-value{display:block;font-size:10.5px;font-weight:700;color:var(--text);
+    background:var(--panel-2);border-radius:4px;padding:1px 6px;width:fit-content;margin-bottom:4px}
+  .issue-row>span:last-child{display:block;font-size:12.5px;color:var(--text);line-height:1.6}
+  .ch-group{margin-top:10px}
+  .ch-group:first-child{margin-top:0}
+  .ch-group b{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-bottom:4px}
+  .meta a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 
-  .card .ch-list{margin:6px 0 0;list-style:none;padding:0}
-  .card .ch-list li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
-  .card .ch-list .r{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
+  .ch-list{margin:6px 0 0;list-style:none;padding:0}
+  .ch-list li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
+  .ch-list .r{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
     border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0}
-  .card .ch-list .r-good{background:var(--ok-bg);color:var(--ok)}
-  .card .ch-list .r-mid{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
-  .card .ch-list .r-weak{background:var(--warn-bg);color:var(--warn)}
-  .card .ch-list .r-none{background:var(--bad-bg);color:var(--bad)}
-  .card .ch-list .n{flex:1}
-  .card .ch-list a.n{color:var(--text);text-decoration:underline;text-underline-offset:2px}
-  .card .ch-list .n-nolink{color:var(--muted)}
+  .ch-list .r-good{background:var(--ok-bg);color:var(--ok)}
+  .ch-list .r-mid{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+  .ch-list .r-weak{background:var(--warn-bg);color:var(--warn)}
+  .ch-list .r-none{background:var(--bad-bg);color:var(--bad)}
+  .ch-list .n{flex:1}
+  .ch-list a.n{color:var(--text);text-decoration:underline;text-underline-offset:2px}
+  .ch-list .n-nolink{color:var(--muted)}
 
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:10}
   .overlay.hidden{display:none}
@@ -146,7 +153,7 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
-      ${primaryText?`<div class="pitch">${esc(primaryText)}</div>`:""}
+      ${primaryText?`<div class="pitch" title="${esc(primaryText)}">${esc(primaryText)}</div>`:""}
     </div>`;
 }
 
