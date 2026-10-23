@@ -199,6 +199,7 @@ function modalBodyHtml(p){
 }
 
 let ITEMS = [];
+let openIdx = null;
 const overlay = document.getElementById("overlay");
 const modal = document.getElementById("modal");
 function openModal(idx){
@@ -206,14 +207,17 @@ function openModal(idx){
   if(!p) return;
   modal.innerHTML = modalBodyHtml(p);
   overlay.classList.remove("hidden");
+  openIdx = idx;
 }
-function closeModal(){ overlay.classList.add("hidden"); }
+function closeModal(){ overlay.classList.add("hidden"); openIdx = null; }
 
 document.getElementById("grid").addEventListener("click", e=>{
   if(e.target.closest("a")) return;
   const card = e.target.closest(".card");
   if(!card) return;
-  openModal(Number(card.dataset.idx));
+  const idx = Number(card.dataset.idx);
+  if(idx === openIdx && !overlay.classList.contains("hidden")){ closeModal(); return; }
+  openModal(idx);
 });
 overlay.addEventListener("click", e=>{
   if(e.target === overlay || e.target.closest("[data-close]")) { closeModal(); return; }
