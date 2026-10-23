@@ -146,8 +146,6 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
-      ${p.phone?`<div class="meta"><a href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">${esc(p.phone)}</a></div>`:""}
-      ${p.email?`<div class="meta"><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div>`:""}
       ${primaryText?`<div class="pitch">${esc(primaryText)}</div>`:""}
     </div>`;
 }
