@@ -31,24 +31,27 @@
     line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
   a{color:var(--text)}
 
-  header.top{padding:20px 20px 14px;border-bottom:1px solid var(--border);background:var(--panel)}
+  header.top{padding:16px 16px 12px;border-bottom:1px solid var(--border);background:var(--panel)}
   header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em}
+  header.top .count{font-size:11.5px;font-weight:500;color:var(--muted)}
 
-  /* モバイルファースト: PC含め常にノースクロール優先の薄いリスト行にする。
-     1行=社名+エリアのみ。詳細はクリック/タップで展開。 */
-  .wrap{padding:0;max-width:720px;margin:0 auto}
-  .grid{display:block}
-  .card{padding:10px 16px;border-bottom:1px solid var(--border);background:var(--panel);cursor:pointer;min-width:0}
-  .card:hover,.card:active{background:var(--panel-2)}
-  .card .row-head{display:flex;align-items:baseline;gap:8px;min-width:0;margin:0}
+  /* モバイルから常に2列(最小限の情報密度)、幅が増えるごとに列を増やす */
+  .wrap{padding:16px clamp(12px,3vw,32px) 48px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:1400px;margin:0 auto;align-items:start}
+  @media (min-width:560px){ .grid{grid-template-columns:repeat(3,1fr)} }
+  @media (min-width:860px){ .grid{grid-template-columns:repeat(4,1fr)} }
+  @media (min-width:1180px){ .grid{grid-template-columns:repeat(5,1fr)} }
+  .card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--panel);cursor:pointer;
+    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0}
+  .card:active{background:var(--panel-2)}
+  .card .row-head{display:flex;align-items:baseline;gap:6px;min-width:0;margin-bottom:4px}
+  .card .num{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--muted);flex-shrink:0}
   .card .name{font-weight:700;font-size:13.5px;letter-spacing:-.01em;flex:1;min-width:0;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .card .area-inline{font-size:11px;color:var(--muted);flex-shrink:0;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
-  .card .meta,.card .pitch{display:none}
-  .card .card-detail{margin-top:8px}
-  .card .card-detail .meta,.card .card-detail .pitch{display:block}
-  .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px}
+  .card .meta{font-size:11px;color:var(--muted);line-height:1.6;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55}
+  .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px;grid-column:1/-1}
   .hidden{display:none!important}
 
   .card-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
@@ -77,7 +80,7 @@
 <body>
 
 <header class="top">
-  <h1>営業アプリ</h1>
+  <h1>営業アプリ <span id="count" class="count"></span></h1>
 </header>
 
 <div class="wrap">
@@ -116,7 +119,7 @@ function issueRow(label, text){
   return `<div class="issue-row"><span class="dept-value">${esc(label)}</span><span>${esc(text)}</span></div>`;
 }
 
-function cardHtml(p){
+function cardHtml(p, idx){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const own = sortChannels(channels.filter(ch=>OWN_MEDIA.has(ch.n)));
@@ -126,8 +129,8 @@ function cardHtml(p){
     : p.hypothesisHr;
   return `<div class="card">
       <div class="row-head">
+        <div class="num">${String(idx+1).padStart(2,"0")}</div>
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
-        ${p.area?`<div class="area-inline" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
       </div>
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
       ${p.phone?`<div class="meta"><a href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">${esc(p.phone)}</a></div>`:""}
@@ -196,7 +199,8 @@ async function load(){
     const rows = await res.json();
     const items = rowsToItems(rows);
     if(!items.length) throw new Error("no rows");
-    grid.innerHTML = items.map(p=>cardHtml(p)).join("");
+    grid.innerHTML = items.map((p,i)=>cardHtml(p,i)).join("");
+    document.getElementById("count").textContent = items.length ? `${items.length}件` : "";
   }catch(err){
     grid.innerHTML = `<div class="empty">データを読み込めませんでした。</div>`;
   }
