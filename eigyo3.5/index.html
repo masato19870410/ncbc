@@ -66,7 +66,8 @@
   .issue-row>span:last-child{display:block;font-size:12.5px;color:var(--text);line-height:1.6}
   .ch-group{margin-top:10px}
   .ch-group:first-child{margin-top:0}
-  .ch-group b{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-bottom:4px}
+  .ch-group b{display:block;font-size:10.5px;font-weight:700;color:var(--text);
+    background:var(--panel-2);border-radius:4px;padding:1px 6px;width:fit-content;margin-bottom:6px}
   .meta a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 
   .ch-list{margin:6px 0 0;list-style:none;padding:0}
@@ -179,8 +180,8 @@ function modalBodyHtml(p){
         ${issueRow("台本", c.script)}
       </div>`:""}
       <div class="detail-section"><b>リンク</b>
-        ${channelGroup("自", own)}
-        ${channelGroup("他", other)}
+        ${channelGroup("自社媒体", own)}
+        ${channelGroup("他社媒体", other)}
       </div>
     </div>`;
 }
