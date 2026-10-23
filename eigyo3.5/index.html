@@ -91,7 +91,7 @@ function channelLi(ch){
     : `<span class="n n-nolink"${note}>${esc(ch.n)}</span>`;
   return `<li><span class="r ${cls}">${esc(ch.r)}</span>${label}</li>`;
 }
-const CH_ORDER = ["自社サイト", "Googleマップ", "Yahoo!マップ", "Instagram", "ホットペッパービューティー", "Indeed"];
+const CH_ORDER = ["自社サイト", "Instagram", "X", "Facebook", "LINE公式", "YouTube", "note", "TikTok", "Googleマップ", "Yahoo!マップ", "ホットペッパービューティー", "Indeed"];
 function sortChannels(channels){
   const rank = n => { const i = CH_ORDER.indexOf(n); return i === -1 ? CH_ORDER.length : i; };
   return channels
@@ -100,7 +100,7 @@ function sortChannels(channels){
     .map(x => x.ch);
 }
 
-const OWN_MEDIA = new Set(["自社サイト", "Instagram"]);
+const OWN_MEDIA = new Set(["自社サイト", "Instagram", "X", "Facebook", "LINE公式", "YouTube", "note", "TikTok"]);
 function channelGroup(label, channels){
   if(!channels.length) return "";
   return `<div class="ch-group"><b>${esc(label)}</b><ul class="ch-list">${channels.map(channelLi).join("")}</ul></div>`;

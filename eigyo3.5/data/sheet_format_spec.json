@@ -1,0 +1,5 @@
+{"rules": [
+   {"range": "A1:N1", "bold": true, "bg": "#1F3864", "fg": "#FFFFFF", "align": "left"},
+   {"range": "A1:N20", "borders": "#D9D9D9"}],
+ "freeze": {"rows": 1, "columns": 1},
+ "col_widths": {"A": 180, "B": 60, "C": 110, "D": 90, "E": 260, "F": 220, "G": 220, "H": 260, "I": 220, "J": 90, "K": 90, "L": 320, "M": 110, "N": 90}}
