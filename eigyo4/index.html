@@ -245,20 +245,29 @@ const OWN_MEDIA = new Set(["自社サイト", "Instagram", "X", "Facebook", "LIN
 // 公開情報で確認した値と、企業データベース由来の推定値を分けて表示する。
 const RESEARCH_FACTS = {
   "株式会社フジショウ": {
-    employeeCount:"75", employeeStatus:"確認済み", employeeSource:"求人媒体の会社概要", revenueMan:120000, revenueStatus:"企業DB推定",
+    employeeCount:"72", employeeStatus:"推定（SalesNow DB、社会保険の被保険者数に基づく参考値）", employeeSource:"SalesNow DB",
+    revenueRangeText:"10億円以上〜50億円未満", revenueStatus:"推定（SalesNow DB）",
+    capitalMan:1000, capitalStatus:"推定（SalesNow DB）",
     additionalSources:[
+      { label:"SalesNow DB 企業情報", url:"https://salesnow.jp/db/companies/jcbhygebyth0sytf", note:"2026-09-18更新。正社員規模（推定）72名、資本金1,000万円、売上レンジ10億円以上〜50億円未満、2000年06月設立。社名・代表者名は国税庁法人番号データ由来、規模・売上は独自推定である点に留意。" },
       { label:"ハローワーク求人（市内便ドライバー）", url:"https://www.hellowork.mhlw.go.jp/kensaku/GECA110020.do?action=dispDetailBtn&fullPart=1&kjNo=3301025400061", note:"2026-08-17受付。4t・5t・7t車の市内便、機械・金属製造等の部品配送。月給27〜33万円の求人情報。" },
       { label:"トーウン：株式取得のお知らせ", url:"https://tohun.co.jp/20251226.pdf", note:"2025-12-22に全株式を取得し子会社化。西日本エリアの機能拡張・輸送品目獲得を目的とする公式発表。" },
     ],
   },
-  "有限会社杉元建具": { employeeCount:"約4", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:500, capitalStatus:"企業DB推定" },
-  "有限会社大橋重機": { employeeCount:"7", employeeStatus:"企業DB推定", employeeSource:"企業データベース" },
-  "株式会社シーエス建材トーヨー住器": { employeeCount:"16", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:350, capitalStatus:"企業DB推定" },
-  "有限会社石井電業社": { employeeCount:"5", employeeStatus:"確認済み", employeeSource:"gBizINFO", capitalMan:300, capitalStatus:"企業DB推定" },
-  "有限会社コバヤシ防災システム": { employeeCount:"9", employeeStatus:"企業DB推定", employeeSource:"企業データベース" },
-  "有限会社ワイ・エス・ピー": { employeeCount:"7〜8", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:400, capitalStatus:"企業DB推定" },
-  "竹森工芸株式会社": { employeeCount:"12", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:1000, capitalStatus:"企業DB推定" },
-  "日新機工有限会社": { employeeCount:"3", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:300, capitalStatus:"企業DB推定" },
+  "有限会社杉元建具": {
+    employeeCount:"約4", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認",
+    capitalMan:500, capitalStatus:"確定（国土交通省 建設業者・宅建業者等企業情報検索システム）",
+    additionalSources:[
+      { label:"国土交通省 建設業者・宅建業者等企業情報検索システム", url:"https://etsuran2.mlit.go.jp/TAKKEN/kensetuKensaku.do?outPutKbn=1", note:"岡山県知事許可第020041号。資本金額5,000千円（500万円）、代表者 杉元大介、電話086-282-4664（2026-10-31確認）。検索画面で「杉元建具」「岡山県」を指定すると同じ結果が再現できる（個票への直接リンクは発行されないシステムのため）。" },
+    ],
+  },
+  "有限会社大橋重機": { employeeCount:"7", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認" },
+  "株式会社シーエス建材トーヨー住器": { employeeCount:"16", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:350, capitalStatus:"推定（根拠不明、商談で要確認）" },
+  "有限会社石井電業社": { employeeCount:"5", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明、商談で要確認）" },
+  "有限会社コバヤシ防災システム": { employeeCount:"9", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認" },
+  "有限会社ワイ・エス・ピー": { employeeCount:"7〜8", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:400, capitalStatus:"推定（根拠不明、商談で要確認）" },
+  "竹森工芸株式会社": { employeeCount:"12", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:1000, capitalStatus:"推定（根拠不明、商談で要確認）" },
+  "日新機工有限会社": { employeeCount:"3", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明、商談で要確認）" },
 };
 function channelGroup(label, channels){
   if(!channels.length) return "";
@@ -357,7 +366,7 @@ function diagnoseOfferingFit(p){
       isCaseStudy:false, offering,
       status:"判定保留（根拠不足）",
       why:"AI研修・業務改善支援との適合を判断するための、教育課題・業務時間・現場のAI利用状況が公開情報からは不足している。",
-      confirmed:[esc(`公開情報：${p.industry || "業種未確認"}、${facts.employeeCount ? `従業員${facts.employeeCount}人（${facts.employeeStatus}、URL未登録）` : "従業員数未確認"}`)],
+      confirmed:[esc(`公開情報：${p.industry || "業種未確認"}、${facts.employeeCount ? `従業員${facts.employeeCount}人（${facts.employeeStatus}）` : "従業員数未確認"}`)],
       inference:"人員規模や業務課題が分からない段階で、AI研修が適合すると断定しない。",
       unknown:"教育対象者・現場の反復業務・既存ツール・決裁者・予算",
       effect:"年額効果は未算定",
@@ -367,7 +376,7 @@ function diagnoseOfferingFit(p){
     };
   }
 
-  const employeeNote = `従業員数：現行コードは${facts.employeeCount}人（${facts.employeeStatus}、${facts.employeeSource}、URL未登録）。シートのアプローチメモには76人とあり、1人差の不整合あり。`;
+  const employeeNote = `従業員数：${facts.employeeCount}人（${facts.employeeStatus}）`;
   return {
     isCaseStudy:true, offering,
     status:"1社目の検証候補（適合は仮説）",
@@ -476,6 +485,7 @@ function concludeDept(p){
   const facts = RESEARCH_FACTS[p.name] || {};
 
   // 資本金・売上高は事業規模の参考情報。制作予算そのものではないため、予算額の推定には使わない。
+  // ステータス表記(確定/推定/未確認)は出典ごとに個社管理(RESEARCH_FACTS)し、ここでは汎用ラベルを付けない。
   const capitalMan = parseFloat(p.capitalMan || facts.capitalMan) || 0;
   const revenueMan = parseFloat(p.revenueMan || facts.revenueMan) || 0;
   const employeeScale = facts.employeeCount
@@ -483,15 +493,18 @@ function concludeDept(p){
     : "従業員数は未確認";
 
   let businessScale, businessScaleNote;
-  if(revenueMan >= 10000){
-    businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（企業DB推定） / ${employeeScale}`;
-    businessScaleNote = `年間売上高は企業DB由来の推定。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+  if(facts.revenueRangeText){
+    businessScale = `年間売上高${facts.revenueRangeText}（${facts.revenueStatus}） / ${employeeScale}`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+  } else if(revenueMan >= 10000){
+    businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明、商談で要確認）"}） / ${employeeScale}`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明、商談で要確認）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else if(capitalMan >= 800){
-    businessScale = `資本金${capitalMan}万円（企業DB推定） / ${employeeScale}`;
-    businessScaleNote = `資本金は企業DB由来の推定。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明、商談で要確認）"}） / ${employeeScale}`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明、商談で要確認）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else if(capitalMan > 0){
-    businessScale = `資本金${capitalMan}万円（企業DB推定） / ${employeeScale}`;
-    businessScaleNote = `資本金は企業DB由来の推定。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明、商談で要確認）"}） / ${employeeScale}`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明、商談で要確認）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else {
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
     businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
