@@ -118,9 +118,6 @@
     border:1px solid var(--border);background:var(--panel-2);color:var(--muted);cursor:pointer}
   .sender-btn.active{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
 
-  .reco-toggle{margin-top:10px;font-family:inherit;font-size:12px;font-weight:600;padding:7px 14px;
-    border-radius:20px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);cursor:pointer}
-  .reco-toggle.active{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
   .reco-badge{display:inline-block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
     border-radius:4px;padding:1px 6px;margin-bottom:4px}
 
@@ -144,6 +141,7 @@
   .sim-label{display:block;font-size:10.5px;font-weight:700;margin-bottom:2px}
   .sim-win .sim-label{color:var(--ok)}
   .sim-lose .sim-label{color:var(--bad)}
+  .wrap-up{margin-top:10px;padding-top:10px;border-top:2px solid var(--text);font-size:13px;font-weight:700}
   .conclusion-reason{font-size:12.5px;color:var(--text);line-height:1.6}
 
   .diag-details{margin-bottom:20px}
@@ -158,7 +156,6 @@
   <div class="inner">
     <h1>営業アプリ <span id="count" class="count"></span></h1>
     <div class="src">データ: Googleスプレッドシート直読み(v4)</div>
-    <button class="reco-toggle" id="recoToggle" type="button">🔥 あなたにおすすめの営業先</button>
   </div>
 </header>
 
@@ -333,6 +330,17 @@ function concludeDept(p){
       loseCase: "「無料なら自分でもできるのでは」と思われ、代行の必要性を感じてもらえず断られるリスク。やり方を教えるだけで終わる可能性もある。",
     };
   } else if((!site || site.r==="✕") && indeed && (indeed.r==="◎"||indeed.r==="○")){
+    // 相手側の効果(採用コスト削減)を、求人票記載の月給レンジ×人材紹介手数料相場(年収の30%が業界慣行)から試算。
+    // 金額換算できるのはこの採用系だけ(営業/広報は流入→成約の実データが無く金額換算は困難)。
+    let clientValueNote = "";
+    const salaryMatch = indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
+    if(salaryMatch){
+      const lo = parseFloat(salaryMatch[1]);
+      const hi = salaryMatch[2] ? parseFloat(salaryMatch[2]) : lo;
+      const feeLo = Math.round(lo * 12 * 0.3);
+      const feeHi = Math.round(hi * 12 * 0.3);
+      clientValueNote = `求人票の月給(${salaryMatch[0].replace("円","")}円)を基に試算すると、人材紹介経由の手数料相場(年収の約30%、業界慣行)は${feeLo}〜${feeHi}万円。自社採用できればその分がまるごとコスト削減になる。`;
+    }
     result = {
       cost: "低コスト",
       action: "採用特化ページの新設",
@@ -340,7 +348,7 @@ function concludeDept(p){
       dept: "人事",
       text: p.hypothesisHr,
       priceRange: [8, 15],
-      reason: `求人が実際に動いている(Indeed掲載中)タイミングで受け皿を作るだけで応募の離脱を防げる。人事課題への着手が最もROIが高い。${budgetNote}`,
+      reason: `求人が実際に動いている(Indeed掲載中)タイミングで受け皿を作るだけで応募の離脱を防げる。人事課題への着手が最もROIが高い。${budgetNote}${clientValueNote ? " "+clientValueNote : ""}`,
       winCase: "求人が実際に動いている今だからこそ「今すぐ効果が出る」という時間的切迫感を訴求できる。採用費として予算を取りやすい部門でもある。",
       loseCase: "Indeedの無料掲載だけで十分応募が来ていると思われていると、追加投資の必要性を感じてもらえず「今はいい」と先送りされるリスク。",
     };
@@ -387,6 +395,7 @@ function concludeDept(p){
   result.closeProb = closeProb;
   result.expectedValue = expectedValue;
   result.expectedNote = `提案金額の目安(${result.priceLabel})× 成約確度の目安(${closeProb}%)= 期待値 約${expectedValue}万円。いずれも実績データではなく一般的な相場と予算シグナルからの推定。`;
+  result.wrapUp = `結論: まずは${result.dept}課題(${result.action})から提案する。`;
 
   return result;
 }
@@ -476,6 +485,7 @@ function modalBodyHtml(p){
           <div class="sim-row sim-win"><span class="sim-label">◎ 受注シナリオ</span>${esc(conclusion.winCase)}</div>
           <div class="sim-row sim-lose"><span class="sim-label">✕ 失注シナリオ</span>${esc(conclusion.loseCase)}</div>
         </div>
+        <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
       </div>
       <details class="diag-details">
         <summary>診断の詳細を見る</summary>
@@ -649,22 +659,12 @@ function rowsToItems(rows){
   }).filter(p=>p.name);
 }
 
-let RECO_MODE = true;
 function renderGrid(){
   const grid = document.getElementById("grid");
   if(!ITEMS.length) return;
-  let order = ITEMS.map((p,i)=>({p,i}));
-  if(RECO_MODE) order = order.slice().sort((a,b)=>fitScore(b.p)-fitScore(a.p));
-  grid.innerHTML = order.map(({p,i},rank)=>cardHtml(p,i,RECO_MODE?rank:null)).join("");
+  const order = ITEMS.map((p,i)=>({p,i})).sort((a,b)=>fitScore(b.p)-fitScore(a.p));
+  grid.innerHTML = order.map(({p,i},rank)=>cardHtml(p,i,rank)).join("");
 }
-document.getElementById("recoToggle").classList.add("active");
-document.getElementById("recoToggle").textContent = "✕ 通常順に戻す";
-document.getElementById("recoToggle").addEventListener("click", ()=>{
-  RECO_MODE = !RECO_MODE;
-  document.getElementById("recoToggle").classList.toggle("active", RECO_MODE);
-  document.getElementById("recoToggle").textContent = RECO_MODE ? "✕ 通常順に戻す" : "🔥 あなたにおすすめの営業先";
-  renderGrid();
-});
 
 async function load(){
   const grid = document.getElementById("grid");
