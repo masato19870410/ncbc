@@ -715,12 +715,19 @@ function fitScore(p){
     score += (concl.isEstimate ? 10000 : 20000) + upper;
   }
 
-  // 予算セカンド: 資本金が分かる会社ほど加点(確定>推定、金額が大きいほど加点)
+  // 予算セカンド: 会社規模(資本金・売上高・従業員数)が分かる会社ほど加点(確定>推定、金額が大きいほど加点)。
+  // 不明な会社は無理に下げないが、分かる会社がより上に来るようにする。
   const facts = RESEARCH_FACTS[p.name] || {};
   const capitalMan = parseFloat(p.capitalMan || facts.capitalMan) || 0;
+  const revenueManForScore = parseFloat(p.revenueMan || facts.revenueMan) || 0;
   if(capitalMan > 0){
     score += Math.min(capitalMan / 100, 20); // 100万円ごとに1点、上限20点
     if(facts.capitalStatus && facts.capitalStatus.startsWith("確定")) score += 5;
+  }
+  if(revenueManForScore > 0 || facts.revenueRangeText) score += 8; // 売上規模が分かる会社を少し優先
+  if(facts.employeeCount){
+    score += 3; // 従業員数が分かる会社を少し優先
+    if(facts.employeeStatus && facts.employeeStatus.startsWith("確定")) score += 2;
   }
 
   // 価格サード: 商材価格(priceLabel)が安いほど導入ハードルが低く提案しやすいので、わずかに加点する。
