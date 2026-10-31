@@ -125,12 +125,6 @@
   .modal .m-name{font-weight:700;font-size:16px;margin:0 28px 4px 0}
   .modal .m-meta{font-size:12px;color:var(--muted);margin-bottom:2px}
   .modal .m-meta a{color:var(--muted)}
-  .action-row{display:flex;gap:8px;margin-top:12px}
-  .action-btn{flex:1;font-family:inherit;font-size:12.5px;font-weight:600;text-align:center;
-    padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel-2);
-    color:var(--text);text-decoration:none;cursor:pointer}
-  .action-btn:active{opacity:.7}
-
   .approach-note{background:var(--panel-2);border-radius:8px;padding:10px 12px;font-size:12.5px;
     color:var(--text);line-height:1.6;margin-top:4px}
 
@@ -454,13 +448,14 @@ function researchMeta(p){
   return { facts, sources, checkedAt, trust };
 }
 function priorityReason(p, conclusion = concludeDept(p)){
+  if(conclusion.effectValue === "未算定") return "効果根拠が不足しているため追加調査が必要";
   const channels = p.contact?.channels || [];
   const facts = RESEARCH_FACTS[p.name] || {};
   const reasons = [];
   if(conclusion.effectValue !== "未算定") reasons.push(conclusion.isEstimate ? "業界平均で参考試算可能" : "求人データで参考試算可能");
   if(findChannel(channels, "Indeed")) reasons.push("求人課題あり");
   if(facts.employeeCount || facts.capitalMan || facts.revenueRangeText) reasons.push("会社規模情報あり");
-  if(!reasons.length) reasons.push("提案仮説を商談で検証する候補");
+  if(!reasons.length) reasons.push("公開情報から提案根拠を確認できる候補");
   return reasons.join("・");
 }
 function trustBoxHtml(p, conclusion = concludeDept(p)){
@@ -832,17 +827,20 @@ function concludeDept(p){
     : "効果の勘定科目：売上高。利益額ではなく売上増の効果であり、粗利・営業利益への影響は別途確認。";
   result.businessScale = businessScale;
   result.cardBudget = cardBudget;
-  result.topConclusion = result.effectValue === "未算定"
-    ? `効果金額は未算定。必要情報を確認したうえで、${result.action}への${result.priceLabel}の投資可否を判断する。`
+  result.proposalReady = result.effectValue !== "未算定";
+  result.topConclusion = !result.proposalReady
+    ? "効果根拠が不足しているため提案は保留。公開情報を追加調査してから提案可否を判断する。"
     : `${effectLabel}の${result.effectType === "費用減" ? "回避可能性" : "増加目安"}を参考に、${result.action}への${result.priceLabel}の投資可否を判断する。`;
-  result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
+  result.wrapUp = result.proposalReady
+    ? `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`
+    : "結論: 現時点では提案しない。効果算定に必要な情報を追加調査する。";
   // 効果を先、投資内容を後に置いて、ラベルに頼らず読める順にする。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
   // カード一覧は横幅が狭いため「年額」を省略し、括弧を外して1行に収まりやすくする。
   // 「年額」は省くが、年ベースの数字であることは経営判断に必須の情報なので「/年」で必ず残す。
-  result.cardLine = referenceEffectLabel(p, result);
-  result.cardInvestment = result.priceLabel;
-  result.cardProduct = shortAction;
+  result.cardLine = result.proposalReady ? referenceEffectLabel(p, result) : "提案保留｜効果根拠を追加調査";
+  result.cardInvestment = result.proposalReady ? result.priceLabel : "費用提示なし";
+  result.cardProduct = result.proposalReady ? shortAction : "追加調査が必要";
 
   return result;
 }
@@ -941,6 +939,7 @@ function modalBodyHtml(p){
   const other = sortChannels(channels.filter(ch=>!OWN_MEDIA.has(ch.n)));
   const diag = diagnoseApproach(p);
   const conclusion = concludeDept(p);
+  const proposalReady = conclusion.proposalReady;
   return `
     <button class="close" aria-label="閉じる" data-close>×</button>
     <div class="m-name">${esc(p.name||"")}</div>
@@ -948,23 +947,24 @@ function modalBodyHtml(p){
     <div class="card-detail">
       <div class="conclusion-box">
         <div class="proposal-kicker">営業仮説・参考シミュレーション</div>
-        <div class="proposal-headline"><strong>${esc(referenceEffectLabel(p, conclusion))}</strong><br>${esc(conclusion.priceLabel)}で${esc(conclusion.action)}を提案候補にする</div>
-        <div class="priority-box"><b>この会社を優先する理由</b>${esc(priorityReason(p, conclusion))}</div>
+        <div class="proposal-headline">${proposalReady
+          ? `<strong>${esc(referenceEffectLabel(p, conclusion))}</strong><br>${esc(conclusion.priceLabel)}で${esc(conclusion.action)}を提案候補にする`
+          : `<strong>提案保留</strong><br>費用対効果の根拠を追加調査する`}</div>
+        <div class="priority-box"><b>${proposalReady ? "この会社を優先する理由" : "提案を保留する理由"}</b>${esc(priorityReason(p, conclusion))}</div>
         ${trustBoxHtml(p, conclusion)}
         <div class="calc-alert ${conclusion.effectValue === "未算定" ? "" : "is-calculated"}">
           <b>${conclusion.effectValue === "未算定" ? "未算定｜この情報があれば金額化できます" : (conclusion.isEstimate ? "業種推定の計算式・前提（全国平均を代用）" : "試算の計算式・前提")}</b>
           ${esc(conclusion.calculationFormula)}<br>${conclusion.effectValue === "未算定" ? `確認項目：${esc(conclusion.calculationInputs)}` : `要確認：${esc(conclusion.calculationInputs)}`}
-          <span class="calc-account">${esc(conclusion.accountingNote)} 投資の勘定科目（想定）：${esc(conclusion.accountItem)}</span>
+          ${proposalReady ? `<span class="calc-account">${esc(conclusion.accountingNote)} 投資の勘定科目（想定）：${esc(conclusion.accountItem)}</span>` : ""}
         </div>
-        <div class="proposal-flow">
-          <div class="proposal-step">${esc(conclusion.effectDisplay)}${conclusion.effectValue === "未算定" ? "" : (conclusion.isEstimate ? "（業種推定）" : "（試算）")}</div><div class="proposal-arrow">↔</div>
-          <div class="proposal-step">${esc(conclusion.priceLabel)}</div><div class="proposal-arrow">↔</div>
-          <div class="proposal-step">${esc(conclusion.action)}</div>
+        <div class="proposal-flow">${proposalReady
+          ? `<div class="proposal-step">${esc(conclusion.effectDisplay)}${conclusion.isEstimate ? "（業種推定）" : "（試算）"}</div><div class="proposal-arrow">↔</div><div class="proposal-step">${esc(conclusion.priceLabel)}</div><div class="proposal-arrow">↔</div><div class="proposal-step">${esc(conclusion.action)}</div>`
+          : `<div class="proposal-step">追加調査</div><div class="proposal-arrow">→</div><div class="proposal-step">効果算定</div><div class="proposal-arrow">→</div><div class="proposal-step">提案判断</div>`}
         </div>
         <div class="client-benefit-label">相手(先方)の得・損（${esc(conclusion.benefitStatus)}）</div>
         <div class="client-benefit-text">${esc(conclusion.clientBenefit)}</div>
         ${conclusion.benefitSourceUrl ? `<div class="benefit-source"><a href="${esc(conclusion.benefitSourceUrl)}" target="_blank" rel="noopener">${esc(conclusion.benefitSourceLabel)} ↗</a></div>` : ""}
-        <div class="num-row">
+        ${proposalReady ? `<div class="num-row">
           <div class="num-tile">
             <div class="num-label">商材</div>
             <div class="num-value num-value-sm">${esc(conclusion.action)}</div>
@@ -973,28 +973,28 @@ function modalBodyHtml(p){
             <div class="num-label">費用・契約形態（目安）</div>
             <div class="num-value num-value-sm">${esc(conclusion.priceLabel)}</div>
           </div>
-        </div>
-        <div class="conclusion-dept">${esc(conclusion.dept)}課題 / ${esc(conclusion.accountItem)}<br>規模データ: ${esc(conclusion.businessScale)}</div>
+        </div>` : ""}
+        <div class="conclusion-dept">${proposalReady ? `${esc(conclusion.dept)}課題 / ${esc(conclusion.accountItem)}` : `調査対象: ${esc(conclusion.dept)}課題`}<br>規模データ: ${esc(conclusion.businessScale)}</div>
         <div class="conclusion-reason">${esc(conclusion.reason)}</div>
-        <div class="sim-box">
-          <div class="sim-row sim-win"><span class="sim-label">確認したいこと</span>${esc(conclusion.winCase)}</div>
-          <div class="sim-row sim-lose"><span class="sim-label">提案前に決めること</span>${esc(conclusion.loseCase)}</div>
+        <div class="sim-box">${proposalReady
+          ? `<div class="sim-row sim-win"><span class="sim-label">確認したいこと</span>${esc(conclusion.winCase)}</div><div class="sim-row sim-lose"><span class="sim-label">提案前に決めること</span>${esc(conclusion.loseCase)}</div>`
+          : `<div class="sim-row sim-win"><span class="sim-label">追加調査する情報</span>${esc(conclusion.calculationInputs)}</div>`}
         </div>
         <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
-        <p class="disclaimer">表示金額は公開情報や業界平均を用いた参考試算です。実際の成果を保証するものではありません。提案前に商談で条件を確認してください。</p>
+        <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
       </div>
       ${SHOW_OFFERING_STRATEGY ? offeringStrategyHtml(p) : ""}
-      ${sellerProfileHtml()}
+      ${proposalReady ? sellerProfileHtml() : ""}
       <details class="diag-details">
         <summary>診断の詳細を見る</summary>
         <div class="diag-box">
           <div class="diag-type">${esc(diag.type)}</div>
           <div class="diag-desc">${esc(diag.typeDesc)}</div>
           ${c.approachNote?`<div class="diag-method"><span class="dept-value">アプローチの切り口(費用対効果)</span>${esc(c.approachNote)}</div>`:""}
-          <div class="diag-method"><span class="dept-value">推奨アプローチ</span>${esc(diag.method)}</div>
-          ${diag.fit?`<div class="diag-method diag-fit"><span class="dept-value">あなたとの相性</span>${esc(diag.fit)}</div>`:""}
-          ${!getSenderStyle()?`<div class="sender-bar" data-sender-bar="style"><span class="label">得意なスタイル(任意):</span></div>`:""}
-          ${!getSenderTrait()?`<div class="sender-bar" data-sender-bar="trait"><span class="label">性格タイプ(任意):</span></div>`:""}
+          <div class="diag-method"><span class="dept-value">${proposalReady ? "推奨アプローチ" : "追加調査"}</span>${esc(proposalReady ? diag.method : conclusion.calculationInputs)}</div>
+          ${proposalReady && diag.fit?`<div class="diag-method diag-fit"><span class="dept-value">あなたとの相性</span>${esc(diag.fit)}</div>`:""}
+          ${proposalReady && !getSenderStyle()?`<div class="sender-bar" data-sender-bar="style"><span class="label">得意なスタイル(任意):</span></div>`:""}
+          ${proposalReady && !getSenderTrait()?`<div class="sender-bar" data-sender-bar="trait"><span class="label">性格タイプ(任意):</span></div>`:""}
         </div>
       </details>
       <div class="detail-section"><b>課題</b>
@@ -1002,10 +1002,10 @@ function modalBodyHtml(p){
         ${issueRow("人事", p.hypothesisHr)}
         ${issueRow("広報", p.hypothesisPr)}
       </div>
-      ${(c.proposal||c.script||c.message)?`<div class="detail-section"><b>提案</b>
+      ${(c.proposal||c.script||c.message)?`<div class="detail-section"><b>${proposalReady ? "提案" : "調査後の提案仮説"}</b>
         ${issueRow("骨子", c.proposal)}
-        ${issueRow("文面(メール/DM)", c.message)}
-        ${issueRow("台本(電話)", c.script)}
+        ${proposalReady ? issueRow("文面(メール/DM)", c.message) : ""}
+        ${proposalReady ? issueRow("台本(電話)", c.script) : ""}
       </div>`:""}
       <div class="detail-section"><b>リンク</b>
         ${channelGroup("自社媒体", own)}
@@ -1014,10 +1014,6 @@ function modalBodyHtml(p){
       <div class="detail-section"><b>連絡先</b>
         ${issueRow("電話", p.phone || "なし")}
         ${issueRow("メール", p.email || "なし")}
-        ${(p.phone||c.script||c.message)?`<div class="action-row">
-          ${p.phone?`<a class="action-btn" href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">電話する</a>`:""}
-          ${(c.script||c.message)?`<button class="action-btn" type="button" data-copy="${esc(c.message||c.script||"")}">文面をコピー</button>`:""}
-        </div>`:""}
       </div>
     </div>`;
 }
@@ -1076,9 +1072,9 @@ function renderSelectedCompany(idx){
   const conclusion = concludeDept(p);
   selectedIdx = idx;
   target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
-    <div class="rail-selected-row"><b>提案候補</b>${esc(conclusion.cardProduct)}</div>
-    <div class="rail-selected-row"><b>参考試算</b>${esc(referenceEffectLabel(p, conclusion))}</div>
-    <div class="rail-selected-row"><b>優先理由</b>${esc(priorityReason(p, conclusion))}</div>
+    <div class="rail-selected-row"><b>${conclusion.proposalReady ? "提案候補" : "判定"}</b>${esc(conclusion.cardProduct)}</div>
+    <div class="rail-selected-row"><b>${conclusion.proposalReady ? "参考試算" : "状態"}</b>${esc(conclusion.cardLine)}</div>
+    <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
     <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
     <button class="rail-detail-btn" type="button" data-open-selected>詳細を見る</button>`;
   document.querySelectorAll(".card").forEach(card=>card.setAttribute("aria-current", Number(card.dataset.idx) === idx ? "true" : "false"));
@@ -1101,15 +1097,6 @@ document.querySelector(".desktop-shell").addEventListener("click", e=>{
 });
 overlay.addEventListener("click", e=>{
   if(e.target === overlay || e.target.closest("[data-close]")) { closeModal(); return; }
-  const copyBtn = e.target.closest("[data-copy]");
-  if(copyBtn){
-    navigator.clipboard?.writeText(copyBtn.dataset.copy).then(()=>{
-      const orig = copyBtn.textContent;
-      copyBtn.textContent = "コピーしました";
-      setTimeout(()=>{ copyBtn.textContent = orig; }, 1500);
-    });
-    return;
-  }
   if(e.target.closest("[data-save-profile]")){
     saveSellerProfileFromModal();
     if(openIdx !== null) openModal(openIdx);
