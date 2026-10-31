@@ -264,13 +264,13 @@ const RESEARCH_FACTS = {
       { label:"ハローワーク求人票（建具・家具工）", url:"https://jp.indeed.com/viewjob?jk=1047c47011759774&tk=1k68epdnu21sm000", note:"求人番号33010-27754661。賃金形態：日給10,000円〜15,000円（月平均労働日数21.6日で月額換算216,000円〜324,000円）。企業全体の従業員数5人、資本金500万円、設立昭和63年（2026-10-31確認）。" },
     ],
   },
-  "有限会社大橋重機": { employeeCount:"7", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認" },
-  "株式会社シーエス建材トーヨー住器": { employeeCount:"16", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:350, capitalStatus:"推定（根拠不明、商談で要確認）" },
-  "有限会社石井電業社": { employeeCount:"5", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明、商談で要確認）" },
-  "有限会社コバヤシ防災システム": { employeeCount:"9", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認" },
-  "有限会社ワイ・エス・ピー": { employeeCount:"7〜8", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:400, capitalStatus:"推定（根拠不明、商談で要確認）" },
-  "竹森工芸株式会社": { employeeCount:"12", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:1000, capitalStatus:"推定（根拠不明、商談で要確認）" },
-  "日新機工有限会社": { employeeCount:"3", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明、商談で要確認）" },
+  "有限会社大橋重機": { employeeCount:"7", employeeStatus:"推定（根拠不明）", employeeSource:"未確認" },
+  "株式会社シーエス建材トーヨー住器": { employeeCount:"16", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:350, capitalStatus:"推定（根拠不明）" },
+  "有限会社石井電業社": { employeeCount:"5", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明）" },
+  "有限会社コバヤシ防災システム": { employeeCount:"9", employeeStatus:"推定（根拠不明）", employeeSource:"未確認" },
+  "有限会社ワイ・エス・ピー": { employeeCount:"7〜8", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:400, capitalStatus:"推定（根拠不明）" },
+  "竹森工芸株式会社": { employeeCount:"12", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:1000, capitalStatus:"推定（根拠不明）" },
+  "日新機工有限会社": { employeeCount:"3", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明）" },
 };
 function channelGroup(label, channels){
   if(!channels.length) return "";
@@ -350,6 +350,11 @@ function sellerProfileHtml(){
     <button type="button" class="profile-save" data-save-profile>保存して診断を更新</button>
   </details>`;
 }
+
+// 発表デモでは「提供商材から考える営業戦略」(AI研修診断)を一時非表示にする。
+// 10社中9社が判定保留(根拠不足)になり、本筋のROI説明の邪魔になるため。
+// 機能自体は温存(次回作でのAI活用は主力の方向性のため)。再表示するにはtrueに戻すだけ。
+const SHOW_OFFERING_STRATEGY = false;
 
 /* ---- 商材起点の営業戦略: 1社目は根拠が揃う企業だけを「検証候補」にする ---- */
 function diagnoseOfferingFit(p){
@@ -501,14 +506,14 @@ function concludeDept(p){
     businessScale = `年間売上高${facts.revenueRangeText}（${facts.revenueStatus}） / ${employeeScale}`;
     businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else if(revenueMan >= 10000){
-    businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明、商談で要確認）"}） / ${employeeScale}`;
-    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明、商談で要確認）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else if(capitalMan >= 800){
-    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明、商談で要確認）"}） / ${employeeScale}`;
-    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明、商談で要確認）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else if(capitalMan > 0){
-    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明、商談で要確認）"}） / ${employeeScale}`;
-    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明、商談で要確認）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else {
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
     businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
@@ -758,7 +763,7 @@ function modalBodyHtml(p){
         </div>
         <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
       </div>
-      ${offeringStrategyHtml(p)}
+      ${SHOW_OFFERING_STRATEGY ? offeringStrategyHtml(p) : ""}
       ${sellerProfileHtml()}
       <details class="diag-details">
         <summary>診断の詳細を見る</summary>
