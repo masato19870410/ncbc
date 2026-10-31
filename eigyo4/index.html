@@ -33,8 +33,8 @@
 
   header.top{border-bottom:1px solid var(--border);background:var(--panel)}
   header.top .inner{max-width:480px;margin:0 auto;padding:16px 16px 12px}
-  header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em}
-  header.top .count{font-size:11.5px;font-weight:500;color:var(--muted)}
+  header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em;text-align:center;line-height:1.35}
+  header.top .count{display:block;margin-top:2px;font-size:10.5px;font-weight:500;color:var(--muted)}
 
   .wrap{padding:16px 16px 48px;max-width:480px;margin:0 auto}
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:stretch}
@@ -514,8 +514,12 @@ function concludeDept(p){
   // 予算そのものを試算・推定することはしない(資本金→予算の換算に使える実在の相場が無いため)。
   // 不明な項目は他カードと見た目を揃えるため「?」で埋める(資本金?万円・従業員?人)。
   const employeeShort = facts.employeeCount ? `従業員${facts.employeeCount}人` : "従業員?人";
+  // カード上では「10億円以上〜50億円未満」を「10〜50億円」に縮め、1行に収める。
+  const cardRevenueRange = facts.revenueRangeText
+    ? facts.revenueRangeText.replace(/^(.+?)億円以上[〜～](.+?)億円未満$/, "$1〜$2億円")
+    : "";
   let scalePart;
-  if(facts.revenueRangeText) scalePart = `売上${facts.revenueRangeText}`;
+  if(cardRevenueRange) scalePart = `売上${cardRevenueRange}`;
   else if(revenueMan >= 10000) scalePart = `売上${(revenueMan/10000).toFixed(0)}億円`;
   else if(capitalMan > 0) scalePart = `資本金${capitalMan}万円`;
   else scalePart = `資本金?万円`;
