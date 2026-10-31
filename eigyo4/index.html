@@ -142,7 +142,9 @@
   .proposal-step{flex:1;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 7px;font-size:11px;font-weight:600;line-height:1.45;text-align:center}
   .proposal-arrow{align-self:center;color:var(--muted);font-weight:700}
   .client-benefit-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:3px}
-  .client-benefit-text{font-size:13px;font-weight:600;line-height:1.65;color:var(--text);margin-bottom:12px}
+  .client-benefit-text{font-size:13px;font-weight:600;line-height:1.65;color:var(--text);margin-bottom:4px}
+  .benefit-source{margin-bottom:12px;font-size:11px}
+  .benefit-source a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
   .conclusion-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
   .conclusion-cost{font-size:13px;font-weight:700;margin:2px 0 2px;color:var(--text)}
   .conclusion-dept{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:8px}
@@ -468,8 +470,9 @@ function diagnoseApproach(p){
 function industryWageBenchmark(industry){
   const table = [
     { match: /機械器具の修理|機械.*設置|機械修理|機械整備/,
-      label: "生産用機械組立", lowMan: 470, highMan: 580,
-      source: "厚生労働省 job tag 職業情報(生産用機械組立、全国平均年収522.5万円を基準に幅を設定)" },
+      label: "物流設備管理・保全（岡山県）", lowMan: 550, highMan: 680,
+      source: "厚生労働省 job tag 職業情報（物流設備管理・保全、岡山県平均年収614.8万円、令和7年賃金構造基本統計調査）",
+      sourceUrl: "https://shigoto.mhlw.go.jp/User/Occupation/Detail/269" },
   ];
   const hit = table.find(t => industry && t.match.test(industry));
   return hit || null;
@@ -536,6 +539,8 @@ function concludeDept(p){
     let clientBenefit = "採用に関する具体的な損失額は、求人票に給与情報が無く算出できない。";
     let clientBenefitAmount = "";
     let benefitIsEstimate = false;
+    let benefitSourceUrl = "";
+    let benefitSourceLabel = "";
     const monthlyMatch = indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
     const dailyMatch = !monthlyMatch && indeed.m && indeed.m.match(/日給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
     const DAYS_PER_MONTH = 22; // 日給→月給換算の一般的な目安(稼働22日/月)
@@ -550,6 +555,7 @@ function concludeDept(p){
       const feeHi = Math.round(hi * 12 * 0.3);
       clientBenefitAmount = `${feeLo}〜${feeHi}万円`;
       clientBenefit = `試算条件: 求人票の${unitLabel}(${m[0].replace("円","")}円)${basisNote}、人材紹介手数料を年収の30%と置く。1名を人材紹介ではなく自社採用できた場合、${feeLo}〜${feeHi}万円の採用コスト削減余地がある。`;
+      if(indeed.u){ benefitSourceUrl = indeed.u; benefitSourceLabel = "求人票（Indeed）を見る"; }
     } else {
       // 求人票に給与記載がない場合、業種が近い職種の全国平均年収(厚生労働省 job tag)を根拠に推定する。
       // 個社の実データではなく全国平均であることを明記し、試算(個社データ)とは区別する。
@@ -559,7 +565,8 @@ function concludeDept(p){
         const feeHi = Math.round(benchmark.highMan * 0.3);
         clientBenefitAmount = `${feeLo}〜${feeHi}万円`;
         benefitIsEstimate = true;
-        clientBenefit = `推定条件: 求人票に給与記載が無いため、業種が近い「${benchmark.label}」の全国平均年収(${benchmark.lowMan}〜${benchmark.highMan}万円、出典: ${benchmark.source})で代用。人材紹介手数料を年収の30%と置く。実際の給与水準とは異なる可能性があるため、商談で要確認。`;
+        clientBenefit = `推定条件: 求人票に給与記載が無いため、業種が近い「${benchmark.label}」の平均年収(${benchmark.lowMan}〜${benchmark.highMan}万円、出典: ${benchmark.source})で代用。人材紹介手数料を年収の30%と置く。実際の給与水準とは異なる可能性があるため、商談で要確認。`;
+        if(benchmark.sourceUrl){ benefitSourceUrl = benchmark.sourceUrl; benefitSourceLabel = "出典（job tag）を見る"; }
       }
     }
     result = {
@@ -577,7 +584,8 @@ function concludeDept(p){
       clientBenefit,
       clientBenefitAmount,
       isEstimate: benefitIsEstimate,
-      benefitStatus: clientBenefitAmount ? (benefitIsEstimate ? "推定（業種別全国平均を代用、1名を自社採用できた場合）" : "試算（1名を自社採用できた場合）") : "未算定（給与情報なし）",
+      benefitSourceUrl, benefitSourceLabel,
+      benefitStatus: clientBenefitAmount ? (benefitIsEstimate ? "推定（業種別平均を代用、1名を自社採用できた場合）" : "試算（1名を自社採用できた場合）") : "未算定（給与情報なし）",
       reason: `Indeed掲載中に、応募者が会社・仕事内容を確認できる受け皿を用意する提案。${businessScaleNote}`,
       winCase: "現状の応募数、面接数、採用数、人材紹介の利用有無を確認して、削減余地を確かめる。",
       loseCase: "ページ公開後は、Indeedからの流入・応募数・採用数を計測し、効果を検証する。",
@@ -725,6 +733,7 @@ function modalBodyHtml(p){
         </div>
         <div class="client-benefit-label">相手(先方)の得・損（${esc(conclusion.benefitStatus)}）</div>
         <div class="client-benefit-text">${esc(conclusion.clientBenefit)}</div>
+        ${conclusion.benefitSourceUrl ? `<div class="benefit-source"><a href="${esc(conclusion.benefitSourceUrl)}" target="_blank" rel="noopener">${esc(conclusion.benefitSourceLabel)} ↗</a></div>` : ""}
         <div class="num-row">
           <div class="num-tile">
             <div class="num-label">商材</div>
