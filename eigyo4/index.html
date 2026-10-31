@@ -509,27 +509,34 @@ function concludeDept(p){
     ? `従業員${facts.employeeCount}人（${facts.employeeStatus}）`
     : "従業員数は未確認";
 
+  // カードの「会社規模」行は資本金・売上高・従業員数を参考値としてそのまま並べるだけで、
+  // 予算そのものを試算・推定することはしない(資本金→予算の換算に使える実在の相場が無いため)。
+  const employeeShort = facts.employeeCount ? `従業員${facts.employeeCount}人` : "";
   let businessScale, businessScaleNote, cardBudget;
   if(facts.revenueRangeText){
     businessScale = `年間売上高${facts.revenueRangeText}（${facts.revenueStatus}） / ${employeeScale}`;
     businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `予算目安: 売上${facts.revenueRangeText}`;
+    cardBudget = `会社規模: 売上${facts.revenueRangeText}${employeeShort?`・${employeeShort}`:""}`;
   } else if(revenueMan >= 10000){
     businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `予算目安: 売上${(revenueMan/10000).toFixed(0)}億円`;
+    cardBudget = `会社規模: 売上${(revenueMan/10000).toFixed(0)}億円${employeeShort?`・${employeeShort}`:""}`;
   } else if(capitalMan >= 800){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `予算目安: 資本金${capitalMan}万円`;
+    cardBudget = `会社規模: 資本金${capitalMan}万円${employeeShort?`・${employeeShort}`:""}`;
   } else if(capitalMan > 0){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `予算目安: 資本金${capitalMan}万円`;
+    cardBudget = `会社規模: 資本金${capitalMan}万円${employeeShort?`・${employeeShort}`:""}`;
+  } else if(employeeShort){
+    businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
+    businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    cardBudget = `会社規模: ${employeeShort}`;
   } else {
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
     businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `予算目安: 未確認`;
+    cardBudget = `会社規模: 未確認`;
   }
 
   let result;
