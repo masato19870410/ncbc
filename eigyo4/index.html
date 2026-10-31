@@ -133,6 +133,12 @@
   .conclusion-ev{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
   .conclusion-ev .ev-amount{font-size:16px;font-weight:700;color:var(--ok);margin-left:6px}
   .conclusion-ev .ev-detail{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+  .sim-box{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+  .sim-row{font-size:12px;line-height:1.6;margin-top:6px}
+  .sim-row:first-child{margin-top:0}
+  .sim-label{display:block;font-size:10.5px;font-weight:700;margin-bottom:2px}
+  .sim-win .sim-label{color:var(--ok)}
+  .sim-lose .sim-label{color:var(--bad)}
   .conclusion-reason{font-size:12.5px;color:var(--text);line-height:1.6}
 
   .diag-details{margin-bottom:20px}
@@ -318,6 +324,8 @@ function concludeDept(p){
       text: p.hypothesisSales,
       priceRange: [2, 3],
       reason: `無料・即日反映で最も低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
+      winCase: "「無料で検索に出るようになる」という分かりやすいメリットは刺さりやすい。代行費も数万円と小さく即決されやすい。",
+      loseCase: "「無料なら自分でもできるのでは」と思われ、代行の必要性を感じてもらえず断られるリスク。やり方を教えるだけで終わる可能性もある。",
     };
   } else if((!site || site.r==="✕") && indeed && (indeed.r==="◎"||indeed.r==="○")){
     result = {
@@ -328,6 +336,8 @@ function concludeDept(p){
       text: p.hypothesisHr,
       priceRange: [8, 15],
       reason: `求人が実際に動いている(Indeed掲載中)タイミングで受け皿を作るだけで応募の離脱を防げる。人事課題への着手が最もROIが高い。${budgetNote}`,
+      winCase: "求人が実際に動いている今だからこそ「今すぐ効果が出る」という時間的切迫感を訴求できる。採用費として予算を取りやすい部門でもある。",
+      loseCase: "Indeedの無料掲載だけで十分応募が来ていると思われていると、追加投資の必要性を感じてもらえず「今はいい」と先送りされるリスク。",
     };
   } else if(site && site.r==="△"){
     result = {
@@ -338,6 +348,8 @@ function concludeDept(p){
       text: p.hypothesisSales,
       priceRange: [5, 8],
       reason: `ゼロから作るより圧倒的に低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
+      winCase: "既にサイトがあるので「作り直し」ではなく「部分修正」で済む安心感があり、意思決定のハードルが低い。",
+      loseCase: "「今までこれで困っていない」と現状維持バイアスが働きやすく、問題の深刻さが伝わらないと後回しにされるリスク。",
     };
   } else {
     result = {
@@ -348,6 +360,8 @@ function concludeDept(p){
       text: p.hypothesisPr,
       priceRange: [3, 5],
       reason: `営業・人事側の低コストな打ち手が既に無いため、相対的に最もROIが高い(効果が出るまでやや時間はかかる)。${budgetNote}`,
+      winCase: "他の低コストな打ち手が尽きている状態なので、長期視点で納得してもらえれば着手してもらいやすい。",
+      loseCase: "効果が出るまで時間がかかるため「成果が見えない投資」として敬遠されやすく、最も失注しやすいパターン。",
     };
   }
 
@@ -445,6 +459,10 @@ function modalBodyHtml(p){
           <span class="dept-value">期待値(目安)</span>
           <span class="ev-amount">約${esc(String(conclusion.expectedValue))}万円</span>
           <div class="ev-detail">${esc(conclusion.expectedNote)}</div>
+        </div>
+        <div class="sim-box">
+          <div class="sim-row sim-win"><span class="sim-label">◎ 受注シナリオ</span>${esc(conclusion.winCase)}</div>
+          <div class="sim-row sim-lose"><span class="sim-label">✕ 失注シナリオ</span>${esc(conclusion.loseCase)}</div>
         </div>
       </div>
       <details class="diag-details">
