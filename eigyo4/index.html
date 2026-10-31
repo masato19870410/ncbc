@@ -533,11 +533,11 @@ function concludeDept(p){
   } else if(employeeShort){
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
     businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `会社規模: ${employeeShort}`;
+    cardBudget = `${employeeShort}`;
   } else {
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
     businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `会社規模: 未確認`;
+    cardBudget = `資本金・従業員数 未確認`;
   }
 
   let result;
