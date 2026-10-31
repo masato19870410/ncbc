@@ -119,9 +119,6 @@
     border:1px solid var(--border);background:var(--panel-2);color:var(--muted);cursor:pointer}
   .sender-btn.active{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
 
-  .badge-slot{display:block;height:17px;margin-bottom:4px}
-  .reco-badge{display:inline-block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
-    border-radius:4px;padding:1px 6px}
 
   .conclusion-box{background:var(--panel-2);border:2px solid var(--text);border-radius:10px;
     padding:14px 16px;margin-bottom:16px}
@@ -321,7 +318,7 @@ function concludeDept(p){
   let result;
   if(!gmap || gmap.r === "✕"){
     result = {
-      cost: "無料・即日",
+      cost: "導入コスト: 無料・即日",
       action: "Googleビジネスプロフィールの登録",
       accountItem: "勘定科目なし(無料施策)",
       dept: "営業",
@@ -344,7 +341,7 @@ function concludeDept(p){
       clientValueNote = `求人票の月給(${salaryMatch[0].replace("円","")}円)を基に試算すると、人材紹介経由の手数料相場(年収の約30%、業界慣行)は${feeLo}〜${feeHi}万円。自社採用できればその分がまるごとコスト削減になる。`;
     }
     result = {
-      cost: "低コスト",
+      cost: "導入コスト: 低",
       action: "採用特化ページの新設",
       accountItem: "採用費 / 外注費(制作費)",
       dept: "人事",
@@ -356,7 +353,7 @@ function concludeDept(p){
     };
   } else if(site && site.r==="△"){
     result = {
-      cost: "低コスト",
+      cost: "導入コスト: 低",
       action: "既存サイトの改善(SSL化・採用ページ追加など)",
       accountItem: "外注費(IT関連費)",
       dept: "営業",
@@ -368,7 +365,7 @@ function concludeDept(p){
     };
   } else {
     result = {
-      cost: "中コスト・時間要",
+      cost: "導入コスト: 中(時間要)",
       action: "SNS等での情報発信の開始",
       accountItem: "広告宣伝費",
       dept: "広報",
@@ -440,14 +437,11 @@ function cardHtml(p, idx, recoRank){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const concl = concludeDept(p);
-  const badge = (recoRank !== undefined && recoRank !== null && recoRank < 3)
-    ? `<span class="reco-badge">🔥 おすすめ</span>` : "";
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
         <div class="num">${String(idx+1).padStart(2,"0")}</div>
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
-      <div class="badge-slot">${badge}</div>
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
       <div class="card-cost"><span class="cost-tag">${esc(concl.cost)}</span>${esc(concl.action)}</div>
     </div>`;
