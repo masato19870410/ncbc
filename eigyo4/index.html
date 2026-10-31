@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>営業AI</title>
+<title>営業提案ナビ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -32,8 +32,9 @@
   a{color:var(--text)}
 
   header.top{border-bottom:1px solid var(--border);background:var(--panel)}
-  header.top .inner{max-width:480px;margin:0 auto;padding:16px 16px 12px}
+  header.top .inner{max-width:480px;margin:0 auto;padding:14px 16px 12px;text-align:center}
   header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em;text-align:center;line-height:1.35}
+  header.top .subtitle{margin:4px 0 0;font-size:10.5px;color:var(--muted);line-height:1.45}
 
   .desktop-shell{max-width:1040px;margin:0 auto}
   .wrap{padding:16px 16px 48px;max-width:480px;margin:0 auto}
@@ -54,9 +55,19 @@
     .wrap{padding-left:0;padding-right:0;width:480px}
   }
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:stretch}
+  .toolbar{margin-bottom:12px}
+  .search-input{width:100%;border:1px solid var(--border);border-radius:7px;background:var(--panel);color:var(--text);font:inherit;font-size:12px;padding:8px 10px;outline:none}
+  .search-input:focus{border-color:var(--muted)}
+  .filters{display:flex;gap:5px;margin-top:7px;overflow-x:auto;padding-bottom:1px;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .filter-btn{flex:0 0 auto;border:1px solid var(--border);border-radius:999px;background:var(--panel);color:var(--muted);font:inherit;font-size:10px;padding:4px 8px;cursor:pointer}
+  .filter-btn.is-active{background:var(--text);border-color:var(--text);color:var(--bg)}
+  .result-note{margin-top:6px;font-size:10px;color:var(--muted)}
+  .disclaimer{margin:0 0 12px;border-left:2px solid var(--muted);padding:6px 8px;background:var(--panel-2);font-size:10px;line-height:1.55;color:var(--muted)}
   .card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--panel);cursor:pointer;
     box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0;height:100%}
   .card:active{background:var(--panel-2)}
+  .card[aria-current="true"]{border-color:var(--text)}
   .card .row-head{display:flex;align-items:baseline;gap:6px;min-width:0;margin-bottom:4px}
   .card .name{font-weight:700;font-size:13.5px;letter-spacing:-.01em;flex:1;min-width:0;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -68,6 +79,7 @@
   .card .cost-tag{display:block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
     border-radius:4px;padding:2px 6px;width:100%;margin-bottom:5px;overflow-wrap:anywhere}
   .card .card-budget{display:block;overflow-wrap:anywhere;font-size:10px;color:var(--muted);margin-bottom:2px}
+  .evidence-badge{display:inline-block;width:fit-content;border:1px solid var(--border);border-radius:999px;padding:1px 5px;font-size:9px;color:var(--muted);line-height:1.4}
   .card .card-investment,.card .card-product{display:block;overflow-wrap:anywhere}
   .card .card-investment{font-weight:600}
   .card .card-product{color:var(--muted)}
@@ -208,13 +220,21 @@
   .profile-field{display:block;margin-top:8px;font-size:11px;font-weight:700;color:var(--muted)}
   .profile-field textarea,.profile-field input{display:block;width:100%;margin-top:3px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);font:inherit;font-size:12px;font-weight:400;padding:7px;resize:vertical}
   .profile-save{margin-top:10px;width:100%;font:inherit;font-size:12px;font-weight:700;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--panel-2);color:var(--text);cursor:pointer}
+  .trust-box,.priority-box{margin:10px 0;border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--panel-2);font-size:11px;line-height:1.65}
+  .trust-box b,.priority-box b{display:block;margin-bottom:3px;font-size:10px;color:var(--muted)}
+  .rail-selected{font-size:11px;line-height:1.55}
+  .rail-selected-name{font-size:13px;font-weight:700;margin-bottom:8px}
+  .rail-selected-row{margin-top:8px}
+  .rail-selected-row b{display:block;font-size:9.5px;color:var(--muted);margin-bottom:2px}
+  .rail-detail-btn{width:100%;margin-top:12px;border:1px solid var(--border);border-radius:7px;background:var(--text);color:var(--bg);font:inherit;font-size:11px;font-weight:700;padding:8px;cursor:pointer}
 </style>
 </head>
 <body>
 
 <header class="top">
   <div class="inner">
-    <h1>営業AI</h1>
+    <h1>営業提案ナビ</h1>
+    <p class="subtitle">中小企業への営業仮説を整理し、次に連絡する会社を決める</p>
   </div>
 </header>
 
@@ -234,18 +254,24 @@
   </aside>
 
   <main class="wrap">
+    <div class="toolbar" aria-label="会社を検索・絞り込み">
+      <input id="search" class="search-input" type="search" placeholder="会社名・所在地を検索" autocomplete="off">
+      <div class="filters" id="filters">
+        <button class="filter-btn is-active" type="button" data-filter="all">すべて</button>
+        <button class="filter-btn" type="button" data-filter="actual">実データ試算</button>
+        <button class="filter-btn" type="button" data-filter="estimate">業種推定</button>
+        <button class="filter-btn" type="button" data-filter="unpriced">未算定</button>
+      </div>
+      <div class="result-note" id="result-note"></div>
+    </div>
+    <p class="disclaimer">表示金額は公開情報や業界平均を用いた参考試算です。実際の成果を保証するものではありません。提案前に商談で条件を確認してください。</p>
     <div class="grid" id="grid"><div class="empty">読み込み中…</div></div>
   </main>
 
-  <aside class="desktop-rail" aria-label="使い方">
+  <aside class="desktop-rail" aria-label="選択した会社の要点">
     <div class="rail-panel">
-      <div class="rail-title">進め方</div>
-      <ol class="rail-steps">
-        <li><b>上位カード</b>から確認</li>
-        <li>会社名を押して詳細を開く</li>
-        <li>試算条件と提案内容を確認</li>
-        <li>連絡前に不明項目を調べる</li>
-      </ol>
+      <div class="rail-title">選択した会社</div>
+      <div class="rail-selected" id="rail-selected">カードを選択すると要点を表示します。</div>
     </div>
     <div class="rail-panel">
       <div class="rail-title">表示順</div>
@@ -394,6 +420,57 @@ function sourceLink(ch, label){
   return ch?.u ? `<a href="${esc(ch.u)}" target="_blank" rel="noopener">${esc(text)} ↗</a>` : `${esc(text)}（URL未登録）`;
 }
 function referenceLink(ref){ return `<a href="${esc(ref.url)}" target="_blank" rel="noopener">${esc(ref.label)} ↗</a>：${esc(ref.note)}`; }
+
+function assessmentType(p, conclusion = concludeDept(p)){
+  if(conclusion.effectValue === "未算定") return "unpriced";
+  return conclusion.isEstimate ? "estimate" : "actual";
+}
+function assessmentLabel(p, conclusion = concludeDept(p)){
+  const type = assessmentType(p, conclusion);
+  return type === "actual" ? "実データによる参考試算" : type === "estimate" ? "業界平均による参考試算" : "未算定・商談で確認";
+}
+function referenceEffectLabel(p, conclusion = concludeDept(p)){
+  if(conclusion.effectValue === "未算定") return "未算定｜商談で条件確認";
+  const prefix = conclusion.isEstimate ? "業界平均の参考試算" : "実データの参考試算";
+  const effect = conclusion.effectType === "費用減"
+    ? `${conclusion.effectAccountName}リスク ${conclusion.effectValue}/年`
+    : `${conclusion.effectAccountName}増加の目安 ${conclusion.effectValue}/年`;
+  return `${prefix}｜${effect}`;
+}
+function researchMeta(p){
+  const facts = RESEARCH_FACTS[p.name] || {};
+  const factSources = Array.isArray(facts.additionalSources) ? facts.additionalSources : [];
+  const channelSources = (p.contact?.channels || []).filter(ch=>ch.u).map(ch=>({ label:ch.n, url:ch.u, note:ch.m || "" }));
+  const sources = [...factSources, ...channelSources].filter((s,i,all)=>s.url && all.findIndex(x=>x.url===s.url)===i);
+  const dates = sources.flatMap(s=>String(s.note || "").match(/20\d{2}-\d{2}-\d{2}/g) || []).sort();
+  const checkedAt = dates.length ? dates[dates.length - 1] : "確認日未登録";
+  const statuses = [facts.employeeStatus, facts.capitalStatus, facts.revenueStatus].filter(Boolean);
+  const trust = statuses.some(s=>String(s).startsWith("確定")) ? "確認済み情報あり"
+    : statuses.some(s=>String(s).startsWith("推定")) ? "外部情報からの推定" : "未確認項目あり";
+  return { facts, sources, checkedAt, trust };
+}
+function priorityReason(p, conclusion = concludeDept(p)){
+  const channels = p.contact?.channels || [];
+  const facts = RESEARCH_FACTS[p.name] || {};
+  const reasons = [];
+  if(conclusion.effectValue !== "未算定") reasons.push(conclusion.isEstimate ? "業界平均で参考試算可能" : "求人データで参考試算可能");
+  if(findChannel(channels, "Indeed")) reasons.push("求人課題あり");
+  if(facts.employeeCount || facts.capitalMan || facts.revenueRangeText) reasons.push("会社規模情報あり");
+  if(!reasons.length) reasons.push("提案仮説を商談で検証する候補");
+  return reasons.join("・");
+}
+function trustBoxHtml(p, conclusion = concludeDept(p)){
+  const meta = researchMeta(p);
+  const sourceLinks = meta.sources.length
+    ? meta.sources.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)} ↗</a>`).join("、")
+    : "出典リンク未登録";
+  return `<div class="trust-box"><b>情報の信頼度・出典</b>
+    ${esc(assessmentLabel(p, conclusion))} / ${esc(meta.trust)}<br>
+    情報確認日：${esc(meta.checkedAt)}<br>
+    主な出典：${sourceLinks}<br>
+    <span class="rail-note">公開情報は更新・削除される可能性があります。提案前に再確認してください。</span>
+  </div>`;
+}
 function sellerProfileHtml(){
   const profile = getSellerProfile();
   return `<details class="seller-profile">
@@ -726,21 +803,23 @@ function concludeDept(p){
   // 採用費は会社ごとの会計方針で広告宣伝費・外注費等になる場合があるため、あくまで想定として表示する。
   result.effectAccountName = result.effectType === "費用減" ? "採用費" : "売上高";
   result.effectSign = result.effectType === "費用減" ? "−" : "+";
-  result.effectDisplay = `${result.effectPeriod} ${result.effectAccountName} ${result.effectSign}${result.effectValue}`;
+  result.effectDisplay = result.effectValue === "未算定"
+    ? `${result.effectPeriod} ${result.effectAccountName} 未算定`
+    : `${result.effectPeriod} ${result.effectAccountName} ${result.effectValue}の可能性`;
   result.accountingNote = result.effectType === "費用減"
     ? "効果の勘定科目（想定）：採用費。先方の会計方針により広告宣伝費・外注費等への計上もあり得るため要確認。"
     : "効果の勘定科目：売上高。利益額ではなく売上増の効果であり、粗利・営業利益への影響は別途確認。";
   result.businessScale = businessScale;
   result.cardBudget = cardBudget;
   const statusSuffix = result.effectValue === "未算定" ? "（商談で算定）" : (result.isEstimate ? "（業種推定）" : "（試算）");
-  result.topConclusion = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : `の${result.effectType === "費用減" ? "削減余地" : "増加余地"}`}のため、${result.action}に${result.priceLabel}を投資する。`;
+  result.topConclusion = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : `の${result.effectType === "費用減" ? "回避可能性" : "増加目安"}`}を参考に、${result.action}への${result.priceLabel}の投資可否を商談で確認する。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
   // 効果を先、投資内容を後に置いて、ラベルに頼らず読める順にする。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
   // カード一覧は横幅が狭いため「年額」を省略し、括弧を外して1行に収まりやすくする。
   const statusLabelShort = result.effectValue === "未算定" ? "商談で算定" : (result.isEstimate ? "業種推定" : "試算");
   // 「年額」は省くが、年ベースの数字であることは経営判断に必須の情報なので「/年」で必ず残す。
-  result.cardLine = `${result.effectAccountName} ${result.effectSign}${result.effectValue}/年 ${statusLabelShort}`;
+  result.cardLine = referenceEffectLabel(p, result);
   result.cardInvestment = result.priceLabel;
   result.cardProduct = shortAction;
 
@@ -818,11 +897,13 @@ function cardHtml(p, idx){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const concl = concludeDept(p);
+  const meta = researchMeta(p);
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
       ${p.area?`<div class="meta">${esc(p.area)}</div>`:""}
+      <span class="evidence-badge">${esc(meta.trust)} / ${esc(meta.checkedAt)}</span>
       <div class="card-cost">
         <span class="cost-tag">${esc(concl.cardLine)}</span>
         <span class="card-budget">${esc(concl.cardBudget)}</span>
@@ -845,8 +926,10 @@ function modalBodyHtml(p){
     ${p.area?`<div class="m-meta"><a href="${esc(googleMapsSearchUrl(p.area))}" target="_blank" rel="noopener">${esc(p.area)}（Googleマップで開く ↗）</a></div>`:""}
     <div class="card-detail">
       <div class="conclusion-box">
-        <div class="proposal-kicker">費用対効果（投資対効果）</div>
-        <div class="proposal-headline"><strong>${esc(conclusion.effectDisplay)}</strong>${conclusion.effectValue === "未算定" ? "（商談で算定）" : (conclusion.isEstimate ? "（全国平均からの推定）" : "を目標")}<br>${esc(conclusion.priceLabel)}で${esc(conclusion.action)}を実施</div>
+        <div class="proposal-kicker">営業仮説・参考シミュレーション</div>
+        <div class="proposal-headline"><strong>${esc(referenceEffectLabel(p, conclusion))}</strong><br>${esc(conclusion.priceLabel)}で${esc(conclusion.action)}を提案候補にする</div>
+        <div class="priority-box"><b>この会社を優先する理由</b>${esc(priorityReason(p, conclusion))}</div>
+        ${trustBoxHtml(p, conclusion)}
         <div class="calc-alert ${conclusion.effectValue === "未算定" ? "" : "is-calculated"}">
           <b>${conclusion.effectValue === "未算定" ? "未算定｜この情報があれば金額化できます" : (conclusion.isEstimate ? "業種推定の計算式・前提（全国平均を代用）" : "試算の計算式・前提")}</b>
           ${esc(conclusion.calculationFormula)}<br>${conclusion.effectValue === "未算定" ? `確認項目：${esc(conclusion.calculationInputs)}` : `要確認：${esc(conclusion.calculationInputs)}`}
@@ -877,6 +960,7 @@ function modalBodyHtml(p){
           <div class="sim-row sim-lose"><span class="sim-label">提案前に決めること</span>${esc(conclusion.loseCase)}</div>
         </div>
         <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
+        <p class="disclaimer">表示金額は公開情報や業界平均を用いた参考試算です。実際の成果を保証するものではありません。提案前に商談で条件を確認してください。</p>
       </div>
       ${SHOW_OFFERING_STRATEGY ? offeringStrategyHtml(p) : ""}
       ${sellerProfileHtml()}
@@ -951,6 +1035,9 @@ function saveSellerProfileFromModal(){
 
 let ITEMS = [];
 let openIdx = null;
+let selectedIdx = null;
+let currentFilter = "all";
+let searchQuery = "";
 const overlay = document.getElementById("overlay");
 const modal = document.getElementById("modal");
 function openModal(idx){
@@ -963,13 +1050,35 @@ function openModal(idx){
 }
 function closeModal(){ overlay.classList.add("hidden"); openIdx = null; }
 
+function renderSelectedCompany(idx){
+  const p = ITEMS[idx];
+  const target = document.getElementById("rail-selected");
+  if(!p || !target) return;
+  const conclusion = concludeDept(p);
+  selectedIdx = idx;
+  target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
+    <div class="rail-selected-row"><b>提案候補</b>${esc(conclusion.cardProduct)}</div>
+    <div class="rail-selected-row"><b>参考試算</b>${esc(referenceEffectLabel(p, conclusion))}</div>
+    <div class="rail-selected-row"><b>優先理由</b>${esc(priorityReason(p, conclusion))}</div>
+    <div class="rail-selected-row"><b>商談で確認</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
+    <button class="rail-detail-btn" type="button" data-open-selected>詳細を見る</button>`;
+  document.querySelectorAll(".card").forEach(card=>card.setAttribute("aria-current", Number(card.dataset.idx) === idx ? "true" : "false"));
+}
+
 document.getElementById("grid").addEventListener("click", e=>{
   if(e.target.closest("a")) return;
   const card = e.target.closest(".card");
   if(!card) return;
   const idx = Number(card.dataset.idx);
+  if(window.matchMedia("(min-width:960px)").matches){
+    renderSelectedCompany(idx);
+    return;
+  }
   if(idx === openIdx && !overlay.classList.contains("hidden")){ closeModal(); return; }
   openModal(idx);
+});
+document.querySelector(".desktop-shell").addEventListener("click", e=>{
+  if(e.target.closest("[data-open-selected]") && selectedIdx !== null) openModal(selectedIdx);
 });
 overlay.addEventListener("click", e=>{
   if(e.target === overlay || e.target.closest("[data-close]")) { closeModal(); return; }
@@ -1069,20 +1178,44 @@ function rowsToItems(rows){
 function renderGrid(){
   const grid = document.getElementById("grid");
   if(!ITEMS.length) return;
-  const order = ITEMS.map((p,i)=>({p,i})).sort((a,b)=>fitScore(b.p)-fitScore(a.p));
-  grid.innerHTML = order.map(({p,i})=>cardHtml(p,i)).join("");
+  const q = searchQuery.toLowerCase();
+  const order = ITEMS.map((p,i)=>({p,i,conclusion:concludeDept(p)}))
+    .filter(({p,conclusion})=>{
+      const matchesText = !q || `${p.name || ""} ${p.area || ""}`.toLowerCase().includes(q);
+      const matchesType = currentFilter === "all" || assessmentType(p, conclusion) === currentFilter;
+      return matchesText && matchesType;
+    })
+    .sort((a,b)=>fitScore(b.p)-fitScore(a.p));
+  grid.innerHTML = order.length ? order.map(({p,i})=>cardHtml(p,i)).join("") : `<div class="empty">条件に合う会社がありません。</div>`;
+  document.getElementById("result-note").textContent = `${order.length}社を表示 / 全${ITEMS.length}社`;
+  if(selectedIdx !== null) renderSelectedCompany(selectedIdx);
 }
 
 function renderDesktopSummary(){
   const conclusions = ITEMS.map(p=>concludeDept(p));
   const calculated = conclusions.filter(c=>c.effectValue !== "未算定");
   const estimated = calculated.filter(c=>c.isEstimate);
-  const priority = ITEMS.slice().sort((a,b)=>fitScore(b)-fitScore(a))[0];
+  const priorityEntry = ITEMS.map((p,i)=>({p,i})).sort((a,b)=>fitScore(b.p)-fitScore(a.p))[0];
+  const priority = priorityEntry?.p;
   document.getElementById("rail-total").textContent = `${ITEMS.length}社`;
   document.getElementById("rail-calculated").textContent = `${calculated.length}社`;
   document.getElementById("rail-estimated").textContent = `${estimated.length}社`;
-  document.getElementById("rail-priority").textContent = priority?.name || "—";
+  document.getElementById("rail-priority").innerHTML = priority
+    ? `<b>${esc(priority.name)}</b><div class="rail-note">${esc(priorityReason(priority))}</div>` : "—";
+  if(priorityEntry) renderSelectedCompany(priorityEntry.i);
 }
+
+document.getElementById("search").addEventListener("input", e=>{
+  searchQuery = e.target.value.trim();
+  renderGrid();
+});
+document.getElementById("filters").addEventListener("click", e=>{
+  const btn = e.target.closest("[data-filter]");
+  if(!btn) return;
+  currentFilter = btn.dataset.filter;
+  document.querySelectorAll("[data-filter]").forEach(el=>el.classList.toggle("is-active", el === btn));
+  renderGrid();
+});
 
 async function load(){
   const grid = document.getElementById("grid");
