@@ -31,60 +31,104 @@
     line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
   a{color:var(--text)}
 
-  header.top{padding:20px 20px 14px;border-bottom:1px solid var(--border);background:var(--panel)}
+  header.top{border-bottom:1px solid var(--border);background:var(--panel)}
+  header.top .inner{max-width:480px;margin:0 auto;padding:16px 16px 12px}
   header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em}
-  header.top .src{margin-top:4px;font-size:11px;color:var(--muted)}
+  header.top .count{font-size:11.5px;font-weight:500;color:var(--muted)}
+  header.top .src{margin-top:2px;font-size:10.5px;color:var(--muted)}
 
-  .wrap{padding:28px clamp(16px,4vw,40px) 56px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1400px;margin:0 auto;align-items:start}
-  @media (min-width:1180px){ .grid{grid-template-columns:repeat(5,1fr)} }
-  .card{border:1px solid var(--border);border-radius:10px;padding:18px;background:var(--panel);cursor:pointer;
-    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04)}
+  .wrap{padding:16px 16px 48px;max-width:480px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:start}
+  .card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--panel);cursor:pointer;
+    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0}
   .card:active{background:var(--panel-2)}
-  .card .name{font-weight:700;font-size:15px;margin-bottom:6px;letter-spacing:-.01em}
-  .card .meta{font-size:11.5px;color:var(--muted);line-height:1.6}
-  .card .pitch{font-size:13px;margin-top:10px;margin-bottom:12px;line-height:1.6}
-  .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px}
+  .card .row-head{display:flex;align-items:baseline;gap:6px;min-width:0;margin-bottom:4px}
+  .card .num{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--muted);flex-shrink:0}
+  .card .name{font-weight:700;font-size:13.5px;letter-spacing:-.01em;flex:1;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .meta{font-size:11px;color:var(--muted);line-height:1.6;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px;grid-column:1/-1}
   .hidden{display:none!important}
 
-  .card-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
+  .card-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
   .card-detail .txt{white-space:pre-wrap;margin:8px 0 0;color:var(--muted)}
-  .card .detail-section{margin-bottom:16px}
-  .card .detail-section>b{display:block;font-size:13px;color:var(--text);font-weight:700;margin-bottom:8px}
-  .card .issue-row{display:flex;gap:8px;align-items:baseline;margin-top:6px}
-  .card .dept-value{flex-shrink:0;font-size:11px;font-weight:500;color:var(--muted)}
-  .card .ch-group{margin-top:8px}
-  .card .ch-group b{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-bottom:2px}
-  .card .meta a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+  .detail-section{margin-bottom:20px}
+  .detail-section:last-child{margin-bottom:0}
+  .detail-section>b{display:block;font-size:11px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+  .issue-row{margin-top:10px}
+  .issue-row:first-child{margin-top:0}
+  .dept-value{display:block;font-size:10.5px;font-weight:700;color:var(--text);
+    background:var(--panel-2);border-radius:4px;padding:1px 6px;width:fit-content;margin-bottom:4px}
+  .issue-row>span:last-child{display:block;font-size:12.5px;color:var(--text);line-height:1.6}
+  .ch-group{margin-top:10px}
+  .ch-group:first-child{margin-top:0}
+  .ch-group b{display:block;font-size:10.5px;font-weight:700;color:var(--text);
+    background:var(--panel-2);border-radius:4px;padding:1px 6px;width:fit-content;margin-bottom:6px}
+  .meta a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 
-  .card .ch-list{margin:6px 0 0;list-style:none;padding:0}
-  .card .ch-list li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
-  .card .ch-list .r{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
+  .ch-list{margin:6px 0 0;list-style:none;padding:0}
+  .ch-list li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
+  .ch-list .r{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
     border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0}
-  .card .ch-list .r-good{background:var(--ok-bg);color:var(--ok)}
-  .card .ch-list .r-mid{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
-  .card .ch-list .r-weak{background:var(--warn-bg);color:var(--warn)}
-  .card .ch-list .r-none{background:var(--bad-bg);color:var(--bad)}
-  .card .ch-list .n{flex:1}
-  .card .ch-list a.n{color:var(--text);text-decoration:underline;text-underline-offset:2px}
-  .card .ch-list .n-nolink{color:var(--muted)}
+  .ch-list .r-good{background:var(--ok-bg);color:var(--ok)}
+  .ch-list .r-mid{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+  .ch-list .r-weak{background:var(--warn-bg);color:var(--warn)}
+  .ch-list .r-none{background:var(--bad-bg);color:var(--bad)}
+  .ch-list .n{flex:1}
+  .ch-list a.n{color:var(--text);text-decoration:underline;text-underline-offset:2px}
+  .ch-list .n-nolink{color:var(--muted)}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+  .overlay.hidden{display:none}
+  .modal{background:var(--panel);width:100%;max-width:480px;max-height:85vh;overflow-y:auto;
+    border-radius:16px 16px 0 0;padding:20px 18px 28px;position:relative}
+  @media (min-width:520px){ .overlay{align-items:center} .modal{border-radius:14px;max-height:80vh} }
+  .modal .close{position:absolute;top:12px;right:14px;border:none;background:none;font-size:20px;
+    color:var(--muted);cursor:pointer;line-height:1;padding:4px}
+  .modal .m-name{font-weight:700;font-size:16px;margin:0 28px 4px 0}
+  .modal .m-meta{font-size:12px;color:var(--muted);margin-bottom:2px}
+  .modal .m-meta a{color:var(--muted)}
+  .action-row{display:flex;gap:8px;margin-top:12px}
+  .action-btn{flex:1;font-family:inherit;font-size:12.5px;font-weight:600;text-align:center;
+    padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel-2);
+    color:var(--text);text-decoration:none;cursor:pointer}
+  .action-btn:active{opacity:.7}
+
+  .approach-note{background:var(--panel-2);border-radius:8px;padding:10px 12px;font-size:12.5px;
+    color:var(--text);line-height:1.6;margin-top:4px}
+
+  .diag-box{background:var(--ok-bg);border:1px solid var(--ok);border-radius:8px;padding:10px 12px}
+  .diag-type{font-weight:700;font-size:13.5px;color:var(--ok);margin-bottom:4px}
+  .diag-desc{font-size:12px;color:var(--text);line-height:1.6}
+  .diag-method{margin-top:8px;font-size:12px;color:var(--text);line-height:1.6}
+  .diag-method .dept-value{margin-right:6px;margin-bottom:0;display:inline-block}
 </style>
 </head>
 <body>
 
 <header class="top">
-  <h1>営業アプリ</h1>
-  <div class="src">データ: Googleスプレッドシート直読み(v4)</div>
+  <div class="inner">
+    <h1>営業アプリ <span id="count" class="count"></span></h1>
+    <div class="src">データ: Googleスプレッドシート直読み(v4)</div>
+  </div>
 </header>
 
 <div class="wrap">
   <div class="grid" id="grid"><div class="empty">読み込み中…</div></div>
 </div>
 
+<div class="overlay hidden" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
 <script>
 /* =======================================================================
    v4: データ取得元を Googleスプレッドシートの「ウェブに公開」CSVに変更。
-   UI/CSS/チェックリスト表示ロジックは eigyo3.5 からそのまま流用している。
+   UI/CSS/チェックリスト表示ロジックは eigyo3.5 ベース + アプローチの切り口を追加。
 
    ★ユーザー作業が必要★
    下の SHEET_CSV_URL に、Googleスプレッドシート側で
@@ -124,46 +168,131 @@ function issueRow(label, text){
   return `<div class="issue-row"><span class="dept-value">${esc(label)}</span><span>${esc(text)}</span></div>`;
 }
 
-function cardHtml(p){
+function findChannel(channels, name){ return channels.find(ch=>ch.n===name); }
+
+function diagnoseApproach(p){
+  const c = p.contact || {};
+  const channels = Array.isArray(c.channels) ? c.channels : [];
+  const site = findChannel(channels, "自社サイト");
+  const gmap = findChannel(channels, "Googleマップ");
+  const indeed = findChannel(channels, "Indeed");
+  const known = channels.filter(ch => ch.r==="◎" || ch.r==="○").length;
+
+  let type, typeDesc;
+  if((!site || site.r==="✕") && (!gmap || gmap.r==="✕")){
+    type = "認知構築型";
+    typeDesc = "自社サイト・Googleマップともに情報が無く、検索しても見つからない状態。まず「存在を知ってもらう」提案が合う。";
+  } else if(site && site.r==="△"){
+    type = "改善提案型";
+    typeDesc = "自社サイトは既にあるが情報が不足/弱い状態。ゼロから作るより「今あるものの改善」として軽く提案しやすい。";
+  } else if(indeed && (indeed.r==="◎"||indeed.r==="○") && (!site || site.r==="✕")){
+    type = "応募導線型";
+    typeDesc = "Indeedで求人募集中だが自社サイトが無く、応募前の不安を解消できていない。採用特化の受け皿づくりが刺さりやすい。";
+  } else {
+    type = "信頼補強型";
+    typeDesc = "情報はあるが証拠(口コミ・実績)が少ない状態。信頼材料を補強する提案が合う。";
+  }
+
+  const method = known <= 2
+    ? "電話(ただし求人内容や会社概要を事前に読み込み、いきなり感を減らしてから)"
+    : "電話(会話の冒頭で把握済みの具体的事実に触れると自然)";
+
+  return { type, typeDesc, method };
+}
+
+function cardHtml(p, idx){
+  const c = p.contact || {};
+  const channels = Array.isArray(c.channels) ? c.channels : [];
+  const primaryText = p.dept==="営業" ? p.hypothesisSales
+    : p.dept==="広報" ? p.hypothesisPr
+    : p.hypothesisHr;
+  return `<div class="card" data-idx="${idx}">
+      <div class="row-head">
+        <div class="num">${String(idx+1).padStart(2,"0")}</div>
+        <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
+      </div>
+      ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
+      ${primaryText?`<div class="pitch" title="${esc(primaryText)}">${esc(primaryText)}</div>`:""}
+    </div>`;
+}
+
+function modalBodyHtml(p){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const own = sortChannels(channels.filter(ch=>OWN_MEDIA.has(ch.n)));
   const other = sortChannels(channels.filter(ch=>!OWN_MEDIA.has(ch.n)));
-  const primaryText = p.dept==="営業" ? p.hypothesisSales
-    : p.dept==="広報" ? p.hypothesisPr
-    : p.hypothesisHr;
-  return `<div class="card">
-      <div class="name">${esc(p.name||"")}</div>
-      ${p.area?`<div class="meta">${esc(p.area)}</div>`:""}
-      ${p.phone?`<div class="meta"><a href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">${esc(p.phone)}</a></div>`:""}
-      ${p.email?`<div class="meta"><a href="mailto:${esc(p.email)}">${esc(p.email)}</a></div>`:""}
-      ${primaryText?`<div class="pitch">${esc(primaryText)}</div>`:""}
-      <div class="card-detail hidden" data-card-detail>
-        <div class="detail-section"><b>リンク</b>
-          ${channelGroup("自", own)}
-          ${channelGroup("他", other)}
+  const diag = diagnoseApproach(p);
+  return `
+    <button class="close" aria-label="閉じる" data-close>×</button>
+    <div class="m-name">${esc(p.name||"")}</div>
+    ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
+    <div class="card-detail">
+      <div class="detail-section"><b>診断</b>
+        <div class="diag-box">
+          <div class="diag-type">${esc(diag.type)}</div>
+          <div class="diag-desc">${esc(diag.typeDesc)}</div>
+          <div class="diag-method"><span class="dept-value">推奨アプローチ</span>${esc(diag.method)}</div>
         </div>
-        <div class="detail-section"><b>課題</b>
-          ${issueRow("営業", p.hypothesisSales)}
-          ${issueRow("人事", p.hypothesisHr)}
-          ${issueRow("広報", p.hypothesisPr)}
-        </div>
-        ${(c.proposal||c.script)?`<div class="detail-section"><b>提案</b>
-          ${issueRow("骨子", c.proposal)}
-          ${issueRow("台本", c.script)}
+      </div>
+      <div class="detail-section"><b>課題</b>
+        ${issueRow("営業", p.hypothesisSales)}
+        ${issueRow("人事", p.hypothesisHr)}
+        ${issueRow("広報", p.hypothesisPr)}
+      </div>
+      ${(c.proposal||c.script||c.message||c.approachNote)?`<div class="detail-section"><b>提案</b>
+        ${issueRow("骨子", c.proposal)}
+        ${c.approachNote?`<div class="issue-row"><span class="dept-value">アプローチの切り口</span><div class="approach-note">${esc(c.approachNote)}</div></div>`:""}
+        ${issueRow("文面(メール/DM)", c.message)}
+        ${issueRow("台本(電話)", c.script)}
+      </div>`:""}
+      <div class="detail-section"><b>リンク</b>
+        ${channelGroup("自社媒体", own)}
+        ${channelGroup("他社媒体", other)}
+      </div>
+      <div class="detail-section"><b>連絡先</b>
+        ${issueRow("電話", p.phone || "なし")}
+        ${issueRow("メール", p.email || "なし")}
+        ${(p.phone||c.script||c.message)?`<div class="action-row">
+          ${p.phone?`<a class="action-btn" href="tel:${esc(p.phone.replace(/[^0-9]/g,""))}">電話する</a>`:""}
+          ${(c.script||c.message)?`<button class="action-btn" type="button" data-copy="${esc(c.message||c.script||"")}">文面をコピー</button>`:""}
         </div>`:""}
       </div>
     </div>`;
 }
 
+let ITEMS = [];
+let openIdx = null;
+const overlay = document.getElementById("overlay");
+const modal = document.getElementById("modal");
+function openModal(idx){
+  const p = ITEMS[idx];
+  if(!p) return;
+  modal.innerHTML = modalBodyHtml(p);
+  overlay.classList.remove("hidden");
+  openIdx = idx;
+}
+function closeModal(){ overlay.classList.add("hidden"); openIdx = null; }
+
 document.getElementById("grid").addEventListener("click", e=>{
   if(e.target.closest("a")) return;
   const card = e.target.closest(".card");
   if(!card) return;
-  const detail = card.querySelector("[data-card-detail]");
-  if(!detail) return;
-  detail.classList.toggle("hidden");
+  const idx = Number(card.dataset.idx);
+  if(idx === openIdx && !overlay.classList.contains("hidden")){ closeModal(); return; }
+  openModal(idx);
 });
+overlay.addEventListener("click", e=>{
+  if(e.target === overlay || e.target.closest("[data-close]")) { closeModal(); return; }
+  const copyBtn = e.target.closest("[data-copy]");
+  if(copyBtn){
+    navigator.clipboard?.writeText(copyBtn.dataset.copy).then(()=>{
+      const orig = copyBtn.textContent;
+      copyBtn.textContent = "コピーしました";
+      setTimeout(()=>{ copyBtn.textContent = orig; }, 1500);
+    });
+  }
+});
+document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeModal(); });
 
 /* ---- CSVパース（RFC4180相当。カンマ/改行/二重引用符を含むフィールドに対応） ---- */
 function parseCsv(text){
@@ -220,6 +349,8 @@ function rowsToItems(rows){
       contact: {
         channels,
         proposal: r[idx.proposal],
+        approachNote: r[idx.approach_note],
+        message: r[idx.message],
         script: r[idx.script],
       },
     };
@@ -238,7 +369,9 @@ async function load(){
     const rows = parseCsv(text);
     const items = rowsToItems(rows);
     if(!items.length) throw new Error("no rows");
-    grid.innerHTML = items.map(p=>cardHtml(p)).join("");
+    ITEMS = items;
+    grid.innerHTML = items.map((p,i)=>cardHtml(p,i)).join("");
+    document.getElementById("count").textContent = items.length ? `${items.length}件` : "";
   }catch(err){
     console.error(err);
     grid.innerHTML = `<div class="empty">データを読み込めませんでした。(${esc(err.message)})<br>SHEET_CSV_URLの設定、またはシートの「ウェブに公開」設定を確認してください。README.mdを参照。</div>`;
