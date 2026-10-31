@@ -122,9 +122,6 @@
   <div class="inner">
     <h1>営業アプリ <span id="count" class="count"></span></h1>
     <div class="src">データ: Googleスプレッドシート直読み(v4)</div>
-    <div class="sender-bar" id="senderBar">
-      <span class="label">あなたの得意なスタイル:</span>
-    </div>
   </div>
 </header>
 
@@ -274,7 +271,9 @@ function modalBodyHtml(p){
           <div class="diag-desc">${esc(diag.typeDesc)}</div>
           ${c.approachNote?`<div class="diag-method"><span class="dept-value">アプローチの切り口(費用対効果)</span>${esc(c.approachNote)}</div>`:""}
           <div class="diag-method"><span class="dept-value">推奨アプローチ</span>${esc(diag.method)}</div>
-          ${diag.fit?`<div class="diag-method diag-fit"><span class="dept-value">あなたとの相性</span>${esc(diag.fit)}</div>`:`<div class="diag-method diag-fit-empty">画面上部で「あなたの得意なスタイル」を選ぶと、ここに相性診断が出ます。</div>`}
+          ${diag.fit
+            ? `<div class="diag-method diag-fit"><span class="dept-value">あなたとの相性</span>${esc(diag.fit)}</div>`
+            : `<div class="sender-bar" data-sender-bar><span class="label">得意なスタイルを選ぶと相性も見れます(任意):</span></div>`}
         </div>
       </div>
       <div class="detail-section"><b>課題</b>
@@ -303,27 +302,17 @@ function modalBodyHtml(p){
 }
 
 function renderSenderBar(){
-  const bar = document.getElementById("senderBar");
-  const current = getSenderStyle();
-  bar.querySelectorAll(".sender-btn").forEach(b=>b.remove());
+  const bar = document.querySelector("[data-sender-bar]");
+  if(!bar) return;
   Object.entries(SENDER_STYLES).forEach(([key, s])=>{
     const btn = document.createElement("button");
-    btn.className = "sender-btn" + (key===current ? " active" : "");
+    btn.className = "sender-btn";
     btn.type = "button";
     btn.dataset.style = key;
     btn.textContent = `${s.icon} ${s.label}`;
     bar.appendChild(btn);
   });
 }
-document.getElementById("senderBar").addEventListener("click", e=>{
-  const btn = e.target.closest(".sender-btn");
-  if(!btn) return;
-  const key = btn.dataset.style;
-  setSenderStyle(getSenderStyle() === key ? "" : key);
-  renderSenderBar();
-  if(openIdx !== null) openModal(openIdx);
-});
-renderSenderBar();
 
 let ITEMS = [];
 let openIdx = null;
@@ -335,6 +324,7 @@ function openModal(idx){
   modal.innerHTML = modalBodyHtml(p);
   overlay.classList.remove("hidden");
   openIdx = idx;
+  renderSenderBar();
 }
 function closeModal(){ overlay.classList.add("hidden"); openIdx = null; }
 
@@ -355,6 +345,12 @@ overlay.addEventListener("click", e=>{
       copyBtn.textContent = "コピーしました";
       setTimeout(()=>{ copyBtn.textContent = orig; }, 1500);
     });
+    return;
+  }
+  const styleBtn = e.target.closest(".sender-btn");
+  if(styleBtn){
+    setSenderStyle(getSenderStyle() === styleBtn.dataset.style ? "" : styleBtn.dataset.style);
+    if(openIdx !== null) openModal(openIdx);
   }
 });
 document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeModal(); });
