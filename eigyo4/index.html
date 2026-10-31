@@ -54,12 +54,6 @@
     .wrap{padding-left:0;padding-right:0;width:480px}
   }
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:stretch}
-  .toolbar{margin-bottom:12px}
-  .filters{display:flex;gap:5px;overflow-x:auto;padding-bottom:1px;scrollbar-width:none}
-  .filters::-webkit-scrollbar{display:none}
-  .filter-btn{flex:0 0 auto;border:1px solid var(--border);border-radius:999px;background:var(--panel);color:var(--muted);font:inherit;font-size:10px;padding:4px 8px;cursor:pointer}
-  .filter-btn.is-active{background:var(--text);border-color:var(--text);color:var(--bg)}
-  .result-note{margin-top:6px;font-size:10px;color:var(--muted)}
   .disclaimer{margin:0 0 12px;border-left:2px solid var(--muted);padding:6px 8px;background:var(--panel-2);font-size:10px;line-height:1.55;color:var(--muted)}
   .card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--panel);cursor:pointer;
     box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0;height:100%}
@@ -250,15 +244,6 @@
   </aside>
 
   <main class="wrap">
-    <div class="toolbar" aria-label="会社を絞り込み">
-      <div class="filters" id="filters">
-        <button class="filter-btn is-active" type="button" data-filter="all">すべて</button>
-        <button class="filter-btn" type="button" data-filter="actual">実データ試算</button>
-        <button class="filter-btn" type="button" data-filter="estimate">業種推定</button>
-        <button class="filter-btn" type="button" data-filter="unpriced">未算定</button>
-      </div>
-      <div class="result-note" id="result-note"></div>
-    </div>
     <p class="disclaimer">表示金額は公開情報や業界平均を用いた参考試算です。実際の成果を保証するものではありません。提案前に商談で条件を確認してください。</p>
     <div class="grid" id="grid"><div class="empty">読み込み中…</div></div>
   </main>
@@ -1072,7 +1057,6 @@ function saveSellerProfileFromModal(){
 let ITEMS = [];
 let openIdx = null;
 let selectedIdx = null;
-let currentFilter = "all";
 const overlay = document.getElementById("overlay");
 const modal = document.getElementById("modal");
 function openModal(idx){
@@ -1214,13 +1198,8 @@ function renderGrid(){
   const grid = document.getElementById("grid");
   if(!ITEMS.length) return;
   const order = ITEMS.map((p,i)=>({p,i,conclusion:concludeDept(p)}))
-    .filter(({p,conclusion})=>{
-      const matchesType = currentFilter === "all" || assessmentType(p, conclusion) === currentFilter;
-      return matchesType;
-    })
     .sort((a,b)=>fitScore(b.p)-fitScore(a.p));
   grid.innerHTML = order.length ? order.map(({p,i})=>cardHtml(p,i)).join("") : `<div class="empty">条件に合う会社がありません。</div>`;
-  document.getElementById("result-note").textContent = `${order.length}社を表示 / 全${ITEMS.length}社`;
   if(selectedIdx !== null) renderSelectedCompany(selectedIdx);
 }
 
@@ -1237,14 +1216,6 @@ function renderDesktopSummary(){
     ? `<b>${esc(priority.name)}</b><div class="rail-note">${esc(priorityReason(priority))}</div>` : "—";
   if(priorityEntry) renderSelectedCompany(priorityEntry.i);
 }
-
-document.getElementById("filters").addEventListener("click", e=>{
-  const btn = e.target.closest("[data-filter]");
-  if(!btn) return;
-  currentFilter = btn.dataset.filter;
-  document.querySelectorAll("[data-filter]").forEach(el=>el.classList.toggle("is-active", el === btn));
-  renderGrid();
-});
 
 async function load(){
   const grid = document.getElementById("grid");
