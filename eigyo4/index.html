@@ -121,6 +121,13 @@
 
   .conclusion-box{background:var(--panel-2);border:2px solid var(--text);border-radius:10px;
     padding:14px 16px;margin-bottom:16px}
+  .proposal-kicker{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.05em;margin-bottom:4px}
+  .proposal-headline{font-size:16px;font-weight:800;line-height:1.45;color:var(--text);margin-bottom:10px}
+  .proposal-headline strong{color:var(--ok)}
+  .proposal-flow{display:flex;align-items:stretch;gap:5px;margin:0 0 12px}
+  .proposal-step{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:6px 7px;font-size:11px;line-height:1.45}
+  .proposal-step b{display:block;font-size:9.5px;color:var(--muted);margin-bottom:1px}
+  .proposal-arrow{align-self:center;color:var(--muted);font-weight:700}
   .client-benefit-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:3px}
   .client-benefit-text{font-size:13px;font-weight:600;line-height:1.65;color:var(--text);margin-bottom:12px}
   .conclusion-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
@@ -347,6 +354,9 @@ function concludeDept(p){
       dept: "営業",
       text: p.hypothesisSales,
       priceLabel: "初期費用 2〜3万円（単発）",
+      effectType: "売上増",
+      effectValue: "未算定",
+      effectNote: "問い合わせ・成約データを商談で確認",
       clientBenefit: "検索経由の問い合わせを取りこぼしている可能性がある。ただしアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
       benefitStatus: "未算定（商談で確認）",
       reason: `Googleビジネスプロフィール自体は無料。初期設定を代行する提案として、低い初期費用から始められる。${businessScaleNote}`,
@@ -374,6 +384,9 @@ function concludeDept(p){
       dept: "人事",
       text: p.hypothesisHr,
       priceLabel: "制作費 8〜15万円（単発）",
+      effectType: "費用減",
+      effectValue: clientBenefitAmount || "未算定",
+      effectNote: clientBenefitAmount ? "人材紹介を1名回避できた場合" : "給与・紹介会社利用の確認が必要",
       clientBenefit,
       clientBenefitAmount,
       benefitStatus: clientBenefitAmount ? "試算（1名を自社採用できた場合）" : "未算定（給与情報なし）",
@@ -389,6 +402,9 @@ function concludeDept(p){
       dept: "営業",
       text: p.hypothesisSales,
       priceLabel: "改修費 5〜8万円（単発）",
+      effectType: "売上増",
+      effectValue: "未算定",
+      effectNote: "アクセス・問い合わせ・成約データを商談で確認",
       clientBenefit: "SSL非対応だと閲覧者の一部が「保護されていません」表示で離脱・問い合わせを躊躇する可能性がある。ただし当該サイトのアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
       benefitStatus: "未算定（商談で確認）",
       reason: `既存サイトを活かして、SSL化や必要ページの追加から着手する提案。${businessScaleNote}`,
@@ -403,6 +419,9 @@ function concludeDept(p){
       dept: "広報",
       text: p.hypothesisPr,
       priceLabel: "月額 3〜5万円（運用支援）",
+      effectType: "売上増",
+      effectValue: "未算定",
+      effectNote: "問い合わせ・成約データを商談で確認",
       clientBenefit: "情報発信が無いことによる新規問い合わせの機会損失があると考えられるが、具体的な金額は算出できない(誠実に「不明」とする)。",
       benefitStatus: "未算定（商談で確認）",
       reason: `施工実績・会社情報を継続して発信し、問い合わせにつながる情報を増やす提案。${businessScaleNote}`,
@@ -412,13 +431,12 @@ function concludeDept(p){
   }
 
   result.businessScale = businessScale;
+  result.topConclusion = `${result.priceLabel}で${result.action}を導入 → ${result.effectType}${result.effectValue === "未算定" ? "は未算定" : `${result.effectValue}の${result.effectType === "費用減" ? "削減余地" : "増加余地"}`}`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
-  // カード用の短い結論文(25〜30字目安): 相手の得/損を先頭に
+  // カードにも「投資 → 効果」を先頭に置く。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
-  result.cardLine = result.clientBenefitAmount
-    ? `相手の得（試算）: 採用コスト${result.clientBenefitAmount}削減余地`
-    : `${shortAction}(${result.priceLabel})`;
-  result.cardSub = `${result.dept}課題を${shortAction}で解消`;
+  result.cardLine = `投資: ${result.priceLabel} → ${result.effectType}: ${result.effectValue}${result.effectValue === "未算定" ? "（商談で確認）" : "（試算）"}`;
+  result.cardSub = `導入: ${shortAction}`;
 
   return result;
 }
@@ -483,6 +501,13 @@ function modalBodyHtml(p){
     ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
     <div class="card-detail">
       <div class="conclusion-box">
+        <div class="proposal-kicker">結論：いくらで何を導入し、何を増やす／減らすか</div>
+        <div class="proposal-headline">${esc(conclusion.priceLabel)}で<strong>${esc(conclusion.action)}</strong>を導入<br>→ ${esc(conclusion.effectType)} <strong>${esc(conclusion.effectValue)}</strong>${conclusion.effectValue === "未算定" ? "" : "の削減余地"}</div>
+        <div class="proposal-flow">
+          <div class="proposal-step"><b>投資</b>${esc(conclusion.priceLabel)}</div><div class="proposal-arrow">→</div>
+          <div class="proposal-step"><b>導入するもの</b>${esc(conclusion.action)}</div><div class="proposal-arrow">→</div>
+          <div class="proposal-step"><b>${esc(conclusion.effectType)}</b>${esc(conclusion.effectValue)}${conclusion.effectValue === "未算定" ? "（商談で確認）" : "（試算）"}</div>
+        </div>
         <div class="client-benefit-label">相手(先方)の得・損（${esc(conclusion.benefitStatus)}）</div>
         <div class="client-benefit-text">${esc(conclusion.clientBenefit)}</div>
         <div class="num-row">
