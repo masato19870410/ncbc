@@ -409,7 +409,8 @@ function concludeDept(p){
   result.expectedNote = `提案金額の目安(${result.priceLabel})× 成約確度の目安(${closeProb}%)= あなたの受注見込み額 約${expectedValue}万円(相手のコスト削減額ではなく、提案が通った場合に見込める自分の売上目安)。いずれも実績データではなく一般的な相場と予算シグナルからの推定。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})から提案する。`;
   // カード用の短い結論文(25〜30字目安)
-  result.cardLine = `${result.dept}課題を${result.action.replace(/[(（].*?[)）]/g,"")}で解消。受注見込み額 約${expectedValue}万円`;
+  result.cardLine = `予算${budgetTierShort} → 受注見込み約${expectedValue}万円`;
+  result.cardSub = `${result.dept}課題を${result.action.replace(/[(（].*?[)）]/g,"")}で解消`;
 
   return result;
 }
@@ -458,7 +459,7 @@ function cardHtml(p, idx, recoRank){
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
-      <div class="card-cost"><span class="cost-tag">${esc(concl.budgetTierShort)}</span>${esc(concl.cardLine)}</div>
+      <div class="card-cost"><span class="cost-tag">${esc(concl.cardLine)}</span>${esc(concl.cardSub)}</div>
     </div>`;
 }
 
