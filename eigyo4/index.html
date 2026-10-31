@@ -289,13 +289,21 @@ function concludeDept(p){
   const gmap = findChannel(channels, "Googleマップ");
   const indeed = findChannel(channels, "Indeed");
 
+  // 費用対効果は「直すコストの安さ」だけでなく「相手に払う原資があるか」も要る。
+  // 予算の代理指標として使えるのはIndeed掲載の活発さくらいしかないため、それが無い/弱い場合は明記する。
+  const hasBudgetSignal = indeed && (indeed.r==="◎" || indeed.r==="○");
+  const budgetNote = hasBudgetSignal
+    ? "求人を活発に出しており、採用予算は確保できている。"
+    : "採用・広告の予算感を示す材料(求人掲載等)が無く、予算感は未確認。提案の温度感は下げて様子を見る必要がある。";
+
   if(!gmap || gmap.r === "✕"){
     return {
       cost: "無料・即日",
       action: "Googleビジネスプロフィールの登録",
       dept: "営業",
       text: p.hypothesisSales,
-      reason: "無料・即日反映で最も低コスト。営業課題への着手が最もROIが高い。",
+      budget: budgetNote,
+      reason: `無料・即日反映で最も低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
     };
   }
   if((!site || site.r==="✕") && indeed && (indeed.r==="◎"||indeed.r==="○")){
@@ -304,7 +312,8 @@ function concludeDept(p){
       action: "採用特化ページの新設",
       dept: "人事",
       text: p.hypothesisHr,
-      reason: "求人が実際に動いている(Indeed掲載中)タイミングで受け皿を作るだけで応募の離脱を防げる。人事課題への着手が最もROIが高い。",
+      budget: budgetNote,
+      reason: `求人が実際に動いている(Indeed掲載中)タイミングで受け皿を作るだけで応募の離脱を防げる。人事課題への着手が最もROIが高い。${budgetNote}`,
     };
   }
   if(site && site.r==="△"){
@@ -313,7 +322,8 @@ function concludeDept(p){
       action: "既存サイトの改善(SSL化・採用ページ追加など)",
       dept: "営業",
       text: p.hypothesisSales,
-      reason: "ゼロから作るより圧倒的に低コスト。営業課題への着手が最もROIが高い。",
+      budget: budgetNote,
+      reason: `ゼロから作るより圧倒的に低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
     };
   }
   return {
@@ -321,7 +331,8 @@ function concludeDept(p){
     action: "SNS等での情報発信の開始",
     dept: "広報",
     text: p.hypothesisPr,
-    reason: "営業・人事側の低コストな打ち手が既に無いため、相対的に最もROIが高い(効果が出るまでやや時間はかかる)。",
+    budget: budgetNote,
+    reason: `営業・人事側の低コストな打ち手が既に無いため、相対的に最もROIが高い(効果が出るまでやや時間はかかる)。${budgetNote}`,
   };
 }
 
