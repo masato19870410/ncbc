@@ -682,15 +682,28 @@ function concludeDept(p){
 }
 
 function fitScore(p){
-  // 費用対効果ファースト: 「低コストで直せる」「相手に予算感がある」を優先し、
-  // 情報の濃さ(裏取り件数)は次点の加点にする。
+  // 費用対効果ファースト・予算セカンド: ROIが実額で見える会社を最優先し、
+  // 同条件なら資本金(予算感)が大きい会社を上に。情報の濃さは次点の加点にする。
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const known = channels.filter(ch => ch.r==="◎" || ch.r==="○").length;
   const diag = diagnoseApproach(p);
   const indeed = findChannel(channels, "Indeed");
+  const concl = concludeDept(p);
 
   let score = 0;
+  // 最優先: ROIが実額(試算・業種推定)で見えるかどうか。未算定は大きく減点。
+  if(concl.effectValue !== "未算定") score += 100;
+  if(concl.effectValue !== "未算定" && !concl.isEstimate) score += 10; // 業種推定より個社の実データ試算を上に
+
+  // 予算セカンド: 資本金が分かる会社ほど加点(確定>推定、金額が大きいほど加点)
+  const facts = RESEARCH_FACTS[p.name] || {};
+  const capitalMan = parseFloat(p.capitalMan || facts.capitalMan) || 0;
+  if(capitalMan > 0){
+    score += Math.min(capitalMan / 100, 20); // 100万円ごとに1点、上限20点
+    if(facts.capitalStatus && facts.capitalStatus.startsWith("確定")) score += 5;
+  }
+
   // 低コストで直せる(改善提案・応募導線)ほどROIが高い。ゼロから作る(認知構築)は工数が重い。
   if(diag.type === "改善提案型") score += 30;
   else if(diag.type === "応募導線型") score += 25;
