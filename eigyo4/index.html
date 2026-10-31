@@ -37,9 +37,9 @@
   header.top .count{font-size:11.5px;font-weight:500;color:var(--muted)}
 
   .wrap{padding:16px 16px 48px;max-width:480px;margin:0 auto}
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:start}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:stretch}
   .card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--panel);cursor:pointer;
-    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0}
+    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0;height:100%}
   .card:active{background:var(--panel-2)}
   .card .row-head{display:flex;align-items:baseline;gap:6px;min-width:0;margin-bottom:4px}
   .card .name{font-weight:700;font-size:13.5px;letter-spacing:-.01em;flex:1;min-width:0;
@@ -48,15 +48,17 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-  .card .card-cost{font-size:12px;margin-top:8px;margin-bottom:0;line-height:1.5;min-height:55.8px}
+  .card .card-cost{font-size:11.5px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
   .card .cost-tag{display:block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
     border-radius:4px;padding:2px 6px;width:100%;margin-bottom:5px;overflow-wrap:anywhere}
-  .card .card-sub{display:block;overflow-wrap:anywhere}
+  .card .card-investment,.card .card-product{display:block;overflow-wrap:anywhere}
+  .card .card-investment{font-weight:600}
+  .card .card-product{color:var(--muted)}
   @media (max-width:390px){
     .wrap{padding:12px 12px 40px}
     .grid{gap:8px}
     .card{padding:12px}
-    .card .card-cost{font-size:11.5px;min-height:0}
+    .card .card-cost{font-size:11px}
     .card .cost-tag{font-size:9.5px;line-height:1.45}
   }
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px;grid-column:1/-1}
@@ -130,6 +132,10 @@
   .proposal-kicker{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.05em;margin-bottom:4px}
   .proposal-headline{font-size:16px;font-weight:800;line-height:1.45;color:var(--text);margin-bottom:10px}
   .proposal-headline strong{color:var(--ok)}
+  .calc-alert{border:1px solid var(--warn);background:var(--warn-bg);border-radius:7px;padding:8px 9px;margin:0 0 10px;font-size:11.5px;line-height:1.55}
+  .calc-alert b{display:block;font-size:10px;margin-bottom:2px;color:var(--warn)}
+  .calc-alert.is-calculated{border-color:var(--ok);background:var(--ok-bg)}
+  .calc-alert.is-calculated b{color:var(--ok)}
   .proposal-flow{display:flex;align-items:stretch;gap:5px;margin:0 0 12px}
   .proposal-step{flex:1;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 7px;font-size:11px;font-weight:600;line-height:1.45;text-align:center}
   .proposal-arrow{align-self:center;color:var(--muted);font-weight:700}
@@ -160,6 +166,26 @@
   .diag-details summary{cursor:pointer;font-size:11px;color:var(--muted);font-weight:700;
     text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
   .diag-details .diag-box{margin-top:8px}
+
+  .ai-strategy{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px;background:var(--panel)}
+  .ai-strategy .ai-kicker{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.05em;margin-bottom:3px}
+  .ai-strategy h2{font-size:15px;line-height:1.45;margin:0 0 8px}
+  .ai-status{display:inline-block;padding:2px 7px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:10.5px;font-weight:700;margin-bottom:8px}
+  .ai-row{margin-top:10px;font-size:12px;line-height:1.65}
+  .ai-row b{display:block;font-size:10.5px;color:var(--muted);margin-bottom:2px}
+  .ai-row ul{margin:3px 0 0;padding-left:18px}
+  .ai-row li{margin:2px 0}
+  .ai-confirmed{color:var(--ok)}
+  .ai-estimate{color:var(--warn)}
+  .ai-unknown{color:var(--bad)}
+  .seller-profile{margin:0 0 20px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--panel)}
+  .seller-profile summary{cursor:pointer;font-size:12px;font-weight:700}
+  .seller-profile .profile-hint{font-size:11px;color:var(--muted);margin:7px 0 10px}
+  .profile-offerings{display:grid;gap:6px;margin-bottom:10px}
+  .profile-offerings label{display:flex;align-items:flex-start;gap:7px;font-size:12px;line-height:1.45}
+  .profile-field{display:block;margin-top:8px;font-size:11px;font-weight:700;color:var(--muted)}
+  .profile-field textarea,.profile-field input{display:block;width:100%;margin-top:3px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);font:inherit;font-size:12px;font-weight:400;padding:7px;resize:vertical}
+  .profile-save{margin-top:10px;width:100%;font:inherit;font-size:12px;font-weight:700;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--panel-2);color:var(--text);cursor:pointer}
 </style>
 </head>
 <body>
@@ -191,6 +217,7 @@
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1OmKyrwSlLxOEPetl5Q17Aox05Ata8FHMxhDEYgtDkX4/export?format=csv&gid=1331008365";
 
 const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const googleMapsSearchUrl = address => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || "")}`;
 
 const RATING_CLASS = { "◎":"r-good", "○":"r-mid", "△":"r-weak", "✕":"r-none" };
 function channelLi(ch){
@@ -261,6 +288,99 @@ function getSenderTrait(){
 }
 function setSenderTrait(v){
   try{ localStorage.setItem(TRAIT_KEY, v); }catch(e){}
+}
+
+/* ---- 提供商材・営業条件: 企業診断はこのプロフィールを起点にする ---- */
+const SELLER_PROFILE_KEY = "eigyo_seller_profile_v1";
+const OFFERING_CATALOG = [
+  { id:"ai_training", name:"AI研修", scope:"研修内容・提供価格・導入実績は未設定" },
+  { id:"ai_org", name:"AIを活用した組織開発・業務改善支援", scope:"支援範囲・提供価格・導入実績は未設定" },
+];
+function getSellerProfile(){
+  const base = { offerings:OFFERING_CATALOG.map(o=>o.id), experience:"", strengths:"", networks:"", preferredApproach:"" };
+  try{
+    const saved = JSON.parse(localStorage.getItem(SELLER_PROFILE_KEY) || "{}");
+    return { ...base, ...saved, offerings:Array.isArray(saved.offerings) ? saved.offerings : base.offerings };
+  }catch(e){ return base; }
+}
+function setSellerProfile(profile){
+  try{ localStorage.setItem(SELLER_PROFILE_KEY, JSON.stringify(profile)); }catch(e){}
+}
+function offeringName(id){ return OFFERING_CATALOG.find(o=>o.id===id)?.name || "未選択"; }
+function sourceLink(ch, label){
+  const text = label || ch?.n || "参照元";
+  return ch?.u ? `<a href="${esc(ch.u)}" target="_blank" rel="noopener">${esc(text)} ↗</a>` : `${esc(text)}（URL未登録）`;
+}
+function sellerProfileHtml(){
+  const profile = getSellerProfile();
+  return `<details class="seller-profile">
+    <summary>自分の商材・営業条件を設定</summary>
+    <div class="profile-hint">未設定の項目は、診断で「未確認」として扱います。</div>
+    <div class="profile-offerings">${OFFERING_CATALOG.map(o=>`<label><input type="checkbox" data-profile-offering="${o.id}" ${profile.offerings.includes(o.id)?"checked":""}> <span><b>${esc(o.name)}</b><br>${esc(o.scope)}</span></label>`).join("")}</div>
+    <label class="profile-field">導入実績・事例（任意）<textarea data-profile-field="experience" rows="2" placeholder="未設定">${esc(profile.experience)}</textarea></label>
+    <label class="profile-field">得意分野（任意）<input data-profile-field="strengths" value="${esc(profile.strengths)}" placeholder="未設定"></label>
+    <label class="profile-field">使える人脈・紹介先（任意）<input data-profile-field="networks" value="${esc(profile.networks)}" placeholder="未設定"></label>
+    <label class="profile-field">希望する営業方法（任意）<input data-profile-field="preferredApproach" value="${esc(profile.preferredApproach)}" placeholder="未設定"></label>
+    <button type="button" class="profile-save" data-save-profile>保存して診断を更新</button>
+  </details>`;
+}
+
+/* ---- 商材起点の営業戦略: 1社目は根拠が揃う企業だけを「検証候補」にする ---- */
+function diagnoseOfferingFit(p){
+  const profile = getSellerProfile();
+  const facts = RESEARCH_FACTS[p.name] || {};
+  const channels = p.contact?.channels || [];
+  const indeed = findChannel(channels, "Indeed");
+  const news = findChannel(channels, "業界ニュース");
+  const activeHiring = /Indeedに21件|21件の求人/.test(p.hypothesisHr || "") || /21件/.test(indeed?.m || "");
+  const workforceKnown = Number(String(facts.employeeCount || "").replace(/[^0-9]/g,"")) >= 50;
+  const isCaseStudy = workforceKnown && activeHiring;
+  const preferred = profile.offerings.includes("ai_training") ? "ai_training" : profile.offerings[0];
+  const offering = offeringName(preferred);
+
+  if(!isCaseStudy){
+    return {
+      isCaseStudy:false, offering,
+      status:"判定保留（根拠不足）",
+      why:"AI研修・業務改善支援との適合を判断するための、教育課題・業務時間・現場のAI利用状況が公開情報からは不足している。",
+      confirmed:[esc(`公開情報：${p.industry || "業種未確認"}、${facts.employeeCount ? `従業員${facts.employeeCount}人（${facts.employeeStatus}、URL未登録）` : "従業員数未確認"}`)],
+      inference:"人員規模や業務課題が分からない段階で、AI研修が適合すると断定しない。",
+      unknown:"教育対象者・現場の反復業務・既存ツール・決裁者・予算",
+      effect:"年額効果は未算定",
+      formula:"年額効果 = 対象人数 × 1人あたり月間削減時間 × 時間単価 × 12 − 年額費用",
+      route:`確認済みの電話番号${p.phone ? `（${p.phone}）` : "が無いため、連絡手段の確認から"}`,
+      firstAction:"業務改善・教育の担当者と、AIを使って減らしたい定型業務があるかを確認する。",
+    };
+  }
+
+  const employeeNote = `従業員数：現行コードは${facts.employeeCount}人（${facts.employeeStatus}、${facts.employeeSource}、URL未登録）。シートのアプローチメモには76人とあり、1人差の不整合あり。`;
+  return {
+    isCaseStudy:true, offering,
+    status:"1社目の検証候補（適合は仮説）",
+    why:"確認済みの従業員規模と複数職種の採用活動があり、教育・定型業務の課題をヒアリングする合理性がある。AI導入ニーズ自体は未確認。",
+    confirmed:[employeeNote, `${sourceLink(indeed, "Indeed求人")}：${esc(indeed?.m || "求人掲載あり（件数は要再確認）")}`, news?.m ? `${sourceLink(news, "業界ニュース")}：${esc(news.m)}` : "業界ニュース：未確認", `連絡先：電話 ${p.phone || "未確認"}（メールは未確認）`],
+    inference:"採用拡大・組織変化の局面では、教育の標準化や定型業務の見直しが課題になり得る。ただし現場課題・AI利用意向は未確認。",
+    unknown:"研修対象人数、現在の教育工数、反復業務、AI利用ルール、決裁者、予算、導入実績に求める条件",
+    effect:"年額効果は未算定",
+    formula:"年額効果 = 研修対象人数 × 1人あたり月間削減時間 × 時間単価 × 12 − 年額費用",
+    route:`最優先：代表電話（${p.phone}）で「人材育成・業務改善のご担当者」を確認。紹介・団体接点は現時点で未確認のため、存在する前提にしない。`,
+    firstAction:`最初の接触では「${offering}を売り込む」前に、求人増加に伴う教育・引継ぎ・定型業務で時間が掛かっている点があるか、15分だけ確認したいと伝える。`,
+  };
+}
+function offeringStrategyHtml(p){
+  const d = diagnoseOfferingFit(p);
+  return `<section class="ai-strategy">
+    <div class="ai-kicker">提供商材から考える営業戦略</div>
+    <span class="ai-status">${esc(d.status)}</span>
+    <h2>${esc(d.offering)} × ${esc(p.name || "対象企業")}</h2>
+    <div class="ai-row"><b>選定理由</b>${esc(d.why)}</div>
+    <div class="ai-row"><b class="ai-confirmed">確認済みの情報</b><ul>${d.confirmed.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    <div class="ai-row"><b class="ai-estimate">仮説（確認が必要）</b>${esc(d.inference)}</div>
+    <div class="ai-row"><b class="ai-unknown">未確認・金額化に必要な情報</b>${esc(d.unknown)}</div>
+    <div class="calc-alert"><b>効果の計算式（未算定）</b>${esc(d.formula)}<br>必要情報：${esc(d.unknown)}</div>
+    <div class="ai-row"><b>最も現実的な営業ルート</b>${esc(d.route)}</div>
+    <div class="ai-row"><b>最初に伝えること／次の行動</b>${esc(d.firstAction)}</div>
+  </section>`;
 }
 
 function diagnoseApproach(p){
@@ -361,6 +481,8 @@ function concludeDept(p){
       effectType: "売上増",
       effectValue: "未算定",
       effectNote: "問い合わせ・成約データを商談で確認",
+      calculationFormula: "年額の増収効果 = 月間の追加問い合わせ数 × 成約率 × 1件あたりの粗利 × 12",
+      calculationInputs: "月間問い合わせ数・成約率・平均粗利・Googleマップ経由の割合",
       clientBenefit: "検索経由の問い合わせを取りこぼしている可能性がある。ただしアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
       benefitStatus: "未算定（商談で確認）",
       reason: `Googleビジネスプロフィール自体は無料。初期設定を代行する提案として、低い初期費用から始められる。${businessScaleNote}`,
@@ -391,6 +513,8 @@ function concludeDept(p){
       effectType: "費用減",
       effectValue: clientBenefitAmount || "未算定",
       effectNote: clientBenefitAmount ? "人材紹介を1名回避できた場合" : "給与・紹介会社利用の確認が必要",
+      calculationFormula: clientBenefitAmount ? `年額の削減余地 = 求人票の月給 × 12か月 × 人材紹介手数料率30% × 自社採用できた人数(1名)` : "年額の削減余地 = 想定年収 × 人材紹介手数料率 × 自社採用できた人数",
+      calculationInputs: clientBenefitAmount ? "人材紹介を実際に利用しているか・年間採用人数・自社採用に置き換わった人数" : "求人の給与・人材紹介の利用有無・手数料率・年間採用人数",
       clientBenefit,
       clientBenefitAmount,
       benefitStatus: clientBenefitAmount ? "試算（1名を自社採用できた場合）" : "未算定（給与情報なし）",
@@ -409,6 +533,8 @@ function concludeDept(p){
       effectType: "売上増",
       effectValue: "未算定",
       effectNote: "アクセス・問い合わせ・成約データを商談で確認",
+      calculationFormula: "年額の増収効果 = 月間の問い合わせ増加数 × 成約率 × 1件あたりの粗利 × 12",
+      calculationInputs: "現状アクセス数・問い合わせ数・成約率・平均粗利・改善後の変化",
       clientBenefit: "SSL非対応だと閲覧者の一部が「保護されていません」表示で離脱・問い合わせを躊躇する可能性がある。ただし当該サイトのアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
       benefitStatus: "未算定（商談で確認）",
       reason: `既存サイトを活かして、SSL化や必要ページの追加から着手する提案。${businessScaleNote}`,
@@ -426,6 +552,8 @@ function concludeDept(p){
       effectType: "売上増",
       effectValue: "未算定",
       effectNote: "問い合わせ・成約データを商談で確認",
+      calculationFormula: "年額の増収効果 = 月間のSNS由来問い合わせ増加数 × 成約率 × 1件あたりの粗利 × 12",
+      calculationInputs: "月間投稿数・SNS由来の問い合わせ数・成約率・平均粗利",
       clientBenefit: "情報発信が無いことによる新規問い合わせの機会損失があると考えられるが、具体的な金額は算出できない(誠実に「不明」とする)。",
       benefitStatus: "未算定（商談で確認）",
       reason: `施工実績・会社情報を継続して発信し、問い合わせにつながる情報を増やす提案。${businessScaleNote}`,
@@ -444,7 +572,8 @@ function concludeDept(p){
   // 効果を先、投資内容を後に置いて、ラベルに頼らず読める順にする。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
   result.cardLine = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}`;
-  result.cardSub = `${result.priceLabel} / ${shortAction}`;
+  result.cardInvestment = result.priceLabel;
+  result.cardProduct = shortAction;
 
   return result;
 }
@@ -491,8 +620,12 @@ function cardHtml(p, idx){
       <div class="row-head">
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
-      ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
-      <div class="card-cost"><span class="cost-tag">${esc(concl.cardLine)}</span><span class="card-sub">${esc(concl.cardSub)}</span></div>
+      ${p.area?`<a class="meta" href="${esc(googleMapsSearchUrl(p.area))}" target="_blank" rel="noopener" title="Googleマップで開く">${esc(p.area)}</a>`:""}
+      <div class="card-cost">
+        <span class="cost-tag">${esc(concl.cardLine)}</span>
+        <span class="card-investment">${esc(concl.cardInvestment)}</span>
+        <span class="card-product">${esc(concl.cardProduct)}</span>
+      </div>
     </div>`;
 }
 
@@ -506,15 +639,19 @@ function modalBodyHtml(p){
   return `
     <button class="close" aria-label="閉じる" data-close>×</button>
     <div class="m-name">${esc(p.name||"")}</div>
-    ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
+    ${p.area?`<div class="m-meta"><a href="${esc(googleMapsSearchUrl(p.area))}" target="_blank" rel="noopener">${esc(p.area)}（Googleマップで開く ↗）</a></div>`:""}
     <div class="card-detail">
       <div class="conclusion-box">
         <div class="proposal-kicker">費用対効果（投資対効果）</div>
         <div class="proposal-headline"><strong>${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}</strong>${conclusion.effectValue === "未算定" ? "（商談で算定）" : `の${conclusion.effectType === "費用減" ? "削減" : "増加"}余地`}<br>${esc(conclusion.action)}に${esc(conclusion.priceLabel)}を投資</div>
+        <div class="calc-alert ${conclusion.effectValue === "未算定" ? "" : "is-calculated"}">
+          <b>${conclusion.effectValue === "未算定" ? "未算定｜この情報があれば金額化できます" : "試算の計算式・前提"}</b>
+          ${esc(conclusion.calculationFormula)}<br>${conclusion.effectValue === "未算定" ? `確認項目：${esc(conclusion.calculationInputs)}` : `要確認：${esc(conclusion.calculationInputs)}`}
+        </div>
         <div class="proposal-flow">
           <div class="proposal-step">${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}${conclusion.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}</div><div class="proposal-arrow">↔</div>
-          <div class="proposal-step">${esc(conclusion.action)}</div><div class="proposal-arrow">↔</div>
-          <div class="proposal-step">${esc(conclusion.priceLabel)}</div>
+          <div class="proposal-step">${esc(conclusion.priceLabel)}</div><div class="proposal-arrow">↔</div>
+          <div class="proposal-step">${esc(conclusion.action)}</div>
         </div>
         <div class="client-benefit-label">相手(先方)の得・損（${esc(conclusion.benefitStatus)}）</div>
         <div class="client-benefit-text">${esc(conclusion.clientBenefit)}</div>
@@ -536,6 +673,8 @@ function modalBodyHtml(p){
         </div>
         <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
       </div>
+      ${offeringStrategyHtml(p)}
+      ${sellerProfileHtml()}
       <details class="diag-details">
         <summary>診断の詳細を見る</summary>
         <div class="diag-box">
@@ -598,6 +737,13 @@ function renderSenderBar(){
   }
 }
 
+function saveSellerProfileFromModal(){
+  const profile = getSellerProfile();
+  profile.offerings = Array.from(modal.querySelectorAll("[data-profile-offering]:checked")).map(el=>el.dataset.profileOffering);
+  modal.querySelectorAll("[data-profile-field]").forEach(el=>{ profile[el.dataset.profileField] = el.value.trim(); });
+  setSellerProfile(profile);
+}
+
 let ITEMS = [];
 let openIdx = null;
 const overlay = document.getElementById("overlay");
@@ -629,6 +775,11 @@ overlay.addEventListener("click", e=>{
       copyBtn.textContent = "コピーしました";
       setTimeout(()=>{ copyBtn.textContent = orig; }, 1500);
     });
+    return;
+  }
+  if(e.target.closest("[data-save-profile]")){
+    saveSellerProfileFromModal();
+    if(openIdx !== null) openModal(openIdx);
     return;
   }
   const styleBtn = e.target.closest(".sender-btn[data-style]");
