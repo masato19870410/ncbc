@@ -264,7 +264,14 @@ const RESEARCH_FACTS = {
       { label:"ハローワーク求人票（建具・家具工）", url:"https://jp.indeed.com/viewjob?jk=1047c47011759774&tk=1k68epdnu21sm000", note:"求人番号33010-27754661。賃金形態：日給10,000円〜15,000円（月平均労働日数21.6日で月額換算216,000円〜324,000円）。企業全体の従業員数5人、資本金500万円、設立昭和63年（2026-10-31確認）。" },
     ],
   },
-  "有限会社大橋重機": { employeeCount:"7", employeeStatus:"推定（根拠不明）", employeeSource:"未確認" },
+  "有限会社三谷工業": {
+    employeeCount:"23", employeeStatus:"確定（ハローワーク求人票、企業全体の従業員数）", employeeSource:"ハローワーク求人票",
+    capitalMan:2000, capitalStatus:"確定（国土交通省データベース・ハローワーク求人票の2系統で一致）",
+    additionalSources:[
+      { label:"国土交通省 建設業者・宅建業者等企業情報検索システム", url:"https://etsuran2.mlit.go.jp/TAKKEN/kensetuKensaku.do?outPutKbn=1", note:"岡山県知事許可第021084号。資本金額20,000千円（2,000万円）、代表者 三谷洋文（2026-10-31確認）。検索画面で「三谷工業」「岡山県」を指定すると同じ結果が再現できる。" },
+      { label:"ハローワーク求人票（鉄骨組立工）", url:"https://jp.indeed.com/jobs?q=%22%E4%B8%89%E8%B0%B7%E5%B7%A5%E6%A5%AD%22&l=%E5%B2%A1%E5%B1%B1%E5%B8%82", note:"求人番号33010-27653061。月給21万円〜35万円（月平均労働日数20.0日）。企業全体の従業員数23人、資本金2,000万円、設立平成7年、三蟠農協前バス停から徒歩5分（2026-10-31確認）。" },
+    ],
+  },
   "株式会社シーエス建材トーヨー住器": { employeeCount:"16", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:350, capitalStatus:"推定（根拠不明）" },
   "有限会社石井電業社": { employeeCount:"5", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明）" },
   "有限会社コバヤシ防災システム": { employeeCount:"9", employeeStatus:"推定（根拠不明）", employeeSource:"未確認" },
@@ -539,9 +546,12 @@ function concludeDept(p){
       winCase: "Googleマップ経由の問い合わせ数を、登録前後で計測できる状態にする。",
       loseCase: "登録後に見る指標(表示回数・電話・ルート検索・問い合わせ)を先に合意する。",
     };
-  } else if((!site || site.r==="✕") && indeed && (indeed.r==="◎"||indeed.r==="○")){
+  } else if(((!site || site.r==="✕") || (site && /未掲載/.test(site.m||""))) && indeed && (indeed.r==="◎"||indeed.r==="○")){
     // 相手側の効果(採用コスト削減)を、求人票記載の月給レンジ×人材紹介手数料相場(年収の30%が業界慣行)から試算。
     // 金額換算できるのはこの採用系だけ(営業/広報は流入→成約の実データが無く金額換算は困難)。
+    // 自社サイトはあるが、Indeedで募集中の主力職種が自社サイトの採用ページに載っていない(「未掲載」)ケースは、
+    // 「新設」ではなく「拡充」を商材にする。サイトの有無ではなく、採用ページが主力職種をカバーできているかで分岐する。
+    const siteHasRecruitGap = !!(site && /未掲載/.test(site.m||""));
     let clientBenefit = "採用に関する具体的な損失額は、求人票に給与情報が無く算出できない。";
     let clientBenefitAmount = "";
     let benefitIsEstimate = false;
@@ -582,11 +592,11 @@ function concludeDept(p){
     }
     result = {
       cost: "導入コスト: 低",
-      action: "採用特化ページの新設",
-      accountItem: "外注費（制作費）",
+      action: siteHasRecruitGap ? "採用ページの職種拡充" : "採用特化ページの新設",
+      accountItem: siteHasRecruitGap ? "外注費（改修費）" : "外注費（制作費）",
       dept: "人事",
       text: p.hypothesisHr,
-      priceLabel: "制作費 8〜15万円（単発）",
+      priceLabel: siteHasRecruitGap ? "改修費 5〜8万円（単発）" : "制作費 8〜15万円（単発）",
       effectType: "費用減",
       effectValue: clientBenefitAmount || "未算定",
       effectNote: clientBenefitAmount ? "将来、人材紹介に頼らざるを得なくなった場合に回避できる費用" : "給与・紹介会社利用の確認が必要",
@@ -597,7 +607,9 @@ function concludeDept(p){
       isEstimate: benefitIsEstimate,
       benefitSourceUrl, benefitSourceLabel,
       benefitStatus: clientBenefitAmount ? (benefitIsEstimate ? "推定（業種別平均を代用、1名を自社採用できた場合）" : "試算（1名を自社採用できた場合）") : "未算定（給与情報なし）",
-      reason: `Indeed掲載中に、応募者が会社・仕事内容を確認できる受け皿を用意する提案。${businessScaleNote}`,
+      reason: siteHasRecruitGap
+        ? `自社サイトに採用ページはあるが、Indeedで募集中の主力職種が未掲載。既存サイトに職種を追加する提案。${businessScaleNote}`
+        : `Indeed掲載中に、応募者が会社・仕事内容を確認できる受け皿を用意する提案。${businessScaleNote}`,
       winCase: "現状ハローワーク等の無料掲載だけで応募が十分に集まっているか、人材紹介を使う可能性が今後あるかを確認する。",
       loseCase: "ページ公開後は、Indeedからの流入・応募数・採用数を計測し、効果を検証する。",
     };
