@@ -200,6 +200,20 @@ function sortChannels(channels){
 }
 
 const OWN_MEDIA = new Set(["自社サイト", "Instagram", "X", "Facebook", "LINE公式", "YouTube", "note", "TikTok"]);
+
+// 商談で「どこまで裏取り済みか」を混同しないための調査メモ。
+// 公開情報で確認した値と、企業データベース由来の推定値を分けて表示する。
+const RESEARCH_FACTS = {
+  "株式会社フジショウ": { employeeCount:"75", employeeStatus:"確認済み", employeeSource:"求人媒体の会社概要", revenueMan:120000, revenueStatus:"企業DB推定" },
+  "有限会社杉元建具": { employeeCount:"約4", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:500, capitalStatus:"企業DB推定" },
+  "有限会社大橋重機": { employeeCount:"7", employeeStatus:"企業DB推定", employeeSource:"企業データベース" },
+  "株式会社シーエス建材トーヨー住器": { employeeCount:"16", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:350, capitalStatus:"企業DB推定" },
+  "有限会社石井電業社": { employeeCount:"5", employeeStatus:"確認済み", employeeSource:"gBizINFO", capitalMan:300, capitalStatus:"企業DB推定" },
+  "有限会社コバヤシ防災システム": { employeeCount:"9", employeeStatus:"企業DB推定", employeeSource:"企業データベース" },
+  "有限会社ワイ・エス・ピー": { employeeCount:"7〜8", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:400, capitalStatus:"企業DB推定" },
+  "竹森工芸株式会社": { employeeCount:"12", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:1000, capitalStatus:"企業DB推定" },
+  "日新機工有限会社": { employeeCount:"3", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:300, capitalStatus:"企業DB推定" },
+};
 function channelGroup(label, channels){
   if(!channels.length) return "";
   return `<div class="ch-group"><b>${esc(label)}</b><ul class="ch-list">${channels.map(channelLi).join("")}</ul></div>`;
@@ -300,24 +314,28 @@ function concludeDept(p){
   const site = findChannel(channels, "自社サイト");
   const gmap = findChannel(channels, "Googleマップ");
   const indeed = findChannel(channels, "Indeed");
+  const facts = RESEARCH_FACTS[p.name] || {};
 
   // 資本金・売上高は事業規模の参考情報。制作予算そのものではないため、予算額の推定には使わない。
-  const capitalMan = parseFloat(p.capitalMan) || 0;
-  const revenueMan = parseFloat(p.revenueMan) || 0;
+  const capitalMan = parseFloat(p.capitalMan || facts.capitalMan) || 0;
+  const revenueMan = parseFloat(p.revenueMan || facts.revenueMan) || 0;
+  const employeeScale = facts.employeeCount
+    ? `従業員${facts.employeeCount}人（${facts.employeeStatus}）`
+    : "従業員数は未確認";
 
   let businessScale, businessScaleNote;
   if(revenueMan >= 10000){
-    businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（確認済み）`;
-    businessScaleNote = `年間売上高${(revenueMan/10000).toFixed(0)}億円は確認できた。ただし今回の制作・運用予算は商談で確認する。`;
+    businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（企業DB推定） / ${employeeScale}`;
+    businessScaleNote = `年間売上高は企業DB由来の推定。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else if(capitalMan >= 800){
-    businessScale = `資本金${capitalMan}万円（確認済み）`;
-    businessScaleNote = `資本金${capitalMan}万円は確認できた。ただし今回の制作・運用予算は商談で確認する。`;
+    businessScale = `資本金${capitalMan}万円（企業DB推定） / ${employeeScale}`;
+    businessScaleNote = `資本金は企業DB由来の推定。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else if(capitalMan > 0){
-    businessScale = `資本金${capitalMan}万円（確認済み）`;
-    businessScaleNote = `資本金${capitalMan}万円は確認できた。ただし今回の制作・運用予算は商談で確認する。`;
+    businessScale = `資本金${capitalMan}万円（企業DB推定） / ${employeeScale}`;
+    businessScaleNote = `資本金は企業DB由来の推定。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   } else {
-    businessScale = "売上高・資本金は未確認";
-    businessScaleNote = "売上高・資本金は未確認。今回の制作・運用予算は商談で確認する。";
+    businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
+    businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   }
 
   let result;
@@ -330,6 +348,7 @@ function concludeDept(p){
       text: p.hypothesisSales,
       priceLabel: "初期費用 2〜3万円（単発）",
       clientBenefit: "検索経由の問い合わせを取りこぼしている可能性がある。ただしアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
+      benefitStatus: "未算定（商談で確認）",
       reason: `Googleビジネスプロフィール自体は無料。初期設定を代行する提案として、低い初期費用から始められる。${businessScaleNote}`,
       winCase: "Googleマップ経由の問い合わせ数を、登録前後で計測できる状態にする。",
       loseCase: "登録後に見る指標(表示回数・電話・ルート検索・問い合わせ)を先に合意する。",
@@ -357,6 +376,7 @@ function concludeDept(p){
       priceLabel: "制作費 8〜15万円（単発）",
       clientBenefit,
       clientBenefitAmount,
+      benefitStatus: clientBenefitAmount ? "試算（1名を自社採用できた場合）" : "未算定（給与情報なし）",
       reason: `Indeed掲載中に、応募者が会社・仕事内容を確認できる受け皿を用意する提案。${businessScaleNote}`,
       winCase: "現状の応募数、面接数、採用数、人材紹介の利用有無を確認して、削減余地を確かめる。",
       loseCase: "ページ公開後は、Indeedからの流入・応募数・採用数を計測し、効果を検証する。",
@@ -370,6 +390,7 @@ function concludeDept(p){
       text: p.hypothesisSales,
       priceLabel: "改修費 5〜8万円（単発）",
       clientBenefit: "SSL非対応だと閲覧者の一部が「保護されていません」表示で離脱・問い合わせを躊躇する可能性がある。ただし当該サイトのアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
+      benefitStatus: "未算定（商談で確認）",
       reason: `既存サイトを活かして、SSL化や必要ページの追加から着手する提案。${businessScaleNote}`,
       winCase: "警告表示が出るページと、改善後に計測する問い合わせ・フォーム到達数を確認する。",
       loseCase: "改修範囲、管理権限、現在のアクセス数を確認してから費用と期待効果を確定する。",
@@ -383,6 +404,7 @@ function concludeDept(p){
       text: p.hypothesisPr,
       priceLabel: "月額 3〜5万円（運用支援）",
       clientBenefit: "情報発信が無いことによる新規問い合わせの機会損失があると考えられるが、具体的な金額は算出できない(誠実に「不明」とする)。",
+      benefitStatus: "未算定（商談で確認）",
       reason: `施工実績・会社情報を継続して発信し、問い合わせにつながる情報を増やす提案。${businessScaleNote}`,
       winCase: "月間の投稿本数、閲覧数、問い合わせ数を決め、月次で効果を確認する。",
       loseCase: "投稿素材の提供担当者と、月額内に含める作業範囲を事前に決める。",
@@ -394,7 +416,7 @@ function concludeDept(p){
   // カード用の短い結論文(25〜30字目安): 相手の得/損を先頭に
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
   result.cardLine = result.clientBenefitAmount
-    ? `相手の得: 採用コスト${result.clientBenefitAmount}削減余地`
+    ? `相手の得（試算）: 採用コスト${result.clientBenefitAmount}削減余地`
     : `${shortAction}(${result.priceLabel})`;
   result.cardSub = `${result.dept}課題を${shortAction}で解消`;
 
@@ -461,7 +483,7 @@ function modalBodyHtml(p){
     ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
     <div class="card-detail">
       <div class="conclusion-box">
-        <div class="client-benefit-label">相手(先方)の得・損</div>
+        <div class="client-benefit-label">相手(先方)の得・損（${esc(conclusion.benefitStatus)}）</div>
         <div class="client-benefit-text">${esc(conclusion.clientBenefit)}</div>
         <div class="num-row">
           <div class="num-tile">
@@ -469,11 +491,11 @@ function modalBodyHtml(p){
             <div class="num-value num-value-sm">${esc(conclusion.action)}</div>
           </div>
           <div class="num-tile">
-            <div class="num-label">費用・契約形態</div>
+            <div class="num-label">費用・契約形態（目安）</div>
             <div class="num-value num-value-sm">${esc(conclusion.priceLabel)}</div>
           </div>
         </div>
-        <div class="conclusion-dept">${esc(conclusion.dept)}課題 / ${esc(conclusion.accountItem)} / ${esc(conclusion.businessScale)}</div>
+        <div class="conclusion-dept">${esc(conclusion.dept)}課題 / ${esc(conclusion.accountItem)}<br>規模データ: ${esc(conclusion.businessScale)}</div>
         <div class="conclusion-reason">${esc(conclusion.reason)}</div>
         <div class="sim-box">
           <div class="sim-row sim-win"><span class="sim-label">確認したいこと</span>${esc(conclusion.winCase)}</div>
