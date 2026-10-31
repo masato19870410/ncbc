@@ -692,15 +692,13 @@ function fitScore(p){
   const concl = concludeDept(p);
 
   let score = 0;
-  // 最優先: ROIが実額(試算・業種推定)で見えるかどうか。未算定は大きく減点。
-  if(concl.effectValue !== "未算定") score += 1000;
-  if(concl.effectValue !== "未算定" && !concl.isEstimate) score += 50; // 業種推定より個社の実データ試算を上に
-  // 同じ「ROIあり」グループ内では、金額が大きい順に見えるよう効果額(上限)をそのままスコアに加える。
-  // 「ROI順」の一覧が見た目にも金額順になることを優先する。
+  // 最優先: 個社の実データに基づく「試算」 > 全国・都道府県平均を使った「業種推定」 > 「未算定」。
+  // 各階層の間は金額差では絶対に逆転しないよう、階層ごとに大きな間隔(10000点)を空ける。
+  // 階層内では効果額(上限)が大きい順に並ぶよう、階層の点数に金額をそのまま加算する(金額は数百までなので階層をまたがない)。
   if(concl.effectValue !== "未算定"){
     const nums = String(concl.effectValue).match(/\d+(?:\.\d+)?/g);
     const upper = nums && nums.length ? Math.max(...nums.map(Number)) : 0;
-    score += upper;
+    score += (concl.isEstimate ? 10000 : 20000) + upper;
   }
 
   // 予算セカンド: 資本金が分かる会社ほど加点(確定>推定、金額が大きいほど加点)
@@ -709,6 +707,14 @@ function fitScore(p){
   if(capitalMan > 0){
     score += Math.min(capitalMan / 100, 20); // 100万円ごとに1点、上限20点
     if(facts.capitalStatus && facts.capitalStatus.startsWith("確定")) score += 5;
+  }
+
+  // 価格サード: 商材価格(priceLabel)が安いほど導入ハードルが低く提案しやすいので、わずかに加点する。
+  // ROI・予算より優先度を下げるため最大5点に抑える(予算の最大加点25点を上回らない)。
+  const priceNums = String(concl.priceLabel || "").match(/\d+(?:\.\d+)?/g);
+  if(priceNums && priceNums.length){
+    const priceLower = Math.min(...priceNums.map(Number));
+    score += Math.max(5 - priceLower / 10, 0); // 安いほど加点、50万円以上で加点ゼロ
   }
 
   // 低コストで直せる(改善提案・応募導線)ほどROIが高い。ゼロから作る(認知構築)は工数が重い。
