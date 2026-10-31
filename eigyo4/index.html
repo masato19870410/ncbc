@@ -120,6 +120,17 @@
   .reco-toggle.active{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
   .reco-badge{display:inline-block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
     border-radius:4px;padding:1px 6px;margin-bottom:4px}
+
+  .conclusion-box{background:var(--panel-2);border:2px solid var(--text);border-radius:10px;
+    padding:14px 16px;margin-bottom:16px}
+  .conclusion-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .conclusion-dept{font-size:20px;font-weight:700;margin:4px 0 8px}
+  .conclusion-reason{font-size:12.5px;color:var(--text);line-height:1.6}
+
+  .diag-details{margin-bottom:20px}
+  .diag-details summary{cursor:pointer;font-size:11px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+  .diag-details .diag-box{margin-top:8px}
 </style>
 </head>
 <body>
@@ -266,6 +277,42 @@ function diagnoseApproach(p){
   return { type, typeDesc, method, fit };
 }
 
+/* ---- 営業/人事/広報のうちどれが最も費用対効果が高いかを結論づける ---- */
+function concludeDept(p){
+  const c = p.contact || {};
+  const channels = Array.isArray(c.channels) ? c.channels : [];
+  const site = findChannel(channels, "自社サイト");
+  const gmap = findChannel(channels, "Googleマップ");
+  const indeed = findChannel(channels, "Indeed");
+
+  if(!gmap || gmap.r === "✕"){
+    return {
+      dept: "営業",
+      text: p.hypothesisSales,
+      reason: "Googleビジネスプロフィールの登録は無料・即日反映。最も低コストで即効性があるため、営業課題から着手するのが最もROIが高い。",
+    };
+  }
+  if((!site || site.r==="✕") && indeed && (indeed.r==="◎"||indeed.r==="○")){
+    return {
+      dept: "人事",
+      text: p.hypothesisHr,
+      reason: "求人が実際に動いている(Indeed掲載中)タイミングで、採用の受け皿を作るだけで応募の離脱を防げる。追加コストが低く即効性が高いため、人事課題が最もROIが高い。",
+    };
+  }
+  if(site && site.r==="△"){
+    return {
+      dept: "営業",
+      text: p.hypothesisSales,
+      reason: "既にあるサイトの改善(SSL化・採用ページ追加など)で済むため、ゼロから作るより圧倒的に低コスト。営業課題への着手が最もROIが高い。",
+    };
+  }
+  return {
+    dept: "広報",
+    text: p.hypothesisPr,
+    reason: "営業・人事側の低コストな打ち手が既に無いため、SNS発信などの広報課題から着手するのが相対的に最もROIが高い(効果が出るまでやや時間はかかる)。",
+  };
+}
+
 function fitScore(p){
   // 費用対効果ファースト: 「低コストで直せる」「相手に予算感がある」を優先し、
   // 情報の濃さ(裏取り件数)は次点の加点にする。
@@ -325,12 +372,19 @@ function modalBodyHtml(p){
   const own = sortChannels(channels.filter(ch=>OWN_MEDIA.has(ch.n)));
   const other = sortChannels(channels.filter(ch=>!OWN_MEDIA.has(ch.n)));
   const diag = diagnoseApproach(p);
+  const conclusion = concludeDept(p);
   return `
     <button class="close" aria-label="閉じる" data-close>×</button>
     <div class="m-name">${esc(p.name||"")}</div>
     ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
     <div class="card-detail">
-      <div class="detail-section"><b>診断</b>
+      <div class="conclusion-box">
+        <div class="conclusion-label">結論: 最もROIが高いのは</div>
+        <div class="conclusion-dept">${esc(conclusion.dept)}課題</div>
+        <div class="conclusion-reason">${esc(conclusion.reason)}</div>
+      </div>
+      <details class="diag-details">
+        <summary>診断の詳細を見る</summary>
         <div class="diag-box">
           <div class="diag-type">${esc(diag.type)}</div>
           <div class="diag-desc">${esc(diag.typeDesc)}</div>
@@ -340,7 +394,7 @@ function modalBodyHtml(p){
           ${!getSenderStyle()?`<div class="sender-bar" data-sender-bar="style"><span class="label">得意なスタイル(任意):</span></div>`:""}
           ${!getSenderTrait()?`<div class="sender-bar" data-sender-bar="trait"><span class="label">性格タイプ(任意):</span></div>`:""}
         </div>
-      </div>
+      </details>
       <div class="detail-section"><b>課題</b>
         ${issueRow("営業", p.hypothesisSales)}
         ${issueRow("人事", p.hypothesisHr)}
