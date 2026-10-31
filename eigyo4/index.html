@@ -301,17 +301,29 @@ function concludeDept(p){
   const indeed = findChannel(channels, "Indeed");
 
   // 費用対効果は「直すコストの安さ」だけでなく「相手に払う原資があるか」も要る。
-  // 予算の代理指標として使えるのはIndeed掲載の活発さくらいしかないため、それが無い/弱い場合は明記する。
+  // 予算の代理指標として使えるのはIndeed掲載の活発さ(求人件数・給与水準)くらいしかないため明記する。
   // ※ここでの金額は裏取りした実額ではなく、求人掲載の活発さから推定した「目安の規模感」。
-  let budgetTier, budgetNote;
-  if(indeed && indeed.r === "◎"){
-    budgetTier = "推定: 年間〜100万円規模";
+  const jobCountMatch = indeed && indeed.m && indeed.m.match(/(\d+)件掲載/);
+  const jobCount = jobCountMatch ? parseInt(jobCountMatch[1], 10) : 0;
+  const salaryMatch2 = indeed && indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
+  const salaryHi = salaryMatch2 ? parseFloat(salaryMatch2[2] || salaryMatch2[1]) : 0;
+
+  let budgetTier, budgetTierShort, budgetNote;
+  if(indeed && indeed.r === "◎" && (jobCount >= 3 || salaryHi >= 40)){
+    budgetTier = "推定予算: 年1,000万円規模";
+    budgetTierShort = "年1,000万円規模";
+    budgetNote = "求人を複数・高水準の給与で出しており、採用への投資意欲・予算規模が大きいと推測される。";
+  } else if(indeed && indeed.r === "◎"){
+    budgetTier = "推定予算: 年100万円規模";
+    budgetTierShort = "年100万円規模";
     budgetNote = "求人を複数・継続的に出しており、採用予算は相応に確保できている可能性が高い。";
   } else if(indeed && indeed.r === "○"){
-    budgetTier = "推定: 年間〜10万円規模";
+    budgetTier = "推定予算: 年10万円規模";
+    budgetTierShort = "年10万円規模";
     budgetNote = "求人を出してはいるが小規模。大きな投資は難しく、低コストな施策が現実的。";
   } else {
-    budgetTier = "推定不可(予算シグナルなし)";
+    budgetTier = "推定予算: 不明(シグナルなし)";
+    budgetTierShort = "予算不明";
     budgetNote = "採用・広告の予算感を示す材料(求人掲載等)が無く、予算感は未確認。提案の温度感は下げて様子を見る必要がある。";
   }
 
@@ -379,6 +391,7 @@ function concludeDept(p){
 
   result.budget = budgetNote;
   result.budgetTier = budgetTier;
+  result.budgetTierShort = budgetTierShort;
 
   // 成約確度(目安): 予算シグナルの強さ + 既存情報の濃さから推定。実際の成約率データは無いため、あくまで目安。
   const known = channels.filter(ch => ch.r==="◎" || ch.r==="○").length;
@@ -395,6 +408,8 @@ function concludeDept(p){
   result.expectedValue = expectedValue;
   result.expectedNote = `提案金額の目安(${result.priceLabel})× 成約確度の目安(${closeProb}%)= 期待値 約${expectedValue}万円。いずれも実績データではなく一般的な相場と予算シグナルからの推定。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})から提案する。`;
+  // カード用の短い結論文(25〜30字目安)
+  result.cardLine = `${result.dept}課題を${result.action.replace(/[(（].*?[)）]/g,"")}で解消、期待値約${expectedValue}万円`;
 
   return result;
 }
@@ -443,7 +458,7 @@ function cardHtml(p, idx, recoRank){
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
-      <div class="card-cost"><span class="cost-tag">${esc(concl.cost)}</span>${esc(concl.action)}</div>
+      <div class="card-cost"><span class="cost-tag">${esc(concl.budgetTierShort)}</span>${esc(concl.cardLine)}</div>
     </div>`;
 }
 
