@@ -128,7 +128,8 @@
     padding:14px 16px;margin-bottom:16px}
   .conclusion-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
   .conclusion-cost{font-size:18px;font-weight:700;margin:4px 0 6px;color:var(--ok)}
-  .conclusion-dept{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px}
+  .conclusion-dept{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px}
+  .conclusion-budget{font-size:11px;color:var(--warn);font-weight:600;margin-bottom:8px}
   .conclusion-reason{font-size:12.5px;color:var(--text);line-height:1.6}
 
   .diag-details{margin-bottom:20px}
@@ -291,18 +292,28 @@ function concludeDept(p){
 
   // 費用対効果は「直すコストの安さ」だけでなく「相手に払う原資があるか」も要る。
   // 予算の代理指標として使えるのはIndeed掲載の活発さくらいしかないため、それが無い/弱い場合は明記する。
-  const hasBudgetSignal = indeed && (indeed.r==="◎" || indeed.r==="○");
-  const budgetNote = hasBudgetSignal
-    ? "求人を活発に出しており、採用予算は確保できている。"
-    : "採用・広告の予算感を示す材料(求人掲載等)が無く、予算感は未確認。提案の温度感は下げて様子を見る必要がある。";
+  // ※ここでの金額は裏取りした実額ではなく、求人掲載の活発さから推定した「目安の規模感」。
+  let budgetTier, budgetNote;
+  if(indeed && indeed.r === "◎"){
+    budgetTier = "推定: 年間〜100万円規模";
+    budgetNote = "求人を複数・継続的に出しており、採用予算は相応に確保できている可能性が高い。";
+  } else if(indeed && indeed.r === "○"){
+    budgetTier = "推定: 年間〜10万円規模";
+    budgetNote = "求人を出してはいるが小規模。大きな投資は難しく、低コストな施策が現実的。";
+  } else {
+    budgetTier = "推定不可(予算シグナルなし)";
+    budgetNote = "採用・広告の予算感を示す材料(求人掲載等)が無く、予算感は未確認。提案の温度感は下げて様子を見る必要がある。";
+  }
 
   if(!gmap || gmap.r === "✕"){
     return {
       cost: "無料・即日",
       action: "Googleビジネスプロフィールの登録",
+      accountItem: "勘定科目なし(無料施策)",
       dept: "営業",
       text: p.hypothesisSales,
       budget: budgetNote,
+      budgetTier,
       reason: `無料・即日反映で最も低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
     };
   }
@@ -310,9 +321,11 @@ function concludeDept(p){
     return {
       cost: "低コスト",
       action: "採用特化ページの新設",
+      accountItem: "採用費 / 外注費(制作費)",
       dept: "人事",
       text: p.hypothesisHr,
       budget: budgetNote,
+      budgetTier,
       reason: `求人が実際に動いている(Indeed掲載中)タイミングで受け皿を作るだけで応募の離脱を防げる。人事課題への着手が最もROIが高い。${budgetNote}`,
     };
   }
@@ -320,18 +333,22 @@ function concludeDept(p){
     return {
       cost: "低コスト",
       action: "既存サイトの改善(SSL化・採用ページ追加など)",
+      accountItem: "外注費(IT関連費)",
       dept: "営業",
       text: p.hypothesisSales,
       budget: budgetNote,
+      budgetTier,
       reason: `ゼロから作るより圧倒的に低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
     };
   }
   return {
     cost: "中コスト・時間要",
     action: "SNS等での情報発信の開始",
+    accountItem: "広告宣伝費",
     dept: "広報",
     text: p.hypothesisPr,
     budget: budgetNote,
+    budgetTier,
     reason: `営業・人事側の低コストな打ち手が既に無いため、相対的に最もROIが高い(効果が出るまでやや時間はかかる)。${budgetNote}`,
   };
 }
@@ -402,7 +419,8 @@ function modalBodyHtml(p){
       <div class="conclusion-box">
         <div class="conclusion-label">費用対効果</div>
         <div class="conclusion-cost">${esc(conclusion.cost)} — ${esc(conclusion.action)}</div>
-        <div class="conclusion-dept">最もROIが高いのは${esc(conclusion.dept)}課題</div>
+        <div class="conclusion-dept">最もROIが高いのは${esc(conclusion.dept)}課題 / 勘定科目: ${esc(conclusion.accountItem)}</div>
+        <div class="conclusion-budget">${esc(conclusion.budgetTier)}</div>
         <div class="conclusion-reason">${esc(conclusion.reason)}</div>
       </div>
       <details class="diag-details">
