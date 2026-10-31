@@ -51,7 +51,7 @@
   .card .card-cost{font-size:11.5px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
   .card .cost-tag{display:block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
     border-radius:4px;padding:2px 6px;width:100%;margin-bottom:5px;overflow-wrap:anywhere}
-  .card .card-budget{display:block;overflow-wrap:anywhere;font-size:10.5px;color:var(--muted);margin-bottom:2px}
+  .card .card-budget{display:block;overflow-wrap:anywhere;font-size:10px;color:var(--muted);margin-bottom:2px}
   .card .card-investment,.card .card-product{display:block;overflow-wrap:anywhere}
   .card .card-investment{font-weight:600}
   .card .card-product{color:var(--muted)}
@@ -61,6 +61,7 @@
     .card{padding:12px}
     .card .card-cost{font-size:11px}
     .card .cost-tag{font-size:9.5px;line-height:1.45}
+    .card .card-budget{font-size:9.5px}
   }
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px;grid-column:1/-1}
   .hidden{display:none!important}
@@ -516,19 +517,19 @@ function concludeDept(p){
   if(facts.revenueRangeText){
     businessScale = `年間売上高${facts.revenueRangeText}（${facts.revenueStatus}） / ${employeeScale}`;
     businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `会社規模: 売上${facts.revenueRangeText}${employeeShort?`・${employeeShort}`:""}`;
+    cardBudget = `売上${facts.revenueRangeText}${employeeShort?`・${employeeShort}`:""}`;
   } else if(revenueMan >= 10000){
     businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `会社規模: 売上${(revenueMan/10000).toFixed(0)}億円${employeeShort?`・${employeeShort}`:""}`;
+    cardBudget = `売上${(revenueMan/10000).toFixed(0)}億円${employeeShort?`・${employeeShort}`:""}`;
   } else if(capitalMan >= 800){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `会社規模: 資本金${capitalMan}万円${employeeShort?`・${employeeShort}`:""}`;
+    cardBudget = `資本金${capitalMan}万円${employeeShort?`・${employeeShort}`:""}`;
   } else if(capitalMan > 0){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
-    cardBudget = `会社規模: 資本金${capitalMan}万円${employeeShort?`・${employeeShort}`:""}`;
+    cardBudget = `資本金${capitalMan}万円${employeeShort?`・${employeeShort}`:""}`;
   } else if(employeeShort){
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
     businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
