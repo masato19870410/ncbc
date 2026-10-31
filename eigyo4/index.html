@@ -453,6 +453,19 @@ function diagnoseApproach(p){
   return { type, typeDesc, method, fit };
 }
 
+/* ---- 求人票に給与記載が無い場合、業種が近い職種の全国平均年収(公的統計)で代用する ----
+   実在の企業データが取れない場合のみ使うフォールバック。該当が無ければnullを返し、
+   未算定のまま表示する(存在しない業種を無理に当てはめて捏造しない)。 */
+function industryWageBenchmark(industry){
+  const table = [
+    { match: /機械器具の修理|機械.*設置|機械修理|機械整備/,
+      label: "生産用機械組立", lowMan: 470, highMan: 580,
+      source: "厚生労働省 job tag 職業情報(生産用機械組立、全国平均年収522.5万円を基準に幅を設定)" },
+  ];
+  const hit = table.find(t => industry && t.match.test(industry));
+  return hit || null;
+}
+
 /* ---- 営業/人事/広報のうちどれが最も費用対効果が高いかを結論づける ---- */
 function concludeDept(p){
   const c = p.contact || {};
@@ -509,6 +522,7 @@ function concludeDept(p){
     // 金額換算できるのはこの採用系だけ(営業/広報は流入→成約の実データが無く金額換算は困難)。
     let clientBenefit = "採用に関する具体的な損失額は、求人票に給与情報が無く算出できない。";
     let clientBenefitAmount = "";
+    let benefitIsEstimate = false;
     const monthlyMatch = indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
     const dailyMatch = !monthlyMatch && indeed.m && indeed.m.match(/日給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
     const DAYS_PER_MONTH = 22; // 日給→月給換算の一般的な目安(稼働22日/月)
@@ -523,6 +537,17 @@ function concludeDept(p){
       const feeHi = Math.round(hi * 12 * 0.3);
       clientBenefitAmount = `${feeLo}〜${feeHi}万円`;
       clientBenefit = `試算条件: 求人票の${unitLabel}(${m[0].replace("円","")}円)${basisNote}、人材紹介手数料を年収の30%と置く。1名を人材紹介ではなく自社採用できた場合、${feeLo}〜${feeHi}万円の採用コスト削減余地がある。`;
+    } else {
+      // 求人票に給与記載がない場合、業種が近い職種の全国平均年収(厚生労働省 job tag)を根拠に推定する。
+      // 個社の実データではなく全国平均であることを明記し、試算(個社データ)とは区別する。
+      const benchmark = industryWageBenchmark(p.industry);
+      if(benchmark){
+        const feeLo = Math.round(benchmark.lowMan * 0.3);
+        const feeHi = Math.round(benchmark.highMan * 0.3);
+        clientBenefitAmount = `${feeLo}〜${feeHi}万円`;
+        benefitIsEstimate = true;
+        clientBenefit = `推定条件: 求人票に給与記載が無いため、業種が近い「${benchmark.label}」の全国平均年収(${benchmark.lowMan}〜${benchmark.highMan}万円、出典: ${benchmark.source})で代用。人材紹介手数料を年収の30%と置く。実際の給与水準とは異なる可能性があるため、商談で要確認。`;
+      }
     }
     result = {
       cost: "導入コスト: 低",
@@ -538,7 +563,8 @@ function concludeDept(p){
       calculationInputs: clientBenefitAmount ? "人材紹介を実際に利用しているか・年間採用人数・自社採用に置き換わった人数" : "求人の給与・人材紹介の利用有無・手数料率・年間採用人数",
       clientBenefit,
       clientBenefitAmount,
-      benefitStatus: clientBenefitAmount ? "試算（1名を自社採用できた場合）" : "未算定（給与情報なし）",
+      isEstimate: benefitIsEstimate,
+      benefitStatus: clientBenefitAmount ? (benefitIsEstimate ? "推定（業種別全国平均を代用、1名を自社採用できた場合）" : "試算（1名を自社採用できた場合）") : "未算定（給与情報なし）",
       reason: `Indeed掲載中に、応募者が会社・仕事内容を確認できる受け皿を用意する提案。${businessScaleNote}`,
       winCase: "現状の応募数、面接数、採用数、人材紹介の利用有無を確認して、削減余地を確かめる。",
       loseCase: "ページ公開後は、Indeedからの流入・応募数・採用数を計測し、効果を検証する。",
@@ -596,11 +622,12 @@ function concludeDept(p){
     ? "効果の勘定科目（想定）：採用費。先方の会計方針により広告宣伝費・外注費等への計上もあり得るため要確認。"
     : "効果の勘定科目：売上高。利益額ではなく売上増の効果であり、粗利・営業利益への影響は別途確認。";
   result.businessScale = businessScale;
+  const statusSuffix = result.effectValue === "未算定" ? "（商談で算定）" : (result.isEstimate ? "（業種推定）" : "（試算）");
   result.topConclusion = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : `の${result.effectType === "費用減" ? "削減余地" : "増加余地"}`}のため、${result.action}に${result.priceLabel}を投資する。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
   // 効果を先、投資内容を後に置いて、ラベルに頼らず読める順にする。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
-  result.cardLine = `${result.effectDisplay}${result.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}`;
+  result.cardLine = `${result.effectDisplay}${statusSuffix}`;
   result.cardInvestment = result.priceLabel;
   result.cardProduct = shortAction;
 
@@ -672,14 +699,14 @@ function modalBodyHtml(p){
     <div class="card-detail">
       <div class="conclusion-box">
         <div class="proposal-kicker">費用対効果（投資対効果）</div>
-        <div class="proposal-headline"><strong>${esc(conclusion.effectDisplay)}</strong>${conclusion.effectValue === "未算定" ? "（商談で算定）" : `を目標`}<br>${esc(conclusion.priceLabel)}で${esc(conclusion.action)}を実施</div>
+        <div class="proposal-headline"><strong>${esc(conclusion.effectDisplay)}</strong>${conclusion.effectValue === "未算定" ? "（商談で算定）" : (conclusion.isEstimate ? "（全国平均からの推定）" : "を目標")}<br>${esc(conclusion.priceLabel)}で${esc(conclusion.action)}を実施</div>
         <div class="calc-alert ${conclusion.effectValue === "未算定" ? "" : "is-calculated"}">
-          <b>${conclusion.effectValue === "未算定" ? "未算定｜この情報があれば金額化できます" : "試算の計算式・前提"}</b>
+          <b>${conclusion.effectValue === "未算定" ? "未算定｜この情報があれば金額化できます" : (conclusion.isEstimate ? "業種推定の計算式・前提（全国平均を代用）" : "試算の計算式・前提")}</b>
           ${esc(conclusion.calculationFormula)}<br>${conclusion.effectValue === "未算定" ? `確認項目：${esc(conclusion.calculationInputs)}` : `要確認：${esc(conclusion.calculationInputs)}`}
           <span class="calc-account">${esc(conclusion.accountingNote)} 投資の勘定科目（想定）：${esc(conclusion.accountItem)}</span>
         </div>
         <div class="proposal-flow">
-          <div class="proposal-step">${esc(conclusion.effectDisplay)}${conclusion.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}</div><div class="proposal-arrow">↔</div>
+          <div class="proposal-step">${esc(conclusion.effectDisplay)}${conclusion.effectValue === "未算定" ? "（商談で算定）" : (conclusion.isEstimate ? "（業種推定）" : "（試算）")}</div><div class="proposal-arrow">↔</div>
           <div class="proposal-step">${esc(conclusion.priceLabel)}</div><div class="proposal-arrow">↔</div>
           <div class="proposal-step">${esc(conclusion.action)}</div>
         </div>
