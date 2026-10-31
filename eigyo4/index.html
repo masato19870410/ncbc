@@ -671,7 +671,10 @@ function concludeDept(p){
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
   // 効果を先、投資内容を後に置いて、ラベルに頼らず読める順にする。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
-  result.cardLine = `${result.effectDisplay}${statusSuffix}`;
+  // カード一覧は横幅が狭いため「年額」を省略し、括弧を外して1行に収まりやすくする。
+  const statusLabelShort = result.effectValue === "未算定" ? "商談で算定" : (result.isEstimate ? "業種推定" : "試算");
+  // 「年額」は省くが、年ベースの数字であることは経営判断に必須の情報なので「/年」で必ず残す。
+  result.cardLine = `${result.effectAccountName} ${result.effectSign}${result.effectValue}/年 ${statusLabelShort}`;
   result.cardInvestment = result.priceLabel;
   result.cardProduct = shortAction;
 
