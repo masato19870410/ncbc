@@ -114,6 +114,12 @@
   .sender-btn{font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:20px;
     border:1px solid var(--border);background:var(--panel-2);color:var(--muted);cursor:pointer}
   .sender-btn.active{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+
+  .reco-toggle{margin-top:10px;font-family:inherit;font-size:12px;font-weight:600;padding:7px 14px;
+    border-radius:20px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);cursor:pointer}
+  .reco-toggle.active{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+  .reco-badge{display:inline-block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
+    border-radius:4px;padding:1px 6px;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -122,6 +128,7 @@
   <div class="inner">
     <h1>営業アプリ <span id="count" class="count"></span></h1>
     <div class="src">データ: Googleスプレッドシート直読み(v4)</div>
+    <button class="reco-toggle" id="recoToggle" type="button">🔥 あなたにおすすめの営業先</button>
   </div>
 </header>
 
@@ -192,6 +199,18 @@ function setSenderStyle(v){
   try{ localStorage.setItem(SENDER_KEY, v); }catch(e){}
 }
 
+const TRAIT_KEY = "eigyo_sender_trait";
+const SENDER_TRAITS = {
+  steady: { label: "丁寧・堅実型", icon: "🪪" },
+  energetic: { label: "フレンドリー・バイタリティ型", icon: "⚡" },
+};
+function getSenderTrait(){
+  try{ return localStorage.getItem(TRAIT_KEY) || ""; }catch(e){ return ""; }
+}
+function setSenderTrait(v){
+  try{ localStorage.setItem(TRAIT_KEY, v); }catch(e){}
+}
+
 function diagnoseApproach(p){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
@@ -235,20 +254,66 @@ function diagnoseApproach(p){
     fit = "いきなりの電話より、地元の商工会・業界団体・知人経由で接点を作れないか先に探る方が「人脈・紹介」の強みに合う。";
   }
 
+  const trait = getSenderTrait();
+  let traitNote = "";
+  if(trait === "steady"){
+    traitNote = "丁寧・堅実型なら、具体的な数字(求人件数・評価点など)を淡々と積み上げて話す方が信頼されやすい。";
+  } else if(trait === "energetic"){
+    traitNote = "フレンドリー・バイタリティ型なら、明るいトーンで率直に切り出しても警戒されにくい相手(地域密着の小規模事業者)。";
+  }
+  if(traitNote) fit = fit ? `${fit} ${traitNote}` : traitNote;
+
   return { type, typeDesc, method, fit };
 }
 
-function cardHtml(p, idx){
+function fitScore(p){
+  // 費用対効果ファースト: 「低コストで直せる」「相手に予算感がある」を優先し、
+  // 情報の濃さ(裏取り件数)は次点の加点にする。
+  const c = p.contact || {};
+  const channels = Array.isArray(c.channels) ? c.channels : [];
+  const known = channels.filter(ch => ch.r==="◎" || ch.r==="○").length;
+  const diag = diagnoseApproach(p);
+  const indeed = findChannel(channels, "Indeed");
+
+  let score = 0;
+  // 低コストで直せる(改善提案・応募導線)ほどROIが高い。ゼロから作る(認知構築)は工数が重い。
+  if(diag.type === "改善提案型") score += 30;
+  else if(diag.type === "応募導線型") score += 25;
+  else if(diag.type === "信頼補強型") score += 15;
+  else score += 5; // 認知構築型
+
+  // 相手の採用予算感(求人の活発さ)をROIの代理指標にする
+  if(indeed){
+    if(indeed.r === "◎") score += 20;
+    else if(indeed.r === "○") score += 10;
+  }
+
+  // 情報の濃さは次点(薄い会社は自動的に下位へ)
+  score += known * 5;
+
+  const style = getSenderStyle();
+  if(style === "network" && (!indeed || indeed.r==="✕")) score += 10;
+  if(style === "phone" && known >= 2) score += 5;
+  const trait = getSenderTrait();
+  if(trait === "energetic") score += 3;
+
+  return score;
+}
+
+function cardHtml(p, idx, recoRank){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const primaryText = p.dept==="営業" ? p.hypothesisSales
     : p.dept==="広報" ? p.hypothesisPr
     : p.hypothesisHr;
+  const badge = (recoRank !== undefined && recoRank !== null && recoRank < 3)
+    ? `<span class="reco-badge">🔥 おすすめ</span>` : "";
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
         <div class="num">${String(idx+1).padStart(2,"0")}</div>
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
+      ${badge}
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
       ${primaryText?`<div class="pitch" title="${esc(primaryText)}">${esc(primaryText)}</div>`:""}
     </div>`;
@@ -271,9 +336,9 @@ function modalBodyHtml(p){
           <div class="diag-desc">${esc(diag.typeDesc)}</div>
           ${c.approachNote?`<div class="diag-method"><span class="dept-value">アプローチの切り口(費用対効果)</span>${esc(c.approachNote)}</div>`:""}
           <div class="diag-method"><span class="dept-value">推奨アプローチ</span>${esc(diag.method)}</div>
-          ${diag.fit
-            ? `<div class="diag-method diag-fit"><span class="dept-value">あなたとの相性</span>${esc(diag.fit)}</div>`
-            : `<div class="sender-bar" data-sender-bar><span class="label">得意なスタイルを選ぶと相性も見れます(任意):</span></div>`}
+          ${diag.fit?`<div class="diag-method diag-fit"><span class="dept-value">あなたとの相性</span>${esc(diag.fit)}</div>`:""}
+          ${!getSenderStyle()?`<div class="sender-bar" data-sender-bar="style"><span class="label">得意なスタイル(任意):</span></div>`:""}
+          ${!getSenderTrait()?`<div class="sender-bar" data-sender-bar="trait"><span class="label">性格タイプ(任意):</span></div>`:""}
         </div>
       </div>
       <div class="detail-section"><b>課題</b>
@@ -302,16 +367,28 @@ function modalBodyHtml(p){
 }
 
 function renderSenderBar(){
-  const bar = document.querySelector("[data-sender-bar]");
-  if(!bar) return;
-  Object.entries(SENDER_STYLES).forEach(([key, s])=>{
-    const btn = document.createElement("button");
-    btn.className = "sender-btn";
-    btn.type = "button";
-    btn.dataset.style = key;
-    btn.textContent = `${s.icon} ${s.label}`;
-    bar.appendChild(btn);
-  });
+  const styleBar = document.querySelector('[data-sender-bar="style"]');
+  if(styleBar){
+    Object.entries(SENDER_STYLES).forEach(([key, s])=>{
+      const btn = document.createElement("button");
+      btn.className = "sender-btn";
+      btn.type = "button";
+      btn.dataset.style = key;
+      btn.textContent = `${s.icon} ${s.label}`;
+      styleBar.appendChild(btn);
+    });
+  }
+  const traitBar = document.querySelector('[data-sender-bar="trait"]');
+  if(traitBar){
+    Object.entries(SENDER_TRAITS).forEach(([key, s])=>{
+      const btn = document.createElement("button");
+      btn.className = "sender-btn";
+      btn.type = "button";
+      btn.dataset.trait = key;
+      btn.textContent = `${s.icon} ${s.label}`;
+      traitBar.appendChild(btn);
+    });
+  }
 }
 
 let ITEMS = [];
@@ -347,9 +424,15 @@ overlay.addEventListener("click", e=>{
     });
     return;
   }
-  const styleBtn = e.target.closest(".sender-btn");
+  const styleBtn = e.target.closest(".sender-btn[data-style]");
   if(styleBtn){
     setSenderStyle(getSenderStyle() === styleBtn.dataset.style ? "" : styleBtn.dataset.style);
+    if(openIdx !== null) openModal(openIdx);
+    return;
+  }
+  const traitBtn = e.target.closest(".sender-btn[data-trait]");
+  if(traitBtn){
+    setSenderTrait(getSenderTrait() === traitBtn.dataset.trait ? "" : traitBtn.dataset.trait);
     if(openIdx !== null) openModal(openIdx);
   }
 });
@@ -418,6 +501,21 @@ function rowsToItems(rows){
   }).filter(p=>p.name);
 }
 
+let RECO_MODE = false;
+function renderGrid(){
+  const grid = document.getElementById("grid");
+  if(!ITEMS.length) return;
+  let order = ITEMS.map((p,i)=>({p,i}));
+  if(RECO_MODE) order = order.slice().sort((a,b)=>fitScore(b.p)-fitScore(a.p));
+  grid.innerHTML = order.map(({p,i},rank)=>cardHtml(p,i,RECO_MODE?rank:null)).join("");
+}
+document.getElementById("recoToggle").addEventListener("click", ()=>{
+  RECO_MODE = !RECO_MODE;
+  document.getElementById("recoToggle").classList.toggle("active", RECO_MODE);
+  document.getElementById("recoToggle").textContent = RECO_MODE ? "✕ 通常順に戻す" : "🔥 あなたにおすすめの営業先";
+  renderGrid();
+});
+
 async function load(){
   const grid = document.getElementById("grid");
   try{
@@ -431,7 +529,7 @@ async function load(){
     const items = rowsToItems(rows);
     if(!items.length) throw new Error("no rows");
     ITEMS = items;
-    grid.innerHTML = items.map((p,i)=>cardHtml(p,i)).join("");
+    renderGrid();
     document.getElementById("count").textContent = items.length ? `${items.length}件` : "";
   }catch(err){
     console.error(err);
