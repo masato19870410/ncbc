@@ -1,4 +1,4 @@
-# 営業提案ナビ v4（Googleシート直読み版）
+# 営業AI v4（Googleシート直読み版）
 
 `eigyo3.5/` をベースに、データ取得元を静的JSON(`data/prospects.json`)からGoogleスプレッドシートの直読みに変更したバージョン。UI・CSS・チェックリスト表示ロジックはeigyo3.5からそのまま流用している。Supabase/GASは使わない(旧eigyo2.5でSupabase無料枠の自動一時停止により公開ページが真っ白になった実績があるため、意図的に避けている)。
 
