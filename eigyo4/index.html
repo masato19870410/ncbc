@@ -541,6 +541,7 @@ function concludeDept(p){
     let benefitIsEstimate = false;
     let benefitSourceUrl = "";
     let benefitSourceLabel = "";
+    let benefitFormula = "";
     const monthlyMatch = indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
     const dailyMatch = !monthlyMatch && indeed.m && indeed.m.match(/日給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
     const DAYS_PER_MONTH = 22; // 日給→月給換算の一般的な目安(稼働22日/月)
@@ -556,6 +557,9 @@ function concludeDept(p){
       clientBenefitAmount = `${feeLo}〜${feeHi}万円`;
       clientBenefit = `試算条件: 求人票の${unitLabel}(${m[0].replace("円","")}円)${basisNote}、人材紹介手数料を年収の30%と置く。1名を人材紹介ではなく自社採用できた場合、${feeLo}〜${feeHi}万円の採用コスト削減余地がある。`;
       if(indeed.u){ benefitSourceUrl = indeed.u; benefitSourceLabel = "求人票（Indeed）を見る"; }
+      benefitFormula = dailyMatch
+        ? `日給${m[1]}${m[2]?`〜${m[2]}`:""}万円 × 稼働${DAYS_PER_MONTH}日/月 = 月給換算${lo.toFixed(1)}〜${hi.toFixed(1)}万円 → × 12か月 × 人材紹介手数料率30% = ${feeLo}〜${feeHi}万円`
+        : `月給${lo}${hi!==lo?`〜${hi}`:""}万円 × 12か月 × 人材紹介手数料率30% = ${feeLo}〜${feeHi}万円`;
     } else {
       // 求人票に給与記載がない場合、業種が近い職種の全国平均年収(厚生労働省 job tag)を根拠に推定する。
       // 個社の実データではなく全国平均であることを明記し、試算(個社データ)とは区別する。
@@ -567,6 +571,7 @@ function concludeDept(p){
         benefitIsEstimate = true;
         clientBenefit = `推定条件: 求人票に給与記載が無いため、業種が近い「${benchmark.label}」の平均年収(${benchmark.lowMan}〜${benchmark.highMan}万円、出典: ${benchmark.source})で代用。人材紹介手数料を年収の30%と置く。実際の給与水準とは異なる可能性があるため、商談で要確認。`;
         if(benchmark.sourceUrl){ benefitSourceUrl = benchmark.sourceUrl; benefitSourceLabel = "出典（job tag）を見る"; }
+        benefitFormula = `業種平均年収${benchmark.lowMan}〜${benchmark.highMan}万円 × 人材紹介手数料率30% = ${feeLo}〜${feeHi}万円`;
       }
     }
     result = {
@@ -579,7 +584,7 @@ function concludeDept(p){
       effectType: "費用減",
       effectValue: clientBenefitAmount || "未算定",
       effectNote: clientBenefitAmount ? "人材紹介を1名回避できた場合" : "給与・紹介会社利用の確認が必要",
-      calculationFormula: clientBenefitAmount ? `年額の削減余地 = 求人票の月給 × 12か月 × 人材紹介手数料率30% × 自社採用できた人数(1名)` : "年額の削減余地 = 想定年収 × 人材紹介手数料率 × 自社採用できた人数",
+      calculationFormula: benefitFormula || (clientBenefitAmount ? `年額の削減余地 = 求人票の月給 × 12か月 × 人材紹介手数料率30% × 自社採用できた人数(1名)` : "年額の削減余地 = 想定年収 × 人材紹介手数料率 × 自社採用できた人数"),
       calculationInputs: clientBenefitAmount ? "人材紹介を実際に利用しているか・年間採用人数・自社採用に置き換わった人数" : "求人の給与・人材紹介の利用有無・手数料率・年間採用人数",
       clientBenefit,
       clientBenefitAmount,
