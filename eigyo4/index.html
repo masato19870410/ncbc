@@ -50,6 +50,9 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .card .card-cost{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.5;min-height:55.8px}
+  .card .cost-tag{display:block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
+    border-radius:4px;padding:1px 6px;width:fit-content;margin-bottom:4px}
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px;grid-column:1/-1}
   .hidden{display:none!important}
 
@@ -124,7 +127,8 @@
   .conclusion-box{background:var(--panel-2);border:2px solid var(--text);border-radius:10px;
     padding:14px 16px;margin-bottom:16px}
   .conclusion-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-  .conclusion-dept{font-size:20px;font-weight:700;margin:4px 0 8px}
+  .conclusion-cost{font-size:18px;font-weight:700;margin:4px 0 6px;color:var(--ok)}
+  .conclusion-dept{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px}
   .conclusion-reason{font-size:12.5px;color:var(--text);line-height:1.6}
 
   .diag-details{margin-bottom:20px}
@@ -287,29 +291,37 @@ function concludeDept(p){
 
   if(!gmap || gmap.r === "✕"){
     return {
+      cost: "無料・即日",
+      action: "Googleビジネスプロフィールの登録",
       dept: "営業",
       text: p.hypothesisSales,
-      reason: "Googleビジネスプロフィールの登録は無料・即日反映。最も低コストで即効性があるため、営業課題から着手するのが最もROIが高い。",
+      reason: "無料・即日反映で最も低コスト。営業課題への着手が最もROIが高い。",
     };
   }
   if((!site || site.r==="✕") && indeed && (indeed.r==="◎"||indeed.r==="○")){
     return {
+      cost: "低コスト",
+      action: "採用特化ページの新設",
       dept: "人事",
       text: p.hypothesisHr,
-      reason: "求人が実際に動いている(Indeed掲載中)タイミングで、採用の受け皿を作るだけで応募の離脱を防げる。追加コストが低く即効性が高いため、人事課題が最もROIが高い。",
+      reason: "求人が実際に動いている(Indeed掲載中)タイミングで受け皿を作るだけで応募の離脱を防げる。人事課題への着手が最もROIが高い。",
     };
   }
   if(site && site.r==="△"){
     return {
+      cost: "低コスト",
+      action: "既存サイトの改善(SSL化・採用ページ追加など)",
       dept: "営業",
       text: p.hypothesisSales,
-      reason: "既にあるサイトの改善(SSL化・採用ページ追加など)で済むため、ゼロから作るより圧倒的に低コスト。営業課題への着手が最もROIが高い。",
+      reason: "ゼロから作るより圧倒的に低コスト。営業課題への着手が最もROIが高い。",
     };
   }
   return {
+    cost: "中コスト・時間要",
+    action: "SNS等での情報発信の開始",
     dept: "広報",
     text: p.hypothesisPr,
-    reason: "営業・人事側の低コストな打ち手が既に無いため、SNS発信などの広報課題から着手するのが相対的に最もROIが高い(効果が出るまでやや時間はかかる)。",
+    reason: "営業・人事側の低コストな打ち手が既に無いため、相対的に最もROIが高い(効果が出るまでやや時間はかかる)。",
   };
 }
 
@@ -350,9 +362,7 @@ function fitScore(p){
 function cardHtml(p, idx, recoRank){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
-  const primaryText = p.dept==="営業" ? p.hypothesisSales
-    : p.dept==="広報" ? p.hypothesisPr
-    : p.hypothesisHr;
+  const concl = concludeDept(p);
   const badge = (recoRank !== undefined && recoRank !== null && recoRank < 3)
     ? `<span class="reco-badge">🔥 おすすめ</span>` : "";
   return `<div class="card" data-idx="${idx}">
@@ -362,7 +372,7 @@ function cardHtml(p, idx, recoRank){
       </div>
       ${badge}
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
-      ${primaryText?`<div class="pitch" title="${esc(primaryText)}">${esc(primaryText)}</div>`:""}
+      <div class="card-cost"><span class="cost-tag">${esc(concl.cost)}</span>${esc(concl.action)}</div>
     </div>`;
 }
 
@@ -379,8 +389,9 @@ function modalBodyHtml(p){
     ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
     <div class="card-detail">
       <div class="conclusion-box">
-        <div class="conclusion-label">結論: 最もROIが高いのは</div>
-        <div class="conclusion-dept">${esc(conclusion.dept)}課題</div>
+        <div class="conclusion-label">費用対効果</div>
+        <div class="conclusion-cost">${esc(conclusion.cost)} — ${esc(conclusion.action)}</div>
+        <div class="conclusion-dept">最もROIが高いのは${esc(conclusion.dept)}課題</div>
         <div class="conclusion-reason">${esc(conclusion.reason)}</div>
       </div>
       <details class="diag-details">
