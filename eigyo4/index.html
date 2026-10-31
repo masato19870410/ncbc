@@ -87,11 +87,6 @@
 
   .card-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
   .card-detail .txt{white-space:pre-wrap;margin:8px 0 0;color:var(--muted)}
-  .detail-toggle{margin-bottom:10px;border-top:1px solid var(--border);padding-top:10px}
-  .detail-toggle:last-child{margin-bottom:0}
-  .detail-toggle summary{cursor:pointer;font-size:11px;color:var(--muted);font-weight:700;
-    text-transform:uppercase;letter-spacing:.06em;list-style-position:inside}
-  .detail-toggle[open] summary{margin-bottom:10px;color:var(--text)}
   .issue-row{margin-top:10px}
   .issue-row:first-child{margin-top:0}
   .dept-value{display:block;font-size:10.5px;font-weight:700;color:var(--text);
@@ -182,11 +177,6 @@
   .wrap-up{margin-top:10px;padding-top:10px;border-top:2px solid var(--text);font-size:13px;font-weight:700}
   .conclusion-reason{font-size:12.5px;color:var(--text);line-height:1.6}
 
-  .diag-details{margin-bottom:20px}
-  .diag-details summary{cursor:pointer;font-size:11px;color:var(--muted);font-weight:700;
-    text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
-  .diag-details .diag-box{margin-top:8px}
-
   .ai-strategy{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px;background:var(--panel)}
   .ai-strategy .ai-kicker{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.05em;margin-bottom:3px}
   .ai-strategy h2{font-size:15px;line-height:1.45;margin:0 0 8px}
@@ -198,9 +188,13 @@
   .ai-confirmed{color:var(--ok)}
   .ai-estimate{color:var(--warn)}
   .ai-unknown{color:var(--bad)}
-  .seller-profile{margin:0 0 20px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--panel)}
-  .seller-profile summary{cursor:pointer;font-size:12px;font-weight:700}
-  .seller-profile .profile-hint{font-size:11px;color:var(--muted);margin:7px 0 10px}
+  .seller-profile,.diag-details,.detail-toggle{margin:0;border:0;border-top:1px solid var(--border);border-radius:0;padding:10px 0;background:transparent}
+  .seller-profile summary,.diag-details summary,.detail-toggle summary{cursor:pointer;font-size:11px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;list-style-position:inside}
+  .seller-profile[open] summary,.diag-details[open] summary,.detail-toggle[open] summary{margin-bottom:10px;color:var(--text)}
+  .detail-toggle:last-child{border-bottom:1px solid var(--border)}
+  .diag-details .diag-box{margin-top:0}
+  .seller-profile .profile-hint{font-size:11px;color:var(--muted);margin:0 0 10px}
   .profile-offerings{display:grid;gap:6px;margin-bottom:10px}
   .profile-offerings label{display:flex;align-items:flex-start;gap:7px;font-size:12px;line-height:1.45}
   .profile-field{display:block;margin-top:8px;font-size:11px;font-weight:700;color:var(--muted)}
@@ -474,7 +468,7 @@ function trustBoxHtml(p, conclusion = concludeDept(p)){
 function sellerProfileHtml(){
   const profile = getSellerProfile();
   return `<details class="seller-profile">
-    <summary>自分の商材・営業条件を設定</summary>
+    <summary>営業条件</summary>
     <div class="profile-hint">未設定の項目は、診断で「未確認」として扱います。</div>
     <div class="profile-offerings">${OFFERING_CATALOG.map(o=>`<label><input type="checkbox" data-profile-offering="${o.id}" ${profile.offerings.includes(o.id)?"checked":""}> <span><b>${esc(o.name)}</b><br>${esc(o.scope)}</span></label>`).join("")}</div>
     <label class="profile-field">導入実績・事例（任意）<textarea data-profile-field="experience" rows="2" placeholder="未設定">${esc(profile.experience)}</textarea></label>
@@ -996,7 +990,7 @@ function modalBodyHtml(p){
       ${SHOW_OFFERING_STRATEGY ? offeringStrategyHtml(p) : ""}
       ${proposalReady ? sellerProfileHtml() : ""}
       <details class="diag-details">
-        <summary>診断の詳細を見る</summary>
+        <summary>診断詳細</summary>
         <div class="diag-box">
           <div class="diag-type">${esc(diag.type)}</div>
           <div class="diag-desc">${esc(diag.typeDesc)}</div>
@@ -1007,23 +1001,23 @@ function modalBodyHtml(p){
           ${proposalReady && !getSenderTrait()?`<div class="sender-bar" data-sender-bar="trait"><span class="label">性格タイプ(任意):</span></div>`:""}
         </div>
       </details>
-      <details class="detail-toggle"><summary>課題</summary>
+      <details class="detail-toggle"><summary>課題仮説</summary>
         ${issueRow("営業", p.hypothesisSales)}
         ${issueRow("人事", p.hypothesisHr)}
         ${issueRow("広報", p.hypothesisPr)}
       </details>
-      <details class="detail-toggle"><summary>${proposalReady ? "営業手段" : "調査後の営業手段"}</summary>
+      <details class="detail-toggle"><summary>営業手段</summary>
         ${issueRow("電話営業", phoneApproach)}
         ${issueRow("メール営業", emailApproach)}
         ${issueRow("フォーム営業", formApproach)}
         ${issueRow("コミュニティ営業", communityApproach)}
         ${issueRow("その他", otherApproach)}
       </details>
-      <details class="detail-toggle"><summary>リンク</summary>
+      <details class="detail-toggle"><summary>関連情報</summary>
         ${channelGroup("自社媒体", own)}
         ${channelGroup("他社媒体", other)}
       </details>
-      <details class="detail-toggle"><summary>連絡先</summary>
+      <details class="detail-toggle"><summary>連絡情報</summary>
         ${issueRow("電話", p.phone || "なし")}
         ${issueRow("メール", p.email || "なし")}
       </details>
