@@ -231,6 +231,7 @@ function modalBodyHtml(p){
         <div class="diag-box">
           <div class="diag-type">${esc(diag.type)}</div>
           <div class="diag-desc">${esc(diag.typeDesc)}</div>
+          ${c.approachNote?`<div class="diag-method"><span class="dept-value">アプローチの切り口(費用対効果)</span>${esc(c.approachNote)}</div>`:""}
           <div class="diag-method"><span class="dept-value">推奨アプローチ</span>${esc(diag.method)}</div>
         </div>
       </div>
@@ -239,9 +240,8 @@ function modalBodyHtml(p){
         ${issueRow("人事", p.hypothesisHr)}
         ${issueRow("広報", p.hypothesisPr)}
       </div>
-      ${(c.proposal||c.script||c.message||c.approachNote)?`<div class="detail-section"><b>提案</b>
+      ${(c.proposal||c.script||c.message)?`<div class="detail-section"><b>提案</b>
         ${issueRow("骨子", c.proposal)}
-        ${c.approachNote?`<div class="issue-row"><span class="dept-value">アプローチの切り口</span><div class="approach-note">${esc(c.approachNote)}</div></div>`:""}
         ${issueRow("文面(メール/DM)", c.message)}
         ${issueRow("台本(電話)", c.script)}
       </div>`:""}
