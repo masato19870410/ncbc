@@ -431,10 +431,10 @@ function assessmentType(p, conclusion = concludeDept(p)){
 }
 function assessmentLabel(p, conclusion = concludeDept(p)){
   const type = assessmentType(p, conclusion);
-  return type === "actual" ? "実データによる参考試算" : type === "estimate" ? "業界平均による参考試算" : "未算定・商談で確認";
+  return type === "actual" ? "実データによる参考試算" : type === "estimate" ? "業界平均による参考試算" : "未算定";
 }
 function referenceEffectLabel(p, conclusion = concludeDept(p)){
-  if(conclusion.effectValue === "未算定") return "未算定｜商談で条件確認";
+  if(conclusion.effectValue === "未算定") return "未算定";
   const prefix = conclusion.isEstimate ? "業界平均の参考試算" : "実データの参考試算";
   const effect = conclusion.effectType === "費用減"
     ? `${conclusion.effectAccountName}リスク ${conclusion.effectValue}/年`
@@ -661,19 +661,19 @@ function concludeDept(p){
   let businessScale, businessScaleNote;
   if(facts.revenueRangeText){
     businessScale = `年間売上高${facts.revenueRangeText}（${facts.revenueStatus}） / ${employeeScale}`;
-    businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   } else if(revenueMan >= 10000){
     businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明）"}） / ${employeeScale}`;
-    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   } else if(capitalMan >= 800){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
-    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   } else if(capitalMan > 0){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
-    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   } else {
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
-    businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   }
 
   // 分岐順で提案を決めず、候補ごとに公開情報上の必要性を比較する。
@@ -697,11 +697,11 @@ function concludeDept(p){
       priceLabel: "初期費用 2〜3万円（単発）",
       effectType: "売上増",
       effectValue: "未算定",
-      effectNote: "問い合わせ・成約データを商談で確認",
+      effectNote: "算定には問い合わせ・成約データが必要",
       calculationFormula: "年額の増収効果 = 月間の追加問い合わせ数 × 成約率 × 1件あたりの粗利 × 12",
       calculationInputs: "月間問い合わせ数・成約率・平均粗利・Googleマップ経由の割合",
       clientBenefit: "検索経由の問い合わせを取りこぼしている可能性がある。ただしアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
-      benefitStatus: "未算定（商談で確認）",
+      benefitStatus: "未算定（必要情報なし）",
       reason: `Googleビジネスプロフィール自体は無料。初期設定を代行する提案として、低い初期費用から始められる。${businessScaleNote}`,
       winCase: "Googleマップ経由の問い合わせ数を、登録前後で計測できる状態にする。",
       loseCase: "登録後に見る指標(表示回数・電話・ルート検索・問い合わせ)を先に合意する。",
@@ -786,11 +786,11 @@ function concludeDept(p){
       priceLabel: "改修費 5〜8万円（単発）",
       effectType: "売上増",
       effectValue: "未算定",
-      effectNote: "アクセス・問い合わせ・成約データを商談で確認",
+      effectNote: "算定にはアクセス・問い合わせ・成約データが必要",
       calculationFormula: "年額の増収効果 = 月間の問い合わせ増加数 × 成約率 × 1件あたりの粗利 × 12",
       calculationInputs: "現状アクセス数・問い合わせ数・成約率・平均粗利・改善後の変化",
       clientBenefit: "既存サイトの情報不足や問い合わせ導線による機会損失の可能性がある。ただしアクセス解析データが無く、具体的な金額は算出できない。SSL対応など、確認できていない不具合は前提にしない。",
-      benefitStatus: "未算定（商談で確認）",
+      benefitStatus: "未算定（必要情報なし）",
       reason: `既存サイトを活かし、公開情報で確認できた不足だけを対象に、情報更新や問い合わせ導線を改善する提案。${businessScaleNote}`,
       winCase: "アクセス解析、問い合わせ件数、離脱箇所を確認し、改善対象を事実に基づいて決める。",
       loseCase: "改修範囲、管理権限、現在のアクセス数を確認してから費用と期待効果を確定する。",
@@ -805,11 +805,11 @@ function concludeDept(p){
       priceLabel: "月額 3〜5万円（運用支援）",
       effectType: "売上増",
       effectValue: "未算定",
-      effectNote: "問い合わせ・成約データを商談で確認",
+      effectNote: "算定には問い合わせ・成約データが必要",
       calculationFormula: "年額の増収効果 = 月間のSNS由来問い合わせ増加数 × 成約率 × 1件あたりの粗利 × 12",
       calculationInputs: "月間投稿数・SNS由来の問い合わせ数・成約率・平均粗利",
       clientBenefit: "情報発信が無いことによる新規問い合わせの機会損失があると考えられるが、具体的な金額は算出できない(誠実に「不明」とする)。",
-      benefitStatus: "未算定（商談で確認）",
+      benefitStatus: "未算定（必要情報なし）",
       reason: `施工実績・会社情報を継続して発信し、問い合わせにつながる情報を増やす提案。${businessScaleNote}`,
       winCase: "月間の投稿本数、閲覧数、問い合わせ数を決め、月次で効果を確認する。",
       loseCase: "投稿素材の提供担当者と、月額内に含める作業範囲を事前に決める。",
@@ -832,13 +832,13 @@ function concludeDept(p){
     : "効果の勘定科目：売上高。利益額ではなく売上増の効果であり、粗利・営業利益への影響は別途確認。";
   result.businessScale = businessScale;
   result.cardBudget = cardBudget;
-  const statusSuffix = result.effectValue === "未算定" ? "（商談で算定）" : (result.isEstimate ? "（業種推定）" : "（試算）");
-  result.topConclusion = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : `の${result.effectType === "費用減" ? "回避可能性" : "増加目安"}`}を参考に、${result.action}への${result.priceLabel}の投資可否を商談で確認する。`;
+  result.topConclusion = result.effectValue === "未算定"
+    ? `効果金額は未算定。必要情報を確認したうえで、${result.action}への${result.priceLabel}の投資可否を判断する。`
+    : `${effectLabel}の${result.effectType === "費用減" ? "回避可能性" : "増加目安"}を参考に、${result.action}への${result.priceLabel}の投資可否を判断する。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
   // 効果を先、投資内容を後に置いて、ラベルに頼らず読める順にする。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
   // カード一覧は横幅が狭いため「年額」を省略し、括弧を外して1行に収まりやすくする。
-  const statusLabelShort = result.effectValue === "未算定" ? "商談で算定" : (result.isEstimate ? "業種推定" : "試算");
   // 「年額」は省くが、年ベースの数字であることは経営判断に必須の情報なので「/年」で必ず残す。
   result.cardLine = referenceEffectLabel(p, result);
   result.cardInvestment = result.priceLabel;
@@ -957,7 +957,7 @@ function modalBodyHtml(p){
           <span class="calc-account">${esc(conclusion.accountingNote)} 投資の勘定科目（想定）：${esc(conclusion.accountItem)}</span>
         </div>
         <div class="proposal-flow">
-          <div class="proposal-step">${esc(conclusion.effectDisplay)}${conclusion.effectValue === "未算定" ? "（商談で算定）" : (conclusion.isEstimate ? "（業種推定）" : "（試算）")}</div><div class="proposal-arrow">↔</div>
+          <div class="proposal-step">${esc(conclusion.effectDisplay)}${conclusion.effectValue === "未算定" ? "" : (conclusion.isEstimate ? "（業種推定）" : "（試算）")}</div><div class="proposal-arrow">↔</div>
           <div class="proposal-step">${esc(conclusion.priceLabel)}</div><div class="proposal-arrow">↔</div>
           <div class="proposal-step">${esc(conclusion.action)}</div>
         </div>
@@ -1079,7 +1079,7 @@ function renderSelectedCompany(idx){
     <div class="rail-selected-row"><b>提案候補</b>${esc(conclusion.cardProduct)}</div>
     <div class="rail-selected-row"><b>参考試算</b>${esc(referenceEffectLabel(p, conclusion))}</div>
     <div class="rail-selected-row"><b>優先理由</b>${esc(priorityReason(p, conclusion))}</div>
-    <div class="rail-selected-row"><b>商談で確認</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
+    <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
     <button class="rail-detail-btn" type="button" data-open-selected>詳細を見る</button>`;
   document.querySelectorAll(".card").forEach(card=>card.setAttribute("aria-current", Number(card.dataset.idx) === idx ? "true" : "false"));
 }
