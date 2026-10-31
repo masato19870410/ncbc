@@ -127,12 +127,17 @@
   .conclusion-box{background:var(--panel-2);border:2px solid var(--text);border-radius:10px;
     padding:14px 16px;margin-bottom:16px}
   .conclusion-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-  .conclusion-cost{font-size:18px;font-weight:700;margin:4px 0 6px;color:var(--ok)}
-  .conclusion-dept{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px}
+  .conclusion-cost{font-size:13px;font-weight:700;margin:2px 0 2px;color:var(--text)}
+  .conclusion-dept{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:8px}
   .conclusion-budget{font-size:11px;color:var(--warn);font-weight:600;margin-bottom:8px}
-  .conclusion-ev{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
-  .conclusion-ev .ev-amount{font-size:16px;font-weight:700;color:var(--ok);margin-left:6px}
-  .conclusion-ev .ev-detail{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+
+  .num-row{display:flex;gap:8px;margin-bottom:12px}
+  .num-tile{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    padding:8px 6px;text-align:center}
+  .num-label{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px}
+  .num-value{font-size:22px;font-weight:800;color:var(--ok);line-height:1.1}
+  .num-value-sm{font-size:16px}
+  .num-unit{font-size:11px;font-weight:600;margin-left:1px}
   .sim-box{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
   .sim-row{font-size:12px;line-height:1.6;margin-top:6px}
   .sim-row:first-child{margin-top:0}
@@ -450,16 +455,23 @@ function modalBodyHtml(p){
     ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
     <div class="card-detail">
       <div class="conclusion-box">
-        <div class="conclusion-label">費用対効果</div>
-        <div class="conclusion-cost">${esc(conclusion.cost)} — ${esc(conclusion.action)}</div>
-        <div class="conclusion-dept">最もROIが高いのは${esc(conclusion.dept)}課題 / 勘定科目: ${esc(conclusion.accountItem)}</div>
-        <div class="conclusion-budget">${esc(conclusion.budgetTier)}</div>
-        <div class="conclusion-reason">${esc(conclusion.reason)}</div>
-        <div class="conclusion-ev">
-          <span class="dept-value">期待値(目安)</span>
-          <span class="ev-amount">約${esc(String(conclusion.expectedValue))}万円</span>
-          <div class="ev-detail">${esc(conclusion.expectedNote)}</div>
+        <div class="num-row">
+          <div class="num-tile">
+            <div class="num-label">期待値</div>
+            <div class="num-value">約${esc(String(conclusion.expectedValue))}<span class="num-unit">万円</span></div>
+          </div>
+          <div class="num-tile">
+            <div class="num-label">成約確度</div>
+            <div class="num-value">${esc(String(conclusion.closeProb))}<span class="num-unit">%</span></div>
+          </div>
+          <div class="num-tile">
+            <div class="num-label">提案額目安</div>
+            <div class="num-value num-value-sm">${esc(String(conclusion.priceRange[0]))}〜${esc(String(conclusion.priceRange[1]))}<span class="num-unit">万円</span></div>
+          </div>
         </div>
+        <div class="conclusion-cost">${esc(conclusion.cost)} — ${esc(conclusion.action)}</div>
+        <div class="conclusion-dept">${esc(conclusion.dept)}課題 / ${esc(conclusion.accountItem)} / ${esc(conclusion.budgetTier)}</div>
+        <div class="conclusion-reason">${esc(conclusion.reason)} ${esc(conclusion.expectedNote)}</div>
         <div class="sim-box">
           <div class="sim-row sim-win"><span class="sim-label">◎ 受注シナリオ</span>${esc(conclusion.winCase)}</div>
           <div class="sim-row sim-lose"><span class="sim-label">✕ 失注シナリオ</span>${esc(conclusion.loseCase)}</div>
