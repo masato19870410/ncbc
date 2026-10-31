@@ -308,7 +308,7 @@ function channelLi(ch){
     : `<span class="n n-nolink"${note}>${esc(ch.n)}</span>`;
   return `<li><span class="r ${cls}">${esc(ch.r)}</span>${label}</li>`;
 }
-const CH_ORDER = ["自社サイト", "Instagram", "X", "Facebook", "LINE公式", "YouTube", "note", "TikTok", "Googleマップ", "Yahoo!マップ", "ホットペッパービューティー", "Indeed"];
+const CH_ORDER = ["自社サイト", "採用サイト", "Instagram", "X", "Facebook", "LINE公式", "YouTube", "note", "TikTok", "Googleマップ", "Yahoo!マップ", "ホットペッパービューティー", "Indeed"];
 function sortChannels(channels){
   const rank = n => { const i = CH_ORDER.indexOf(n); return i === -1 ? CH_ORDER.length : i; };
   return channels
@@ -323,11 +323,12 @@ const OWN_MEDIA = new Set(["自社サイト", "Instagram", "X", "Facebook", "LIN
 // 公開情報で確認した値と、企業データベース由来の推定値を分けて表示する。
 const RESEARCH_FACTS = {
   "株式会社フジショウ": {
-    employeeCount:"72", employeeStatus:"推定（SalesNow DB、社会保険の被保険者数に基づく参考値）", employeeSource:"SalesNow DB",
-    revenueRangeText:"10億円以上〜50億円未満", revenueStatus:"推定（SalesNow DB）",
-    capitalMan:1000, capitalStatus:"推定（SalesNow DB）",
+    employeeCount:"75", employeeStatus:"確定（公式サイト75人。2026年求人票は81人のため最新値は要確認）", employeeSource:"公式サイト・ハローワーク求人票",
+    revenueRangeText:"12億円", revenueStatus:"確定（公式サイト）",
+    capitalMan:1000, capitalStatus:"確定（公式サイト）",
     additionalSources:[
-      { label:"SalesNow DB 企業情報", url:"https://salesnow.jp/db/companies/jcbhygebyth0sytf", note:"2026-09-18更新。正社員規模（推定）72名、資本金1,000万円、売上レンジ10億円以上〜50億円未満、2000年06月設立。社名・代表者名は国税庁法人番号データ由来、規模・売上は独自推定である点に留意。" },
+      { label:"フジショウ公式サイト・会社概要", url:"https://www.fujisho-company.info/blank-1", note:"所在地は岡山市南区内尾479-21、従業員75人、資本金1,000万円、年間売上12億円（2026-10-31確認）。" },
+      { label:"フジショウ採用サイト", url:"https://entori.jp/fujisho-company", note:"既存の採用専用サイトと募集中求人を確認（2026-10-31確認）。採用ページが無いという旧仮説は撤回。" },
       { label:"ハローワーク求人（市内便ドライバー）", url:"https://www.hellowork.mhlw.go.jp/kensaku/GECA110020.do?action=dispDetailBtn&fullPart=1&kjNo=3301025400061", note:"2026-08-17受付。4t・5t・7t車の市内便、機械・金属製造等の部品配送。月給27〜33万円の求人情報。" },
       { label:"トーウン：株式取得のお知らせ", url:"https://tohun.co.jp/20251226.pdf", note:"2025-12-22に全株式を取得し子会社化。西日本エリアの機能拡張・輸送品目獲得を目的とする公式発表。" },
     ],
@@ -355,6 +356,29 @@ const RESEARCH_FACTS = {
   "竹森工芸株式会社": { employeeCount:"12", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:1000, capitalStatus:"推定（根拠不明）" },
   "日新機工有限会社": { employeeCount:"3", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明）" },
 };
+function applyVerifiedOverrides(p){
+  if(p.name !== "株式会社フジショウ") return p;
+  const channels = (p.contact?.channels || []).map(ch=>ch.n === "自社サイト"
+    ? { ...ch, r:"○", u:"https://www.fujisho-company.info/", m:"HTTPS対応の公式サイト。会社概要を確認（2026-10-31確認）" }
+    : ch);
+  if(!channels.some(ch=>ch.n === "採用サイト")){
+    channels.push({ n:"採用サイト", r:"○", u:"https://entori.jp/fujisho-company", m:"外部採用専用サイトで募集中求人を掲載（2026-10-31確認）" });
+  }
+  return {
+    ...p,
+    area:"岡山県岡山市南区内尾479-21",
+    hypothesisHr:"Indeed等で採用活動中。既存の採用専用サイトもあるため、新設ではなく求人情報と応募導線の更新・改善余地を確認する。",
+    hypothesisSales:"公式サイトはHTTPS対応済み。問い合わせ導線や情報更新の効果はアクセス解析を確認するまで未算定。",
+    contact:{
+      ...p.contact,
+      channels,
+      proposal:"既存の採用専用サイトと求人媒体の情報を揃え、職種別の応募導線と効果計測を改善する提案。",
+      approachNote:"採用サイトの新設やSSL化は提案しない。既存導線の閲覧数・応募数を確認し、必要な改善だけを提案する。",
+      message:"株式会社フジショウ様の公式サイトと採用サイトを拝見しました。既存の求人導線を活かし、職種別の情報整理と応募計測を改善できる余地がないか確認したくご連絡しました。",
+      script:"公式サイトと採用サイトを拝見し、新設ではなく既存の求人導線の改善余地についてお伺いしたくご連絡しました。",
+    },
+  };
+}
 function channelGroup(label, channels){
   if(!channels.length) return "";
   return `<div class="ch-group"><b>${esc(label)}</b><ul class="ch-list">${channels.map(channelLi).join("")}</ul></div>`;
@@ -553,20 +577,23 @@ function diagnoseApproach(p){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const site = findChannel(channels, "自社サイト");
+  const recruitSite = findChannel(channels, "採用サイト");
   const gmap = findChannel(channels, "Googleマップ");
   const indeed = findChannel(channels, "Indeed");
   const known = channels.filter(ch => ch.r==="◎" || ch.r==="○").length;
 
   let type, typeDesc;
-  if((!site || site.r==="✕") && (!gmap || gmap.r==="✕")){
+  if(indeed && (indeed.r==="◎"||indeed.r==="○") && (recruitSite || !site || site.r==="✕" || /未掲載/.test(site.m||""))){
+    type = "応募導線型";
+    typeDesc = recruitSite
+      ? "求人媒体と既存採用サイトがあるため、新設ではなく情報整合・職種別導線・応募計測の改善余地を確認する。"
+      : "求人募集中だが応募者向け情報の不足が見込まれるため、採用情報の受け皿を確認・改善する。";
+  } else if((!site || site.r==="✕") && (!gmap || gmap.r==="✕")){
     type = "認知構築型";
     typeDesc = "自社サイト・Googleマップともに情報が無く、検索しても見つからない状態。まず「存在を知ってもらう」提案が合う。";
   } else if(site && site.r==="△"){
     type = "改善提案型";
     typeDesc = "自社サイトは既にあるが情報が不足/弱い状態。ゼロから作るより「今あるものの改善」として軽く提案しやすい。";
-  } else if(indeed && (indeed.r==="◎"||indeed.r==="○") && (!site || site.r==="✕")){
-    type = "応募導線型";
-    typeDesc = "Indeedで求人募集中だが自社サイトが無く、応募前の不安を解消できていない。採用特化の受け皿づくりが刺さりやすい。";
   } else {
     type = "信頼補強型";
     typeDesc = "情報はあるが証拠(口コミ・実績)が少ない状態。信頼材料を補強する提案が合う。";
@@ -623,6 +650,7 @@ function concludeDept(p){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const site = findChannel(channels, "自社サイト");
+  const recruitSite = findChannel(channels, "採用サイト");
   const gmap = findChannel(channels, "Googleマップ");
   const indeed = findChannel(channels, "Indeed");
   const facts = RESEARCH_FACTS[p.name] || {};
@@ -668,8 +696,18 @@ function concludeDept(p){
     businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
   }
 
+  // 分岐順で提案を決めず、候補ごとに公開情報上の必要性を比較する。
+  const activeJob = !!(indeed && (indeed.r==="◎" || indeed.r==="○"));
+  const proposalScores = {
+    recruit: (activeJob ? 40 : 0) + ((!site || site.r==="✕") ? 15 : 0) + (/未掲載/.test(site?.m || "") ? 15 : 0) + (recruitSite ? 10 : 0),
+    map: (!gmap || gmap.r==="✕") ? 20 : 0,
+    site: (site?.r==="△") ? 25 : ((!site || site.r==="✕") ? 15 : 0),
+    social: ["Instagram","X","Facebook","LINE公式"].filter(name=>{ const ch=findChannel(channels,name); return !ch || ch.r==="✕"; }).length * 3,
+  };
+  const proposalKind = Object.entries(proposalScores).sort((a,b)=>b[1]-a[1])[0][0];
+
   let result;
-  if(!gmap || gmap.r === "✕"){
+  if(proposalKind === "map"){
     result = {
       cost: "導入コスト: 無料・即日",
       action: "Googleビジネスプロフィールの登録",
@@ -688,12 +726,13 @@ function concludeDept(p){
       winCase: "Googleマップ経由の問い合わせ数を、登録前後で計測できる状態にする。",
       loseCase: "登録後に見る指標(表示回数・電話・ルート検索・問い合わせ)を先に合意する。",
     };
-  } else if(((!site || site.r==="✕") || (site && /未掲載/.test(site.m||""))) && indeed && (indeed.r==="◎"||indeed.r==="○")){
+  } else if(proposalKind === "recruit"){
     // 相手側の効果(採用コスト削減)を、求人票記載の月給レンジ×人材紹介手数料相場(年収の30%が業界慣行)から試算。
     // 金額換算できるのはこの採用系だけ(営業/広報は流入→成約の実データが無く金額換算は困難)。
     // 自社サイトはあるが、Indeedで募集中の主力職種が自社サイトの採用ページに載っていない(「未掲載」)ケースは、
     // 「新設」ではなく「拡充」を商材にする。サイトの有無ではなく、採用ページが主力職種をカバーできているかで分岐する。
     const siteHasRecruitGap = !!(site && /未掲載/.test(site.m||""));
+    const hasRecruitSite = !!recruitSite;
     let clientBenefit = "採用に関する具体的な損失額は、求人票に給与情報が無く算出できない。";
     let clientBenefitAmount = "";
     let benefitIsEstimate = false;
@@ -734,11 +773,11 @@ function concludeDept(p){
     }
     result = {
       cost: "導入コスト: 低",
-      action: siteHasRecruitGap ? "採用ページの職種拡充" : "採用特化ページの新設",
-      accountItem: siteHasRecruitGap ? "外注費（改修費）" : "外注費（制作費）",
+      action: hasRecruitSite ? "既存採用サイトの求人導線改善" : (siteHasRecruitGap ? "採用ページの職種拡充" : "採用特化ページの新設"),
+      accountItem: (hasRecruitSite || siteHasRecruitGap) ? "外注費（改修費）" : "外注費（制作費）",
       dept: "人事",
       text: p.hypothesisHr,
-      priceLabel: siteHasRecruitGap ? "改修費 5〜8万円（単発）" : "制作費 8〜15万円（単発）",
+      priceLabel: (hasRecruitSite || siteHasRecruitGap) ? "改修費 5〜8万円（単発）" : "制作費 8〜15万円（単発）",
       effectType: "費用減",
       effectValue: clientBenefitAmount || "未算定",
       effectNote: clientBenefitAmount ? "将来、人材紹介に頼らざるを得なくなった場合に回避できる費用" : "給与・紹介会社利用の確認が必要",
@@ -749,16 +788,18 @@ function concludeDept(p){
       isEstimate: benefitIsEstimate,
       benefitSourceUrl, benefitSourceLabel,
       benefitStatus: clientBenefitAmount ? (benefitIsEstimate ? "推定（業種別平均を代用、1名を自社採用できた場合）" : "試算（1名を自社採用できた場合）") : "未算定（給与情報なし）",
-      reason: siteHasRecruitGap
-        ? `自社サイトに採用ページはあるが、Indeedで募集中の主力職種が未掲載。既存サイトに職種を追加する提案。${businessScaleNote}`
-        : `Indeed掲載中に、応募者が会社・仕事内容を確認できる受け皿を用意する提案。${businessScaleNote}`,
+      reason: hasRecruitSite
+        ? `既存の採用専用サイトがあるため新設は行わず、求人媒体との情報整合・職種別導線・応募計測の改善余地を確認する。${businessScaleNote}`
+        : (siteHasRecruitGap
+          ? `自社サイトに採用ページはあるが、Indeedで募集中の主力職種が未掲載。既存サイトに職種を追加する提案。${businessScaleNote}`
+          : `Indeed掲載中に、応募者が会社・仕事内容を確認できる受け皿を用意する提案。${businessScaleNote}`),
       winCase: "現状ハローワーク等の無料掲載だけで応募が十分に集まっているか、人材紹介を使う可能性が今後あるかを確認する。",
       loseCase: "ページ公開後は、Indeedからの流入・応募数・採用数を計測し、効果を検証する。",
     };
-  } else if(site && site.r==="△"){
+  } else if(proposalKind === "site"){
     result = {
       cost: "導入コスト: 低",
-      action: "既存サイトの改善(SSL化・採用ページ追加など)",
+      action: "既存サイトの情報・問い合わせ導線改善",
       accountItem: "外注費（IT関連費）",
       dept: "営業",
       text: p.hypothesisSales,
@@ -768,10 +809,10 @@ function concludeDept(p){
       effectNote: "アクセス・問い合わせ・成約データを商談で確認",
       calculationFormula: "年額の増収効果 = 月間の問い合わせ増加数 × 成約率 × 1件あたりの粗利 × 12",
       calculationInputs: "現状アクセス数・問い合わせ数・成約率・平均粗利・改善後の変化",
-      clientBenefit: "SSL非対応だと閲覧者の一部が「保護されていません」表示で離脱・問い合わせを躊躇する可能性がある。ただし当該サイトのアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
+      clientBenefit: "既存サイトの情報不足や問い合わせ導線による機会損失の可能性がある。ただしアクセス解析データが無く、具体的な金額は算出できない。SSL対応など、確認できていない不具合は前提にしない。",
       benefitStatus: "未算定（商談で確認）",
-      reason: `既存サイトを活かして、SSL化や必要ページの追加から着手する提案。${businessScaleNote}`,
-      winCase: "警告表示が出るページと、改善後に計測する問い合わせ・フォーム到達数を確認する。",
+      reason: `既存サイトを活かし、公開情報で確認できた不足だけを対象に、情報更新や問い合わせ導線を改善する提案。${businessScaleNote}`,
+      winCase: "アクセス解析、問い合わせ件数、離脱箇所を確認し、改善対象を事実に基づいて決める。",
       loseCase: "改修範囲、管理権限、現在のアクセス数を確認してから費用と期待効果を確定する。",
     };
   } else {
@@ -1151,7 +1192,7 @@ function rowsToItems(rows){
   return rows.slice(1).filter(r=>r.length>1 || r[0]).map(r=>{
     let channels = [];
     try{ channels = JSON.parse(r[idx.channels_json] || "[]"); }catch(e){}
-    return {
+    return applyVerifiedOverrides({
       name: r[idx.name],
       category: r[idx.category],
       industry: r[idx.industry],
@@ -1171,7 +1212,7 @@ function rowsToItems(rows){
         message: r[idx.message],
         script: r[idx.script],
       },
-    };
+    });
   }).filter(p=>p.name);
 }
 
