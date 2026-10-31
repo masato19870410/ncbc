@@ -136,6 +136,7 @@
   .calc-alert b{display:block;font-size:10px;margin-bottom:2px;color:var(--warn)}
   .calc-alert.is-calculated{border-color:var(--ok);background:var(--ok-bg)}
   .calc-alert.is-calculated b{color:var(--ok)}
+  .calc-account{display:block;margin-top:4px;color:var(--muted)}
   .proposal-flow{display:flex;align-items:stretch;gap:5px;margin:0 0 12px}
   .proposal-step{flex:1;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 7px;font-size:11px;font-weight:600;line-height:1.45;text-align:center}
   .proposal-arrow{align-self:center;color:var(--muted);font-weight:700}
@@ -242,7 +243,13 @@ const OWN_MEDIA = new Set(["自社サイト", "Instagram", "X", "Facebook", "LIN
 // 商談で「どこまで裏取り済みか」を混同しないための調査メモ。
 // 公開情報で確認した値と、企業データベース由来の推定値を分けて表示する。
 const RESEARCH_FACTS = {
-  "株式会社フジショウ": { employeeCount:"75", employeeStatus:"確認済み", employeeSource:"求人媒体の会社概要", revenueMan:120000, revenueStatus:"企業DB推定" },
+  "株式会社フジショウ": {
+    employeeCount:"75", employeeStatus:"確認済み", employeeSource:"求人媒体の会社概要", revenueMan:120000, revenueStatus:"企業DB推定",
+    additionalSources:[
+      { label:"ハローワーク求人（市内便ドライバー）", url:"https://www.hellowork.mhlw.go.jp/kensaku/GECA110020.do?action=dispDetailBtn&fullPart=1&kjNo=3301025400061", note:"2026-08-17受付。4t・5t・7t車の市内便、機械・金属製造等の部品配送。月給27〜33万円の求人情報。" },
+      { label:"トーウン：株式取得のお知らせ", url:"https://tohun.co.jp/20251226.pdf", note:"2025-12-22に全株式を取得し子会社化。西日本エリアの機能拡張・輸送品目獲得を目的とする公式発表。" },
+    ],
+  },
   "有限会社杉元建具": { employeeCount:"約4", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:500, capitalStatus:"企業DB推定" },
   "有限会社大橋重機": { employeeCount:"7", employeeStatus:"企業DB推定", employeeSource:"企業データベース" },
   "株式会社シーエス建材トーヨー住器": { employeeCount:"16", employeeStatus:"企業DB推定", employeeSource:"企業データベース", capitalMan:350, capitalStatus:"企業DB推定" },
@@ -296,6 +303,11 @@ const OFFERING_CATALOG = [
   { id:"ai_training", name:"AI研修", scope:"研修内容・提供価格・導入実績は未設定" },
   { id:"ai_org", name:"AIを活用した組織開発・業務改善支援", scope:"支援範囲・提供価格・導入実績は未設定" },
 ];
+const MARKET_REFERENCES = [
+  { label:"AI研修の公開料金例（市場参考）", url:"https://www.ai-skill-kentei.jp/blog/corporate-ai-training-cost/", note:"集合研修20〜50万円/回、個社カスタム30〜100万円超など。提供会社の公開料金例を集約した参考値であり、統一相場や自分の販売価格ではない。" },
+  { label:"人材開発支援助成金（厚生労働省）", url:"https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/d01-1.html", note:"職務関連訓練の経費・賃金の一部を助成する制度。対象コース・申請時期・要件を事前確認し、受給を前提に価格提案しない。" },
+  { label:"物流DXの推進（国土交通省）", url:"https://www.mlit.go.jp/seisakutokatsu/freight/seisakutokatsu_freight_mn1_000018.html", note:"物流事業者のデジタル化事例・導入課題の公的な参考。個社の効果額を保証する資料ではない。" },
+];
 function getSellerProfile(){
   const base = { offerings:OFFERING_CATALOG.map(o=>o.id), experience:"", strengths:"", networks:"", preferredApproach:"" };
   try{
@@ -311,6 +323,7 @@ function sourceLink(ch, label){
   const text = label || ch?.n || "参照元";
   return ch?.u ? `<a href="${esc(ch.u)}" target="_blank" rel="noopener">${esc(text)} ↗</a>` : `${esc(text)}（URL未登録）`;
 }
+function referenceLink(ref){ return `<a href="${esc(ref.url)}" target="_blank" rel="noopener">${esc(ref.label)} ↗</a>：${esc(ref.note)}`; }
 function sellerProfileHtml(){
   const profile = getSellerProfile();
   return `<details class="seller-profile">
@@ -358,7 +371,7 @@ function diagnoseOfferingFit(p){
     isCaseStudy:true, offering,
     status:"1社目の検証候補（適合は仮説）",
     why:"確認済みの従業員規模と複数職種の採用活動があり、教育・定型業務の課題をヒアリングする合理性がある。AI導入ニーズ自体は未確認。",
-    confirmed:[employeeNote, `${sourceLink(indeed, "Indeed求人")}：${esc(indeed?.m || "求人掲載あり（件数は要再確認）")}`, news?.m ? `${sourceLink(news, "業界ニュース")}：${esc(news.m)}` : "業界ニュース：未確認", `連絡先：電話 ${p.phone || "未確認"}（メールは未確認）`],
+    confirmed:[employeeNote, `${sourceLink(indeed, "Indeed求人")}：${esc(indeed?.m || "求人掲載あり（件数は要再確認）")}`, news?.m ? `${sourceLink(news, "業界ニュース")}：${esc(news.m)}` : "業界ニュース：未確認", ...(facts.additionalSources || []).map(referenceLink), `連絡先：電話 ${p.phone || "未確認"}（メールは未確認）`],
     inference:"採用拡大・組織変化の局面では、教育の標準化や定型業務の見直しが課題になり得る。ただし現場課題・AI利用意向は未確認。",
     unknown:"研修対象人数、現在の教育工数、反復業務、AI利用ルール、決裁者、予算、導入実績に求める条件",
     effect:"年額効果は未算定",
@@ -378,6 +391,7 @@ function offeringStrategyHtml(p){
     <div class="ai-row"><b class="ai-estimate">仮説（確認が必要）</b>${esc(d.inference)}</div>
     <div class="ai-row"><b class="ai-unknown">未確認・金額化に必要な情報</b>${esc(d.unknown)}</div>
     <div class="calc-alert"><b>効果の計算式（未算定）</b>${esc(d.formula)}<br>必要情報：${esc(d.unknown)}</div>
+    <div class="ai-row"><b>市場参考・制度（自社価格／先方実績ではない）</b><ul>${MARKET_REFERENCES.map(ref=>`<li>${referenceLink(ref)}</li>`).join("")}</ul></div>
     <div class="ai-row"><b>最も現実的な営業ルート</b>${esc(d.route)}</div>
     <div class="ai-row"><b>最初に伝えること／次の行動</b>${esc(d.firstAction)}</div>
   </section>`;
@@ -474,7 +488,7 @@ function concludeDept(p){
     result = {
       cost: "導入コスト: 無料・即日",
       action: "Googleビジネスプロフィールの登録",
-      accountItem: "外注費(初期設定代行)",
+      accountItem: "外注費（初期設定代行）",
       dept: "営業",
       text: p.hypothesisSales,
       priceLabel: "初期費用 2〜3万円（単発）",
@@ -506,7 +520,7 @@ function concludeDept(p){
     result = {
       cost: "導入コスト: 低",
       action: "採用特化ページの新設",
-      accountItem: "採用費 / 外注費(制作費)",
+      accountItem: "外注費（制作費）",
       dept: "人事",
       text: p.hypothesisHr,
       priceLabel: "制作費 8〜15万円（単発）",
@@ -526,7 +540,7 @@ function concludeDept(p){
     result = {
       cost: "導入コスト: 低",
       action: "既存サイトの改善(SSL化・採用ページ追加など)",
-      accountItem: "外注費(IT関連費)",
+      accountItem: "外注費（IT関連費）",
       dept: "営業",
       text: p.hypothesisSales,
       priceLabel: "改修費 5〜8万円（単発）",
@@ -566,12 +580,20 @@ function concludeDept(p){
   // 採用の試算は月給×12、売上系は年次の問い合わせ・成約実績で検証する前提。
   result.effectPeriod = "年額";
   const effectLabel = `${result.effectPeriod}の${result.effectType} ${result.effectValue}`;
+  // 効果（先方の収益・費用）と投資（今回の制作・運用費）を混同しない。
+  // 採用費は会社ごとの会計方針で広告宣伝費・外注費等になる場合があるため、あくまで想定として表示する。
+  result.effectAccountName = result.effectType === "費用減" ? "採用費" : "売上高";
+  result.effectSign = result.effectType === "費用減" ? "−" : "+";
+  result.effectDisplay = `${result.effectPeriod} ${result.effectAccountName} ${result.effectSign}${result.effectValue}`;
+  result.accountingNote = result.effectType === "費用減"
+    ? "効果の勘定科目（想定）：採用費。先方の会計方針により広告宣伝費・外注費等への計上もあり得るため要確認。"
+    : "効果の勘定科目：売上高。利益額ではなく売上増の効果であり、粗利・営業利益への影響は別途確認。";
   result.businessScale = businessScale;
   result.topConclusion = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : `の${result.effectType === "費用減" ? "削減余地" : "増加余地"}`}のため、${result.action}に${result.priceLabel}を投資する。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
   // 効果を先、投資内容を後に置いて、ラベルに頼らず読める順にする。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
-  result.cardLine = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}`;
+  result.cardLine = `${result.effectDisplay}${result.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}`;
   result.cardInvestment = result.priceLabel;
   result.cardProduct = shortAction;
 
@@ -643,13 +665,14 @@ function modalBodyHtml(p){
     <div class="card-detail">
       <div class="conclusion-box">
         <div class="proposal-kicker">費用対効果（投資対効果）</div>
-        <div class="proposal-headline"><strong>${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}</strong>${conclusion.effectValue === "未算定" ? "（商談で算定）" : `の${conclusion.effectType === "費用減" ? "削減" : "増加"}余地`}<br>${esc(conclusion.action)}に${esc(conclusion.priceLabel)}を投資</div>
+        <div class="proposal-headline"><strong>${esc(conclusion.effectDisplay)}</strong>${conclusion.effectValue === "未算定" ? "（商談で算定）" : `を目標`}<br>${esc(conclusion.priceLabel)}で${esc(conclusion.action)}を実施</div>
         <div class="calc-alert ${conclusion.effectValue === "未算定" ? "" : "is-calculated"}">
           <b>${conclusion.effectValue === "未算定" ? "未算定｜この情報があれば金額化できます" : "試算の計算式・前提"}</b>
           ${esc(conclusion.calculationFormula)}<br>${conclusion.effectValue === "未算定" ? `確認項目：${esc(conclusion.calculationInputs)}` : `要確認：${esc(conclusion.calculationInputs)}`}
+          <span class="calc-account">${esc(conclusion.accountingNote)} 投資の勘定科目（想定）：${esc(conclusion.accountItem)}</span>
         </div>
         <div class="proposal-flow">
-          <div class="proposal-step">${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}${conclusion.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}</div><div class="proposal-arrow">↔</div>
+          <div class="proposal-step">${esc(conclusion.effectDisplay)}${conclusion.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}</div><div class="proposal-arrow">↔</div>
           <div class="proposal-step">${esc(conclusion.priceLabel)}</div><div class="proposal-arrow">↔</div>
           <div class="proposal-step">${esc(conclusion.action)}</div>
         </div>
