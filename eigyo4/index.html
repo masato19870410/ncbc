@@ -406,10 +406,10 @@ function concludeDept(p){
   result.priceLabel = `${result.priceRange[0]}〜${result.priceRange[1]}万円(相場目安)`;
   result.closeProb = closeProb;
   result.expectedValue = expectedValue;
-  result.expectedNote = `提案金額の目安(${result.priceLabel})× 成約確度の目安(${closeProb}%)= 期待値 約${expectedValue}万円。いずれも実績データではなく一般的な相場と予算シグナルからの推定。`;
+  result.expectedNote = `提案金額の目安(${result.priceLabel})× 成約確度の目安(${closeProb}%)= あなたの受注見込み額 約${expectedValue}万円(相手のコスト削減額ではなく、提案が通った場合に見込める自分の売上目安)。いずれも実績データではなく一般的な相場と予算シグナルからの推定。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})から提案する。`;
   // カード用の短い結論文(25〜30字目安)
-  result.cardLine = `${result.dept}課題を${result.action.replace(/[(（].*?[)）]/g,"")}で解消、期待値約${expectedValue}万円`;
+  result.cardLine = `${result.dept}課題を${result.action.replace(/[(（].*?[)）]/g,"")}で解消。受注見込み額 約${expectedValue}万円`;
 
   return result;
 }
@@ -477,7 +477,7 @@ function modalBodyHtml(p){
       <div class="conclusion-box">
         <div class="num-row">
           <div class="num-tile">
-            <div class="num-label">期待値</div>
+            <div class="num-label">受注見込み額<br><span style="font-weight:400">(自分の売上)</span></div>
             <div class="num-value">約${esc(String(conclusion.expectedValue))}<span class="num-unit">万円</span></div>
           </div>
           <div class="num-tile">
