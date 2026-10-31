@@ -257,10 +257,11 @@ const RESEARCH_FACTS = {
     ],
   },
   "有限会社杉元建具": {
-    employeeCount:"約4", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認",
-    capitalMan:500, capitalStatus:"確定（国土交通省 建設業者・宅建業者等企業情報検索システム）",
+    employeeCount:"5", employeeStatus:"確定（ハローワーク求人票、企業全体の従業員数）", employeeSource:"ハローワーク求人票",
+    capitalMan:500, capitalStatus:"確定（国土交通省データベース・ハローワーク求人票の2系統で一致）",
     additionalSources:[
       { label:"国土交通省 建設業者・宅建業者等企業情報検索システム", url:"https://etsuran2.mlit.go.jp/TAKKEN/kensetuKensaku.do?outPutKbn=1", note:"岡山県知事許可第020041号。資本金額5,000千円（500万円）、代表者 杉元大介、電話086-282-4664（2026-10-31確認）。検索画面で「杉元建具」「岡山県」を指定すると同じ結果が再現できる（個票への直接リンクは発行されないシステムのため）。" },
+      { label:"ハローワーク求人票（建具・家具工）", url:"https://jp.indeed.com/viewjob?jk=1047c47011759774&tk=1k68epdnu21sm000", note:"求人番号33010-27754661。賃金形態：日給10,000円〜15,000円（月平均労働日数21.6日で月額換算216,000円〜324,000円）。企業全体の従業員数5人、資本金500万円、設立昭和63年（2026-10-31確認）。" },
     ],
   },
   "有限会社大橋重機": { employeeCount:"7", employeeStatus:"推定（根拠不明、商談で要確認）", employeeSource:"未確認" },
@@ -544,7 +545,7 @@ function concludeDept(p){
     let benefitFormula = "";
     const monthlyMatch = indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
     const dailyMatch = !monthlyMatch && indeed.m && indeed.m.match(/日給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
-    const DAYS_PER_MONTH = 22; // 日給→月給換算の一般的な目安(稼働22日/月)
+    const DAYS_PER_MONTH = 21.6; // ハローワーク求人票の「月平均労働日数」で使われる日給→月額換算の標準係数
     if(monthlyMatch || dailyMatch){
       const m = monthlyMatch || dailyMatch;
       let lo = parseFloat(m[1]);
