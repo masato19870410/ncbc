@@ -131,8 +131,7 @@
   .proposal-headline{font-size:16px;font-weight:800;line-height:1.45;color:var(--text);margin-bottom:10px}
   .proposal-headline strong{color:var(--ok)}
   .proposal-flow{display:flex;align-items:stretch;gap:5px;margin:0 0 12px}
-  .proposal-step{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:6px 7px;font-size:11px;line-height:1.45}
-  .proposal-step b{display:block;font-size:9.5px;color:var(--muted);margin-bottom:1px}
+  .proposal-step{flex:1;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 7px;font-size:11px;font-weight:600;line-height:1.45;text-align:center}
   .proposal-arrow{align-self:center;color:var(--muted);font-weight:700}
   .client-benefit-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:3px}
   .client-benefit-text{font-size:13px;font-weight:600;line-height:1.65;color:var(--text);margin-bottom:12px}
@@ -442,10 +441,10 @@ function concludeDept(p){
   result.businessScale = businessScale;
   result.topConclusion = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : `の${result.effectType === "費用減" ? "削減余地" : "増加余地"}`}のため、${result.action}に${result.priceLabel}を投資する。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
-  // 費用対効果は「目的（効果）→ 手段（費用・投資）」の順で読ませる。
+  // 効果を先、投資内容を後に置いて、ラベルに頼らず読める順にする。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
-  result.cardLine = `目的（狙う効果）: ${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}`;
-  result.cardSub = `手段（投資）: ${result.priceLabel} / 導入: ${shortAction}`;
+  result.cardLine = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}`;
+  result.cardSub = `${result.priceLabel} / ${shortAction}`;
 
   return result;
 }
@@ -510,12 +509,12 @@ function modalBodyHtml(p){
     ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
     <div class="card-detail">
       <div class="conclusion-box">
-        <div class="proposal-kicker">費用対効果（投資対効果）｜目的＝効果 ／ 手段＝費用（投資）</div>
-        <div class="proposal-headline">目的は <strong>${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}</strong>${conclusion.effectValue === "未算定" ? "（商談で算定）" : `の${conclusion.effectType === "費用減" ? "削減" : "増加"}余地`}<br>手段として${esc(conclusion.action)}へ${esc(conclusion.priceLabel)}を投資</div>
+        <div class="proposal-kicker">費用対効果（投資対効果）</div>
+        <div class="proposal-headline"><strong>${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}</strong>${conclusion.effectValue === "未算定" ? "（商談で算定）" : `の${conclusion.effectType === "費用減" ? "削減" : "増加"}余地`}<br>${esc(conclusion.action)}に${esc(conclusion.priceLabel)}を投資</div>
         <div class="proposal-flow">
-          <div class="proposal-step"><b>目的（効果）</b>${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}${conclusion.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}</div><div class="proposal-arrow">↔</div>
-          <div class="proposal-step"><b>手段（導入）</b>${esc(conclusion.action)}</div><div class="proposal-arrow">↔</div>
-          <div class="proposal-step"><b>手段（費用・投資）</b>${esc(conclusion.priceLabel)}</div>
+          <div class="proposal-step">${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}${conclusion.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}</div><div class="proposal-arrow">↔</div>
+          <div class="proposal-step">${esc(conclusion.action)}</div><div class="proposal-arrow">↔</div>
+          <div class="proposal-step">${esc(conclusion.priceLabel)}</div>
         </div>
         <div class="client-benefit-label">相手(先方)の得・損（${esc(conclusion.benefitStatus)}）</div>
         <div class="client-benefit-text">${esc(conclusion.clientBenefit)}</div>
