@@ -15,11 +15,12 @@
 ```
 name, category, industry, area, phone, email, dept, summary,
 hypothesis_sales, hypothesis_hr, hypothesis_pr, proposal, message, script,
-lat, lng, channels_json, source_preset, verified_at
+lat, lng, channels_json, source_preset, verified_at, capital_man, revenue_man
 ```
 
 - `channels_json` は `[{"n":チャネル名, "r":評価(◎○△✕), "u":実URLまたはnull, "m":根拠メモ}, ...]` のJSON文字列をそのまま1セルに入れる(カンマや引用符を含むのでCSVとしては通常どおりダブルクォートで囲まれる形でよい)。
 - `dept` は `営業` / `人事` / `広報` のいずれか。カード本文に出す主要文(`hypothesisSales`/`hypothesisHr`/`hypothesisPr`のどれを見せるか)の切り替えに使う。
+- `capital_man` は資本金を万円単位で、`revenue_man` は年間売上高を万円単位で入れる。未確認の場合は空欄にする。
 
 ## ★ユーザー作業が必要な手順★
 

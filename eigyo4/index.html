@@ -43,7 +43,6 @@
     box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0}
   .card:active{background:var(--panel-2)}
   .card .row-head{display:flex;align-items:baseline;gap:6px;min-width:0;margin-bottom:4px}
-  .card .num{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--muted);flex-shrink:0}
   .card .name{font-weight:700;font-size:13.5px;letter-spacing:-.01em;flex:1;min-width:0;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card .meta{font-size:11px;color:var(--muted);line-height:1.6;
@@ -122,6 +121,8 @@
 
   .conclusion-box{background:var(--panel-2);border:2px solid var(--text);border-radius:10px;
     padding:14px 16px;margin-bottom:16px}
+  .client-benefit-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:3px}
+  .client-benefit-text{font-size:13px;font-weight:600;line-height:1.65;color:var(--text);margin-bottom:12px}
   .conclusion-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
   .conclusion-cost{font-size:13px;font-weight:700;margin:2px 0 2px;color:var(--text)}
   .conclusion-dept{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:8px}
@@ -300,31 +301,23 @@ function concludeDept(p){
   const gmap = findChannel(channels, "Googleマップ");
   const indeed = findChannel(channels, "Indeed");
 
-  // 費用対効果は「直すコストの安さ」だけでなく「相手に払う原資があるか」も要る。
-  // 予算の代理指標として使えるのはIndeed掲載の活発さ(求人件数・給与水準)くらいしかないため明記する。
-  // ※ここでの金額は裏取りした実額ではなく、求人掲載の活発さから推定した「目安の規模感」。
-  const jobCountMatch = indeed && indeed.m && indeed.m.match(/(\d+)件掲載/);
-  const jobCount = jobCountMatch ? parseInt(jobCountMatch[1], 10) : 0;
-  const salaryMatch2 = indeed && indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
-  const salaryHi = salaryMatch2 ? parseFloat(salaryMatch2[2] || salaryMatch2[1]) : 0;
+  // 資本金・売上高は事業規模の参考情報。制作予算そのものではないため、予算額の推定には使わない。
+  const capitalMan = parseFloat(p.capitalMan) || 0;
+  const revenueMan = parseFloat(p.revenueMan) || 0;
 
-  let budgetTier, budgetTierShort, budgetNote;
-  if(indeed && indeed.r === "◎" && (jobCount >= 3 || salaryHi >= 40)){
-    budgetTier = "推定予算: 年1,000万円規模";
-    budgetTierShort = "年1,000万円規模";
-    budgetNote = "求人を複数・高水準の給与で出しており、採用への投資意欲・予算規模が大きいと推測される。";
-  } else if(indeed && indeed.r === "◎"){
-    budgetTier = "推定予算: 年100万円規模";
-    budgetTierShort = "年100万円規模";
-    budgetNote = "求人を複数・継続的に出しており、採用予算は相応に確保できている可能性が高い。";
-  } else if(indeed && indeed.r === "○"){
-    budgetTier = "推定予算: 年10万円規模";
-    budgetTierShort = "年10万円規模";
-    budgetNote = "求人を出してはいるが小規模。大きな投資は難しく、低コストな施策が現実的。";
+  let businessScale, businessScaleNote;
+  if(revenueMan >= 10000){
+    businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（確認済み）`;
+    businessScaleNote = `年間売上高${(revenueMan/10000).toFixed(0)}億円は確認できた。ただし今回の制作・運用予算は商談で確認する。`;
+  } else if(capitalMan >= 800){
+    businessScale = `資本金${capitalMan}万円（確認済み）`;
+    businessScaleNote = `資本金${capitalMan}万円は確認できた。ただし今回の制作・運用予算は商談で確認する。`;
+  } else if(capitalMan > 0){
+    businessScale = `資本金${capitalMan}万円（確認済み）`;
+    businessScaleNote = `資本金${capitalMan}万円は確認できた。ただし今回の制作・運用予算は商談で確認する。`;
   } else {
-    budgetTier = "推定予算: 不明(シグナルなし)";
-    budgetTierShort = "予算不明";
-    budgetNote = "採用・広告の予算感を示す材料(求人掲載等)が無く、予算感は未確認。提案の温度感は下げて様子を見る必要がある。";
+    businessScale = "売上高・資本金は未確認";
+    businessScaleNote = "売上高・資本金は未確認。今回の制作・運用予算は商談で確認する。";
   }
 
   let result;
@@ -332,25 +325,28 @@ function concludeDept(p){
     result = {
       cost: "導入コスト: 無料・即日",
       action: "Googleビジネスプロフィールの登録",
-      accountItem: "勘定科目なし(無料施策)",
+      accountItem: "外注費(初期設定代行)",
       dept: "営業",
       text: p.hypothesisSales,
-      priceRange: [2, 3],
-      reason: `無料・即日反映で最も低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
-      winCase: "「無料で検索に出るようになる」という分かりやすいメリットは刺さりやすい。代行費も数万円と小さく即決されやすい。",
-      loseCase: "「無料なら自分でもできるのでは」と思われ、代行の必要性を感じてもらえず断られるリスク。やり方を教えるだけで終わる可能性もある。",
+      priceLabel: "初期費用 2〜3万円（単発）",
+      clientBenefit: "検索経由の問い合わせを取りこぼしている可能性がある。ただしアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
+      reason: `Googleビジネスプロフィール自体は無料。初期設定を代行する提案として、低い初期費用から始められる。${businessScaleNote}`,
+      winCase: "Googleマップ経由の問い合わせ数を、登録前後で計測できる状態にする。",
+      loseCase: "登録後に見る指標(表示回数・電話・ルート検索・問い合わせ)を先に合意する。",
     };
   } else if((!site || site.r==="✕") && indeed && (indeed.r==="◎"||indeed.r==="○")){
     // 相手側の効果(採用コスト削減)を、求人票記載の月給レンジ×人材紹介手数料相場(年収の30%が業界慣行)から試算。
     // 金額換算できるのはこの採用系だけ(営業/広報は流入→成約の実データが無く金額換算は困難)。
-    let clientValueNote = "";
+    let clientBenefit = "採用に関する具体的な損失額は、求人票に給与情報が無く算出できない。";
+    let clientBenefitAmount = "";
     const salaryMatch = indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
     if(salaryMatch){
       const lo = parseFloat(salaryMatch[1]);
       const hi = salaryMatch[2] ? parseFloat(salaryMatch[2]) : lo;
       const feeLo = Math.round(lo * 12 * 0.3);
       const feeHi = Math.round(hi * 12 * 0.3);
-      clientValueNote = `求人票の月給(${salaryMatch[0].replace("円","")}円)を基に試算すると、人材紹介経由の手数料相場(年収の約30%、業界慣行)は${feeLo}〜${feeHi}万円。自社採用できればその分がまるごとコスト削減になる。`;
+      clientBenefitAmount = `${feeLo}〜${feeHi}万円`;
+      clientBenefit = `試算条件: 求人票の月給(${salaryMatch[0].replace("円","")}円)、人材紹介手数料を年収の30%と置く。1名を人材紹介ではなく自社採用できた場合、${feeLo}〜${feeHi}万円の採用コスト削減余地がある。`;
     }
     result = {
       cost: "導入コスト: 低",
@@ -358,10 +354,12 @@ function concludeDept(p){
       accountItem: "採用費 / 外注費(制作費)",
       dept: "人事",
       text: p.hypothesisHr,
-      priceRange: [8, 15],
-      reason: `求人が実際に動いている(Indeed掲載中)タイミングで受け皿を作るだけで応募の離脱を防げる。人事課題への着手が最もROIが高い。${budgetNote}${clientValueNote ? " "+clientValueNote : ""}`,
-      winCase: "求人が実際に動いている今だからこそ「今すぐ効果が出る」という時間的切迫感を訴求できる。採用費として予算を取りやすい部門でもある。",
-      loseCase: "Indeedの無料掲載だけで十分応募が来ていると思われていると、追加投資の必要性を感じてもらえず「今はいい」と先送りされるリスク。",
+      priceLabel: "制作費 8〜15万円（単発）",
+      clientBenefit,
+      clientBenefitAmount,
+      reason: `Indeed掲載中に、応募者が会社・仕事内容を確認できる受け皿を用意する提案。${businessScaleNote}`,
+      winCase: "現状の応募数、面接数、採用数、人材紹介の利用有無を確認して、削減余地を確かめる。",
+      loseCase: "ページ公開後は、Indeedからの流入・応募数・採用数を計測し、効果を検証する。",
     };
   } else if(site && site.r==="△"){
     result = {
@@ -370,10 +368,11 @@ function concludeDept(p){
       accountItem: "外注費(IT関連費)",
       dept: "営業",
       text: p.hypothesisSales,
-      priceRange: [5, 8],
-      reason: `ゼロから作るより圧倒的に低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
-      winCase: "既にサイトがあるので「作り直し」ではなく「部分修正」で済む安心感があり、意思決定のハードルが低い。",
-      loseCase: "「今までこれで困っていない」と現状維持バイアスが働きやすく、問題の深刻さが伝わらないと後回しにされるリスク。",
+      priceLabel: "改修費 5〜8万円（単発）",
+      clientBenefit: "SSL非対応だと閲覧者の一部が「保護されていません」表示で離脱・問い合わせを躊躇する可能性がある。ただし当該サイトのアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
+      reason: `既存サイトを活かして、SSL化や必要ページの追加から着手する提案。${businessScaleNote}`,
+      winCase: "警告表示が出るページと、改善後に計測する問い合わせ・フォーム到達数を確認する。",
+      loseCase: "改修範囲、管理権限、現在のアクセス数を確認してから費用と期待効果を確定する。",
     };
   } else {
     result = {
@@ -382,35 +381,22 @@ function concludeDept(p){
       accountItem: "広告宣伝費",
       dept: "広報",
       text: p.hypothesisPr,
-      priceRange: [3, 5],
-      reason: `営業・人事側の低コストな打ち手が既に無いため、相対的に最もROIが高い(効果が出るまでやや時間はかかる)。${budgetNote}`,
-      winCase: "他の低コストな打ち手が尽きている状態なので、長期視点で納得してもらえれば着手してもらいやすい。",
-      loseCase: "効果が出るまで時間がかかるため「成果が見えない投資」として敬遠されやすく、最も失注しやすいパターン。",
+      priceLabel: "月額 3〜5万円（運用支援）",
+      clientBenefit: "情報発信が無いことによる新規問い合わせの機会損失があると考えられるが、具体的な金額は算出できない(誠実に「不明」とする)。",
+      reason: `施工実績・会社情報を継続して発信し、問い合わせにつながる情報を増やす提案。${businessScaleNote}`,
+      winCase: "月間の投稿本数、閲覧数、問い合わせ数を決め、月次で効果を確認する。",
+      loseCase: "投稿素材の提供担当者と、月額内に含める作業範囲を事前に決める。",
     };
   }
 
-  result.budget = budgetNote;
-  result.budgetTier = budgetTier;
-  result.budgetTierShort = budgetTierShort;
-
-  // 成約確度(目安): 予算シグナルの強さ + 既存情報の濃さから推定。実際の成約率データは無いため、あくまで目安。
-  const known = channels.filter(ch => ch.r==="◎" || ch.r==="○").length;
-  let closeProb;
-  if(indeed && indeed.r === "◎" && known >= 2) closeProb = 55;
-  else if(indeed && (indeed.r === "◎" || indeed.r === "○")) closeProb = 35;
-  else closeProb = 15;
-
-  const priceMid = (result.priceRange[0] + result.priceRange[1]) / 2;
-  const expectedValue = Math.round(priceMid * closeProb) / 100; // 万円
-
-  result.priceLabel = `${result.priceRange[0]}〜${result.priceRange[1]}万円(相場目安)`;
-  result.closeProb = closeProb;
-  result.expectedValue = expectedValue;
-  result.expectedNote = `提案金額の目安(${result.priceLabel})× 成約確度の目安(${closeProb}%)= あなたの受注見込み額 約${expectedValue}万円(相手のコスト削減額ではなく、提案が通った場合に見込める自分の売上目安)。いずれも実績データではなく一般的な相場と予算シグナルからの推定。`;
-  result.wrapUp = `結論: まずは${result.dept}課題(${result.action})から提案する。`;
-  // カード用の短い結論文(25〜30字目安)
-  result.cardLine = `予算${budgetTierShort} → 受注見込み約${expectedValue}万円`;
-  result.cardSub = `${result.dept}課題を${result.action.replace(/[(（].*?[)）]/g,"")}で解消`;
+  result.businessScale = businessScale;
+  result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
+  // カード用の短い結論文(25〜30字目安): 相手の得/損を先頭に
+  const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
+  result.cardLine = result.clientBenefitAmount
+    ? `相手の得: 採用コスト${result.clientBenefitAmount}削減余地`
+    : `${shortAction}(${result.priceLabel})`;
+  result.cardSub = `${result.dept}課題を${shortAction}で解消`;
 
   return result;
 }
@@ -449,13 +435,12 @@ function fitScore(p){
   return score;
 }
 
-function cardHtml(p, idx, recoRank){
+function cardHtml(p, idx){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const concl = concludeDept(p);
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
-        <div class="num">${String(idx+1).padStart(2,"0")}</div>
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
       ${p.area?`<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>`:""}
@@ -476,26 +461,23 @@ function modalBodyHtml(p){
     ${p.area?`<div class="m-meta">${esc(p.area)}</div>`:""}
     <div class="card-detail">
       <div class="conclusion-box">
+        <div class="client-benefit-label">相手(先方)の得・損</div>
+        <div class="client-benefit-text">${esc(conclusion.clientBenefit)}</div>
         <div class="num-row">
           <div class="num-tile">
-            <div class="num-label">受注見込み額<br><span style="font-weight:400">(自分の売上)</span></div>
-            <div class="num-value">約${esc(String(conclusion.expectedValue))}<span class="num-unit">万円</span></div>
+            <div class="num-label">商材</div>
+            <div class="num-value num-value-sm">${esc(conclusion.action)}</div>
           </div>
           <div class="num-tile">
-            <div class="num-label">成約確度</div>
-            <div class="num-value">${esc(String(conclusion.closeProb))}<span class="num-unit">%</span></div>
-          </div>
-          <div class="num-tile">
-            <div class="num-label">提案額目安</div>
-            <div class="num-value num-value-sm">${esc(String(conclusion.priceRange[0]))}〜${esc(String(conclusion.priceRange[1]))}<span class="num-unit">万円</span></div>
+            <div class="num-label">費用・契約形態</div>
+            <div class="num-value num-value-sm">${esc(conclusion.priceLabel)}</div>
           </div>
         </div>
-        <div class="conclusion-cost">${esc(conclusion.cost)} — ${esc(conclusion.action)}</div>
-        <div class="conclusion-dept">${esc(conclusion.dept)}課題 / ${esc(conclusion.accountItem)} / ${esc(conclusion.budgetTier)}</div>
-        <div class="conclusion-reason">${esc(conclusion.reason)} ${esc(conclusion.expectedNote)}</div>
+        <div class="conclusion-dept">${esc(conclusion.dept)}課題 / ${esc(conclusion.accountItem)} / ${esc(conclusion.businessScale)}</div>
+        <div class="conclusion-reason">${esc(conclusion.reason)}</div>
         <div class="sim-box">
-          <div class="sim-row sim-win"><span class="sim-label">◎ 受注シナリオ</span>${esc(conclusion.winCase)}</div>
-          <div class="sim-row sim-lose"><span class="sim-label">✕ 失注シナリオ</span>${esc(conclusion.loseCase)}</div>
+          <div class="sim-row sim-win"><span class="sim-label">確認したいこと</span>${esc(conclusion.winCase)}</div>
+          <div class="sim-row sim-lose"><span class="sim-label">提案前に決めること</span>${esc(conclusion.loseCase)}</div>
         </div>
         <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
       </div>
@@ -660,6 +642,8 @@ function rowsToItems(rows){
       hypothesisSales: r[idx.hypothesis_sales],
       hypothesisHr: r[idx.hypothesis_hr],
       hypothesisPr: r[idx.hypothesis_pr],
+      capitalMan: r[idx.capital_man],
+      revenueMan: r[idx.revenue_man],
       contact: {
         channels,
         proposal: r[idx.proposal],
@@ -675,7 +659,7 @@ function renderGrid(){
   const grid = document.getElementById("grid");
   if(!ITEMS.length) return;
   const order = ITEMS.map((p,i)=>({p,i})).sort((a,b)=>fitScore(b.p)-fitScore(a.p));
-  grid.innerHTML = order.map(({p,i},rank)=>cardHtml(p,i,rank)).join("");
+  grid.innerHTML = order.map(({p,i})=>cardHtml(p,i)).join("");
 }
 
 async function load(){
