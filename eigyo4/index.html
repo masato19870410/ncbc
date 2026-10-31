@@ -437,12 +437,16 @@ function concludeDept(p){
     };
   }
 
+  // 効果額は比較・回収計算に使うため、金額の有無にかかわらず期間を必ず明示する。
+  // 採用の試算は月給×12、売上系は年次の問い合わせ・成約実績で検証する前提。
+  result.effectPeriod = "年額";
+  const effectLabel = `${result.effectPeriod}の${result.effectType} ${result.effectValue}`;
   result.businessScale = businessScale;
-  result.topConclusion = `${result.effectType}${result.effectValue === "未算定" ? "は未算定" : `${result.effectValue}の${result.effectType === "費用減" ? "削減余地" : "増加余地"}`}のため、${result.action}に${result.priceLabel}を投資する。`;
+  result.topConclusion = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : `の${result.effectType === "費用減" ? "削減余地" : "増加余地"}`}のため、${result.action}に${result.priceLabel}を投資する。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
   // 費用対効果は「目的（効果）→ 手段（費用・投資）」の順で読ませる。
   const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
-  result.cardLine = `目的（狙う効果）: ${result.effectType} ${result.effectValue}${result.effectValue === "未算定" ? "（商談で確認）" : "（試算）"}`;
+  result.cardLine = `目的（狙う効果）: ${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}`;
   result.cardSub = `手段（投資）: ${result.priceLabel} / 導入: ${shortAction}`;
 
   return result;
@@ -509,9 +513,9 @@ function modalBodyHtml(p){
     <div class="card-detail">
       <div class="conclusion-box">
         <div class="proposal-kicker">費用対効果（投資対効果）｜目的＝効果 ／ 手段＝費用（投資）</div>
-        <div class="proposal-headline">目的は <strong>${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}</strong>${conclusion.effectValue === "未算定" ? "" : `の${conclusion.effectType === "費用減" ? "削減" : "増加"}余地`}<br>手段として${esc(conclusion.action)}へ${esc(conclusion.priceLabel)}を投資</div>
+        <div class="proposal-headline">目的は <strong>${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}</strong>${conclusion.effectValue === "未算定" ? "（商談で算定）" : `の${conclusion.effectType === "費用減" ? "削減" : "増加"}余地`}<br>手段として${esc(conclusion.action)}へ${esc(conclusion.priceLabel)}を投資</div>
         <div class="proposal-flow">
-          <div class="proposal-step"><b>目的（効果）</b>${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}${conclusion.effectValue === "未算定" ? "（商談で確認）" : "（試算）"}</div><div class="proposal-arrow">←</div>
+          <div class="proposal-step"><b>目的（効果）</b>${esc(conclusion.effectPeriod)}の${esc(conclusion.effectType)} ${esc(conclusion.effectValue)}${conclusion.effectValue === "未算定" ? "（商談で算定）" : "（試算）"}</div><div class="proposal-arrow">←</div>
           <div class="proposal-step"><b>手段（導入）</b>${esc(conclusion.action)}</div><div class="proposal-arrow">←</div>
           <div class="proposal-step"><b>手段（費用・投資）</b>${esc(conclusion.priceLabel)}</div>
         </div>
