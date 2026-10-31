@@ -130,6 +130,9 @@
   .conclusion-cost{font-size:18px;font-weight:700;margin:4px 0 6px;color:var(--ok)}
   .conclusion-dept{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px}
   .conclusion-budget{font-size:11px;color:var(--warn);font-weight:600;margin-bottom:8px}
+  .conclusion-ev{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+  .conclusion-ev .ev-amount{font-size:16px;font-weight:700;color:var(--ok);margin-left:6px}
+  .conclusion-ev .ev-detail{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
   .conclusion-reason{font-size:12.5px;color:var(--text);line-height:1.6}
 
   .diag-details{margin-bottom:20px}
@@ -305,52 +308,68 @@ function concludeDept(p){
     budgetNote = "採用・広告の予算感を示す材料(求人掲載等)が無く、予算感は未確認。提案の温度感は下げて様子を見る必要がある。";
   }
 
+  let result;
   if(!gmap || gmap.r === "✕"){
-    return {
+    result = {
       cost: "無料・即日",
       action: "Googleビジネスプロフィールの登録",
       accountItem: "勘定科目なし(無料施策)",
       dept: "営業",
       text: p.hypothesisSales,
-      budget: budgetNote,
-      budgetTier,
+      priceRange: [2, 3],
       reason: `無料・即日反映で最も低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
     };
-  }
-  if((!site || site.r==="✕") && indeed && (indeed.r==="◎"||indeed.r==="○")){
-    return {
+  } else if((!site || site.r==="✕") && indeed && (indeed.r==="◎"||indeed.r==="○")){
+    result = {
       cost: "低コスト",
       action: "採用特化ページの新設",
       accountItem: "採用費 / 外注費(制作費)",
       dept: "人事",
       text: p.hypothesisHr,
-      budget: budgetNote,
-      budgetTier,
+      priceRange: [8, 15],
       reason: `求人が実際に動いている(Indeed掲載中)タイミングで受け皿を作るだけで応募の離脱を防げる。人事課題への着手が最もROIが高い。${budgetNote}`,
     };
-  }
-  if(site && site.r==="△"){
-    return {
+  } else if(site && site.r==="△"){
+    result = {
       cost: "低コスト",
       action: "既存サイトの改善(SSL化・採用ページ追加など)",
       accountItem: "外注費(IT関連費)",
       dept: "営業",
       text: p.hypothesisSales,
-      budget: budgetNote,
-      budgetTier,
+      priceRange: [5, 8],
       reason: `ゼロから作るより圧倒的に低コスト。営業課題への着手が最もROIが高い。${budgetNote}`,
     };
+  } else {
+    result = {
+      cost: "中コスト・時間要",
+      action: "SNS等での情報発信の開始",
+      accountItem: "広告宣伝費",
+      dept: "広報",
+      text: p.hypothesisPr,
+      priceRange: [3, 5],
+      reason: `営業・人事側の低コストな打ち手が既に無いため、相対的に最もROIが高い(効果が出るまでやや時間はかかる)。${budgetNote}`,
+    };
   }
-  return {
-    cost: "中コスト・時間要",
-    action: "SNS等での情報発信の開始",
-    accountItem: "広告宣伝費",
-    dept: "広報",
-    text: p.hypothesisPr,
-    budget: budgetNote,
-    budgetTier,
-    reason: `営業・人事側の低コストな打ち手が既に無いため、相対的に最もROIが高い(効果が出るまでやや時間はかかる)。${budgetNote}`,
-  };
+
+  result.budget = budgetNote;
+  result.budgetTier = budgetTier;
+
+  // 成約確度(目安): 予算シグナルの強さ + 既存情報の濃さから推定。実際の成約率データは無いため、あくまで目安。
+  const known = channels.filter(ch => ch.r==="◎" || ch.r==="○").length;
+  let closeProb;
+  if(indeed && indeed.r === "◎" && known >= 2) closeProb = 55;
+  else if(indeed && (indeed.r === "◎" || indeed.r === "○")) closeProb = 35;
+  else closeProb = 15;
+
+  const priceMid = (result.priceRange[0] + result.priceRange[1]) / 2;
+  const expectedValue = Math.round(priceMid * closeProb) / 100; // 万円
+
+  result.priceLabel = `${result.priceRange[0]}〜${result.priceRange[1]}万円(相場目安)`;
+  result.closeProb = closeProb;
+  result.expectedValue = expectedValue;
+  result.expectedNote = `提案金額の目安(${result.priceLabel})× 成約確度の目安(${closeProb}%)= 期待値 約${expectedValue}万円。いずれも実績データではなく一般的な相場と予算シグナルからの推定。`;
+
+  return result;
 }
 
 function fitScore(p){
@@ -422,6 +441,11 @@ function modalBodyHtml(p){
         <div class="conclusion-dept">最もROIが高いのは${esc(conclusion.dept)}課題 / 勘定科目: ${esc(conclusion.accountItem)}</div>
         <div class="conclusion-budget">${esc(conclusion.budgetTier)}</div>
         <div class="conclusion-reason">${esc(conclusion.reason)}</div>
+        <div class="conclusion-ev">
+          <span class="dept-value">期待値(目安)</span>
+          <span class="ev-amount">約${esc(String(conclusion.expectedValue))}万円</span>
+          <div class="ev-detail">${esc(conclusion.expectedNote)}</div>
+        </div>
       </div>
       <details class="diag-details">
         <summary>診断の詳細を見る</summary>
