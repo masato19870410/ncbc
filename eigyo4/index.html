@@ -98,8 +98,9 @@
   .modal{background:var(--panel);width:100%;max-width:480px;max-height:85vh;overflow-y:auto;
     border-radius:16px 16px 0 0;padding:20px 18px 28px;position:relative}
   @media (min-width:520px){ .overlay{align-items:center} .modal{border-radius:14px;max-height:80vh} }
-  .modal .close{position:absolute;top:12px;right:14px;border:none;background:none;font-size:20px;
-    color:var(--muted);cursor:pointer;line-height:1;padding:4px}
+  .modal .close{position:sticky;float:right;top:12px;right:14px;margin-left:-40px;margin-top:-4px;
+    border:none;background:var(--panel);border-radius:50%;font-size:20px;z-index:1;
+    color:var(--muted);cursor:pointer;line-height:1;padding:4px 8px;box-shadow:0 1px 4px rgba(0,0,0,.12)}
   .modal .m-name{font-weight:700;font-size:16px;margin:0 28px 4px 0}
   .modal .m-meta{font-size:12px;color:var(--muted);margin-bottom:2px}
   .modal .m-meta a{color:var(--muted)}
@@ -508,14 +509,20 @@ function concludeDept(p){
     // 金額換算できるのはこの採用系だけ(営業/広報は流入→成約の実データが無く金額換算は困難)。
     let clientBenefit = "採用に関する具体的な損失額は、求人票に給与情報が無く算出できない。";
     let clientBenefitAmount = "";
-    const salaryMatch = indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
-    if(salaryMatch){
-      const lo = parseFloat(salaryMatch[1]);
-      const hi = salaryMatch[2] ? parseFloat(salaryMatch[2]) : lo;
+    const monthlyMatch = indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
+    const dailyMatch = !monthlyMatch && indeed.m && indeed.m.match(/日給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
+    const DAYS_PER_MONTH = 22; // 日給→月給換算の一般的な目安(稼働22日/月)
+    if(monthlyMatch || dailyMatch){
+      const m = monthlyMatch || dailyMatch;
+      let lo = parseFloat(m[1]);
+      let hi = m[2] ? parseFloat(m[2]) : lo;
+      const unitLabel = monthlyMatch ? "月給" : "日給";
+      const basisNote = dailyMatch ? `(日給→月給換算: 稼働${DAYS_PER_MONTH}日/月と仮定)` : "";
+      if(dailyMatch){ lo = lo * DAYS_PER_MONTH; hi = hi * DAYS_PER_MONTH; }
       const feeLo = Math.round(lo * 12 * 0.3);
       const feeHi = Math.round(hi * 12 * 0.3);
       clientBenefitAmount = `${feeLo}〜${feeHi}万円`;
-      clientBenefit = `試算条件: 求人票の月給(${salaryMatch[0].replace("円","")}円)、人材紹介手数料を年収の30%と置く。1名を人材紹介ではなく自社採用できた場合、${feeLo}〜${feeHi}万円の採用コスト削減余地がある。`;
+      clientBenefit = `試算条件: 求人票の${unitLabel}(${m[0].replace("円","")}円)${basisNote}、人材紹介手数料を年収の30%と置く。1名を人材紹介ではなく自社採用できた場合、${feeLo}〜${feeHi}万円の採用コスト削減余地がある。`;
     }
     result = {
       cost: "導入コスト: 低",
@@ -642,7 +649,7 @@ function cardHtml(p, idx){
       <div class="row-head">
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
-      ${p.area?`<a class="meta" href="${esc(googleMapsSearchUrl(p.area))}" target="_blank" rel="noopener" title="Googleマップで開く">${esc(p.area)}</a>`:""}
+      ${p.area?`<div class="meta">${esc(p.area)}</div>`:""}
       <div class="card-cost">
         <span class="cost-tag">${esc(concl.cardLine)}</span>
         <span class="card-investment">${esc(concl.cardInvestment)}</span>
