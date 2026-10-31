@@ -87,10 +87,11 @@
 
   .card-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
   .card-detail .txt{white-space:pre-wrap;margin:8px 0 0;color:var(--muted)}
-  .detail-section{margin-bottom:20px}
-  .detail-section:last-child{margin-bottom:0}
-  .detail-section>b{display:block;font-size:11px;color:var(--muted);font-weight:700;
-    text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+  .detail-toggle{margin-bottom:10px;border-top:1px solid var(--border);padding-top:10px}
+  .detail-toggle:last-child{margin-bottom:0}
+  .detail-toggle summary{cursor:pointer;font-size:11px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;list-style-position:inside}
+  .detail-toggle[open] summary{margin-bottom:10px;color:var(--text)}
   .issue-row{margin-top:10px}
   .issue-row:first-child{margin-top:0}
   .dept-value{display:block;font-size:10.5px;font-weight:700;color:var(--text);
@@ -940,6 +941,15 @@ function modalBodyHtml(p){
   const diag = diagnoseApproach(p);
   const conclusion = concludeDept(p);
   const proposalReady = conclusion.proposalReady;
+  const seller = getSellerProfile();
+  const holdText = "効果根拠が揃うまで保留";
+  const phoneApproach = proposalReady ? (c.script || "未設定") : holdText;
+  const emailApproach = proposalReady ? (p.email ? (c.message || "未設定") : "送信先未確認") : holdText;
+  const formApproach = proposalReady ? "問い合わせフォーム未確認" : holdText;
+  const communityApproach = proposalReady
+    ? (seller.networks ? `活用できる接点：${seller.networks}` : "紹介・地域団体などの接点は未確認")
+    : holdText;
+  const otherApproach = proposalReady ? (c.approachNote || "未設定") : holdText;
   return `
     <button class="close" aria-label="閉じる" data-close>×</button>
     <div class="m-name">${esc(p.name||"")}</div>
@@ -997,24 +1007,26 @@ function modalBodyHtml(p){
           ${proposalReady && !getSenderTrait()?`<div class="sender-bar" data-sender-bar="trait"><span class="label">性格タイプ(任意):</span></div>`:""}
         </div>
       </details>
-      <div class="detail-section"><b>課題</b>
+      <details class="detail-toggle"><summary>課題</summary>
         ${issueRow("営業", p.hypothesisSales)}
         ${issueRow("人事", p.hypothesisHr)}
         ${issueRow("広報", p.hypothesisPr)}
-      </div>
-      ${(c.proposal||c.script||c.message)?`<div class="detail-section"><b>${proposalReady ? "提案" : "調査後の提案仮説"}</b>
-        ${issueRow("骨子", c.proposal)}
-        ${proposalReady ? issueRow("文面(メール/DM)", c.message) : ""}
-        ${proposalReady ? issueRow("台本(電話)", c.script) : ""}
-      </div>`:""}
-      <div class="detail-section"><b>リンク</b>
+      </details>
+      <details class="detail-toggle"><summary>${proposalReady ? "営業アプローチ" : "調査後の営業アプローチ"}</summary>
+        ${issueRow("電話営業", phoneApproach)}
+        ${issueRow("メール営業", emailApproach)}
+        ${issueRow("フォーム営業", formApproach)}
+        ${issueRow("コミュニティ営業", communityApproach)}
+        ${issueRow("その他", otherApproach)}
+      </details>
+      <details class="detail-toggle"><summary>リンク</summary>
         ${channelGroup("自社媒体", own)}
         ${channelGroup("他社媒体", other)}
-      </div>
-      <div class="detail-section"><b>連絡先</b>
+      </details>
+      <details class="detail-toggle"><summary>連絡先</summary>
         ${issueRow("電話", p.phone || "なし")}
         ${issueRow("メール", p.email || "なし")}
-      </div>
+      </details>
     </div>`;
 }
 
