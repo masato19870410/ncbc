@@ -106,6 +106,14 @@
   .diag-desc{font-size:12px;color:var(--text);line-height:1.6}
   .diag-method{margin-top:8px;font-size:12px;color:var(--text);line-height:1.6}
   .diag-method .dept-value{margin-right:6px;margin-bottom:0;display:inline-block}
+  .diag-fit{color:var(--ok)}
+  .diag-fit-empty{margin-top:8px;font-size:11px;color:var(--muted)}
+
+  .sender-bar{margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .sender-bar .label{font-size:11px;color:var(--muted)}
+  .sender-btn{font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:20px;
+    border:1px solid var(--border);background:var(--panel-2);color:var(--muted);cursor:pointer}
+  .sender-btn.active{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
 </style>
 </head>
 <body>
@@ -114,6 +122,9 @@
   <div class="inner">
     <h1>営業アプリ <span id="count" class="count"></span></h1>
     <div class="src">データ: Googleスプレッドシート直読み(v4)</div>
+    <div class="sender-bar" id="senderBar">
+      <span class="label">あなたの得意なスタイル:</span>
+    </div>
   </div>
 </header>
 
@@ -170,6 +181,20 @@ function issueRow(label, text){
 
 function findChannel(channels, name){ return channels.find(ch=>ch.n===name); }
 
+/* ---- 送り手(自分)のプロフィール: localStorageに保存、使うほど診断に反映される ---- */
+const SENDER_KEY = "eigyo_sender_style";
+const SENDER_STYLES = {
+  phone: { label: "電話・対話が得意", icon: "☎" },
+  writing: { label: "文章・丁寧さが得意", icon: "✎" },
+  network: { label: "人脈・紹介が得意", icon: "🤝" },
+};
+function getSenderStyle(){
+  try{ return localStorage.getItem(SENDER_KEY) || ""; }catch(e){ return ""; }
+}
+function setSenderStyle(v){
+  try{ localStorage.setItem(SENDER_KEY, v); }catch(e){}
+}
+
 function diagnoseApproach(p){
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
@@ -193,11 +218,27 @@ function diagnoseApproach(p){
     typeDesc = "情報はあるが証拠(口コミ・実績)が少ない状態。信頼材料を補強する提案が合う。";
   }
 
-  const method = known <= 2
+  let method = known <= 2
     ? "電話(ただし求人内容や会社概要を事前に読み込み、いきなり感を減らしてから)"
     : "電話(会話の冒頭で把握済みの具体的事実に触れると自然)";
 
-  return { type, typeDesc, method };
+  let fit = "";
+  const style = getSenderStyle();
+  const hasEmail = !!p.email;
+  if(style === "phone"){
+    fit = "あなたの「電話・対話が得意」なスタイルと相性良好。台本をベースに、その場での会話で押し切れる。";
+  } else if(style === "writing"){
+    if(hasEmail){
+      method = "まずメールで要点を丁寧に伝え、反応を見てから電話";
+      fit = "あなたの「文章が得意」なスタイルを活かすなら、電話より先にメールで丁寧に伝える方が強みが出る。";
+    } else {
+      fit = "この会社はメール窓口が無く電話一択だが、文章が得意なら台本を事前にしっかり作り込んでから電話すると強みを活かせる。";
+    }
+  } else if(style === "network"){
+    fit = "いきなりの電話より、地元の商工会・業界団体・知人経由で接点を作れないか先に探る方が「人脈・紹介」の強みに合う。";
+  }
+
+  return { type, typeDesc, method, fit };
 }
 
 function cardHtml(p, idx){
@@ -233,6 +274,7 @@ function modalBodyHtml(p){
           <div class="diag-desc">${esc(diag.typeDesc)}</div>
           ${c.approachNote?`<div class="diag-method"><span class="dept-value">アプローチの切り口(費用対効果)</span>${esc(c.approachNote)}</div>`:""}
           <div class="diag-method"><span class="dept-value">推奨アプローチ</span>${esc(diag.method)}</div>
+          ${diag.fit?`<div class="diag-method diag-fit"><span class="dept-value">あなたとの相性</span>${esc(diag.fit)}</div>`:`<div class="diag-method diag-fit-empty">画面上部で「あなたの得意なスタイル」を選ぶと、ここに相性診断が出ます。</div>`}
         </div>
       </div>
       <div class="detail-section"><b>課題</b>
@@ -259,6 +301,29 @@ function modalBodyHtml(p){
       </div>
     </div>`;
 }
+
+function renderSenderBar(){
+  const bar = document.getElementById("senderBar");
+  const current = getSenderStyle();
+  bar.querySelectorAll(".sender-btn").forEach(b=>b.remove());
+  Object.entries(SENDER_STYLES).forEach(([key, s])=>{
+    const btn = document.createElement("button");
+    btn.className = "sender-btn" + (key===current ? " active" : "");
+    btn.type = "button";
+    btn.dataset.style = key;
+    btn.textContent = `${s.icon} ${s.label}`;
+    bar.appendChild(btn);
+  });
+}
+document.getElementById("senderBar").addEventListener("click", e=>{
+  const btn = e.target.closest(".sender-btn");
+  if(!btn) return;
+  const key = btn.dataset.style;
+  setSenderStyle(getSenderStyle() === key ? "" : key);
+  renderSenderBar();
+  if(openIdx !== null) openModal(openIdx);
+});
+renderSenderBar();
 
 let ITEMS = [];
 let openIdx = null;
