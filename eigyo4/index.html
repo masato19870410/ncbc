@@ -555,7 +555,7 @@ function rowsToItems(rows){
   }).filter(p=>p.name);
 }
 
-let RECO_MODE = false;
+let RECO_MODE = true;
 function renderGrid(){
   const grid = document.getElementById("grid");
   if(!ITEMS.length) return;
@@ -563,6 +563,8 @@ function renderGrid(){
   if(RECO_MODE) order = order.slice().sort((a,b)=>fitScore(b.p)-fitScore(a.p));
   grid.innerHTML = order.map(({p,i},rank)=>cardHtml(p,i,RECO_MODE?rank:null)).join("");
 }
+document.getElementById("recoToggle").classList.add("active");
+document.getElementById("recoToggle").textContent = "✕ 通常順に戻す";
 document.getElementById("recoToggle").addEventListener("click", ()=>{
   RECO_MODE = !RECO_MODE;
   document.getElementById("recoToggle").classList.toggle("active", RECO_MODE);
