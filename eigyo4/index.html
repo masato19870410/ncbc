@@ -8,21 +8,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-  /* Design system: neutral grayscale + single accent, quiet borders, no
+  /* Design system: strict monochrome grayscale, quiet borders, no
      gradients/shadows — modeled after Linear / Vercel / shadcn-ui tone. */
   :root{
     --bg:#fafafa; --panel:#ffffff; --panel-2:#f4f4f5; --border:#e4e4e7;
     --text:#18181b; --muted:#71717a;
-    --ok:#15803d; --ok-bg:#f0fdf4; --warn:#a16207; --warn-bg:#fefce8;
-    --bad:#b91c1c; --bad-bg:#fef2f2;
+    --ok:#27272a; --ok-bg:#f4f4f5; --warn:#52525b; --warn-bg:#f4f4f5;
+    --bad:#71717a; --bad-bg:#fafafa;
     --radius:6px;
   }
   @media (prefers-color-scheme:dark){
     :root{
       --bg:#0a0a0b; --panel:#111113; --panel-2:#19191c; --border:#27272a;
       --text:#f4f4f5; --muted:#8b8b93;
-      --ok:#4ade80; --ok-bg:#0f2417; --warn:#facc15; --warn-bg:#2a2308;
-      --bad:#f87171; --bad-bg:#2a1414;
+      --ok:#e4e4e7; --ok-bg:#202023; --warn:#a1a1aa; --warn-bg:#19191c;
+      --bad:#71717a; --bad-bg:#111113;
     }
   }
   *{box-sizing:border-box}
