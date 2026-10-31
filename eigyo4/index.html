@@ -51,6 +51,7 @@
   .card .card-cost{font-size:11.5px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
   .card .cost-tag{display:block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
     border-radius:4px;padding:2px 6px;width:100%;margin-bottom:5px;overflow-wrap:anywhere}
+  .card .card-budget{display:block;overflow-wrap:anywhere;font-size:10.5px;color:var(--muted);margin-bottom:2px}
   .card .card-investment,.card .card-product{display:block;overflow-wrap:anywhere}
   .card .card-investment{font-weight:600}
   .card .card-product{color:var(--muted)}
@@ -508,22 +509,27 @@ function concludeDept(p){
     ? `従業員${facts.employeeCount}人（${facts.employeeStatus}）`
     : "従業員数は未確認";
 
-  let businessScale, businessScaleNote;
+  let businessScale, businessScaleNote, cardBudget;
   if(facts.revenueRangeText){
     businessScale = `年間売上高${facts.revenueRangeText}（${facts.revenueStatus}） / ${employeeScale}`;
     businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    cardBudget = `予算目安: 売上${facts.revenueRangeText}`;
   } else if(revenueMan >= 10000){
     businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    cardBudget = `予算目安: 売上${(revenueMan/10000).toFixed(0)}億円`;
   } else if(capitalMan >= 800){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    cardBudget = `予算目安: 資本金${capitalMan}万円`;
   } else if(capitalMan > 0){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    cardBudget = `予算目安: 資本金${capitalMan}万円`;
   } else {
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
     businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は商談で確認する。`;
+    cardBudget = `予算目安: 未確認`;
   }
 
   let result;
@@ -666,6 +672,7 @@ function concludeDept(p){
     ? "効果の勘定科目（想定）：採用費。先方の会計方針により広告宣伝費・外注費等への計上もあり得るため要確認。"
     : "効果の勘定科目：売上高。利益額ではなく売上増の効果であり、粗利・営業利益への影響は別途確認。";
   result.businessScale = businessScale;
+  result.cardBudget = cardBudget;
   const statusSuffix = result.effectValue === "未算定" ? "（商談で算定）" : (result.isEstimate ? "（業種推定）" : "（試算）");
   result.topConclusion = `${effectLabel}${result.effectValue === "未算定" ? "（商談で算定）" : `の${result.effectType === "費用減" ? "削減余地" : "増加余地"}`}のため、${result.action}に${result.priceLabel}を投資する。`;
   result.wrapUp = `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`;
@@ -752,6 +759,7 @@ function cardHtml(p, idx){
       ${p.area?`<div class="meta">${esc(p.area)}</div>`:""}
       <div class="card-cost">
         <span class="cost-tag">${esc(concl.cardLine)}</span>
+        <span class="card-budget">${esc(concl.cardBudget)}</span>
         <span class="card-investment">${esc(concl.cardInvestment)}</span>
         <span class="card-product">${esc(concl.cardProduct)}</span>
       </div>
