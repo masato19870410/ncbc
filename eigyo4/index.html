@@ -34,7 +34,6 @@
   header.top{border-bottom:1px solid var(--border);background:var(--panel)}
   header.top .inner{max-width:480px;margin:0 auto;padding:16px 16px 12px}
   header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em;text-align:center;line-height:1.35}
-  header.top .count{display:block;margin-top:2px;font-size:10.5px;font-weight:500;color:var(--muted)}
 
   .desktop-shell{max-width:1040px;margin:0 auto}
   .wrap{padding:16px 16px 48px;max-width:480px;margin:0 auto}
@@ -215,7 +214,7 @@
 
 <header class="top">
   <div class="inner">
-    <h1>営業AI <span id="count" class="count"></span></h1>
+    <h1>営業AI</h1>
   </div>
 </header>
 
@@ -1100,7 +1099,6 @@ async function load(){
     ITEMS = items;
     renderGrid();
     renderDesktopSummary();
-    document.getElementById("count").textContent = items.length ? `${items.length}件` : "";
   }catch(err){
     console.error(err);
     grid.innerHTML = `<div class="empty">データを読み込めませんでした。(${esc(err.message)})<br>SHEET_CSV_URLの設定、またはシートの「ウェブに公開」設定を確認してください。README.mdを参照。</div>`;
