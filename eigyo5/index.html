@@ -70,6 +70,8 @@
   .card .connection-label.next{margin-top:7px}
   .card .connection-route{display:block;font-size:11.5px;font-weight:700;line-height:1.45}
   .card .connection-step{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.5}
+  .card .compact-line{display:block;margin-top:7px;font-size:10.5px;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .compact-line b{display:inline-block;width:34px;color:var(--muted);font-size:9px}
   .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .card .card-cost{font-size:11.5px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
@@ -230,7 +232,7 @@
     </div>
     <div class="rail-panel">
       <div class="rail-title">表示順</div>
-      <div class="rail-note">費用対効果 → 会社規模 → 制作費 → 情報量の順で優先しています。</div>
+      <div class="rail-note">費用対効果 → 会社規模 → 制作費の順で優先しています。接点の有無は順位に使いません。</div>
     </div>
   </aside>
 </div>
@@ -255,6 +257,10 @@ if(location.protocol === "file:"){
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1OmKyrwSlLxOEPetl5Q17Aox05Ata8FHMxhDEYgtDkX4/export?format=csv&gid=1331008365";
 
 const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const clipText = (s, max) => {
+  const text = (s??"").toString().replace(/\s+/g, " ").trim();
+  return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
+};
 const googleMapsSearchUrl = address => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || "")}`;
 
 const RATING_CLASS = { "◎":"r-good", "○":"r-mid", "△":"r-weak", "✕":"r-none" };
@@ -844,36 +850,16 @@ function fitScore(p){
 }
 
 function cardHtml(p, idx){
-  const c = p.contact || {};
-  const channels = Array.isArray(c.channels) ? c.channels : [];
   const concl = concludeDept(p);
-  const meta = researchMeta(p);
   const connection = connectionPlan(p);
+  const proposal = `${concl.cardProduct}・${concl.cardInvestment}`;
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
-        <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
+        <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
-      ${p.area?`<div class="meta">${esc(p.area)}</div>`:""}
-      <span class="evidence-badge">${esc(meta.trust)} / ${esc(meta.checkedAt)}</span>
-      <div class="card-cost">
-        <div>
-          <span class="stage-label">相手に出せそうな効果</span>
-          <span class="cost-tag">${esc(concl.cardLine)}</span>
-          <span class="card-budget">${esc(concl.cardBudget)}</span>
-        </div>
-        <div class="proposal-stage">
-          <span class="stage-label">予算に合いそうな提案</span>
-          <span class="card-product">${esc(concl.cardProduct)}</span>
-          <span class="card-investment">${esc(concl.cardInvestment)}</span>
-        </div>
-      </div>
-      <div class="connection">
-        <span class="connection-label">お互いに無理のないつながり方</span>
-        <span class="connection-route">${esc(connection.route)}</span>
-        <span class="connection-step">${esc(connection.reason)}</span>
-        <span class="connection-label next">最初の一歩</span>
-        <span class="connection-step">${esc(connection.firstStep)}</span>
-      </div>
+      <span class="compact-line" title="${esc(concl.cardLine)}"><b>効果</b>${esc(clipText(concl.cardLine, 24))}</span>
+      <span class="compact-line" title="${esc(proposal)}"><b>提案</b>${esc(clipText(proposal, 24))}</span>
+      <span class="compact-line" title="${esc(connection.route)}"><b>出会い方</b>${esc(clipText(connection.route, 24))}</span>
     </div>`;
 }
 
