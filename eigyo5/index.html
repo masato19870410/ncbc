@@ -654,15 +654,15 @@ function concludeDept(p){
   // カードの「会社規模」行は資本金・売上高・従業員数を参考値としてそのまま並べるだけで、
   // 予算そのものを試算・推定することはしない(資本金→予算の換算に使える実在の相場が無いため)。
   // 不明な項目は他カードと見た目を揃えるため「?」で埋める(資本金?万円・従業員?人)。
-  const employeeShort = facts.employeeCount ? `従業員：${facts.employeeCount}人` : "従業員：?人";
+  const employeeShort = facts.employeeCount ? `従業員：${facts.employeeCount}人` : "従業員：？人";
   // カード上では「10億円以上〜50億円未満」を「10〜50億円」に縮め、1行に収める。
   const cardRevenueRange = facts.revenueRangeText
     ? facts.revenueRangeText.replace(/^(.+?)億円以上[〜～](.+?)億円未満$/, "$1〜$2億円")
     : "";
-  const capitalPart = capitalMan > 0 ? `資本金：${capitalMan.toLocaleString("ja-JP")}万円` : "資本金：?万円";
+  const capitalPart = capitalMan > 0 ? `資本金：${capitalMan.toLocaleString("ja-JP")}万円` : "資本金：？万円";
   const revenuePart = cardRevenueRange ? `売上高：${cardRevenueRange}`
     : revenueMan >= 10000 ? `売上高：${(revenueMan/10000).toFixed(0)}億円`
-    : "売上高：?円";
+    : "売上高：？円";
   const cardBudget = `${revenuePart} ${capitalPart} ${employeeShort}`;
 
   let businessScale, businessScaleNote;
