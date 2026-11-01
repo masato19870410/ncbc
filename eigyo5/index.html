@@ -422,34 +422,34 @@ function connectionPlan(p){
   const social = channels.find(ch=>/Instagram|Facebook|X|note/.test(ch.n||"") && ch.u && (ch.r==="◎" || ch.r==="○"));
   const indeed = findChannel(channels, "Indeed");
   if(group) return {
-    status:"接点候補あり", route:group.n,
-    reason:`${group.n}への参加・掲載が確認できるため、団体の活動や業界課題を聞く情報交換から始める。`,
-    evidence:group.m || "団体への参加を公開情報で確認",
-    firstStep:"団体の公開イベント・勉強会・紹介可能な知人を1件だけ確認する。"
+    status:"既存接点なし", route:`探索候補：${group.n}`,
+    reason:"この会社との関係はない。団体情報を手掛かりに、一般参加できる催しや主催者との接触経路を探す。",
+    evidence:group.m || "団体に関する公開情報あり",
+    firstStep:"会社との関係が確認できる会員名簿、登壇・出展履歴、今後の公開イベントを調べる。"
   };
   if(news) return {
-    status:"接点候補あり", route:news.n,
-    reason:`${news.n}の発信内容を読み、取り組みの背景を聞く短い取材・情報交換から始める。`,
+    status:"既存接点なし", route:`探索候補：${news.n}`,
+    reason:"この会社との関係はない。公開発信を手掛かりに、担当者や一般参加できる活動を探す。",
     evidence:news.m || "公開活動を確認",
-    firstStep:"発信内容を確認し、売り込みをせず15分の情報交換を依頼する。"
+    firstStep:"発信元、担当者名、過去の取材・登壇・イベント参加履歴を調べる。"
   };
   if(social) return {
-    status:"接点候補あり", route:`${social.n}・公開活動`,
-    reason:`${social.n}の発信を読んだうえで、地域企業の取り組みを聞く情報交換から始める。`,
+    status:"既存接点なし", route:`探索候補：${social.n}の公開アカウント`,
+    reason:`この会社との関係はない。${social.n}は接点そのものではなく、活動や担当者を知るための手掛かりとして扱う。`,
     evidence:social.m || `${social.n}の公開アカウントを確認`,
-    firstStep:"公開投稿を確認し、具体的な投稿への質問を1つ用意する。"
+    firstStep:"DM受付の記載と運用担当者を確認し、接触可能と分かってから文面を作る。"
   };
   if(indeed) return {
-    status:"接点追加調査", route:"採用課題のヒアリング",
-    reason:"求人活動は確認できるが、自然に会える関係経路は未確認。電話・メールの前に紹介者や地域の接点を探す。",
+    status:"既存接点なし", route:"探索候補：イベント・公開活動・新しい紹介経路",
+    reason:"求人掲載は課題のシグナルであり、会えることやヒアリングできることの根拠にはならない。",
     evidence:indeed.m || "求人掲載を確認",
-    firstStep:"共通の知人、支援機関、業界イベントの順に接点を確認する。"
+    firstStep:"一般参加できるイベント、主催者、登壇・出展履歴、公開SNSの順に調べる。"
   };
   return {
-    status:"接点追加調査", route:"紹介・地域コミュニティ",
-    reason:"公開情報だけでは自然な接点を確認できないため、現時点では連絡を急がない。",
+    status:"既存接点なし", route:"探索候補：イベント・公開活動・新しい紹介経路",
+    reason:"この会社との関係はない。会える場や自然に連絡できる経路をゼロから探す。",
     evidence:"関係経路は未確認",
-    firstStep:"共通の知人または地域の支援機関に接点がないか1人だけ確認する。"
+    firstStep:"一般参加できるイベント、主催者、登壇・出展履歴、公開SNSの順に調べる。"
   };
 }
 function trustBoxHtml(p, conclusion = concludeDept(p)){
@@ -872,7 +872,7 @@ function cardHtml(p, idx){
         </div>
       </div>
       <div class="connection">
-        <span class="connection-label">3　接点を持つ方法</span>
+        <span class="connection-label">3　接点を作る方法</span>
         <span class="connection-route">${esc(connection.route)}</span>
         <span class="connection-step">${esc(connection.reason)}</span>
         <span class="connection-label next">4　最初の一歩</span>
@@ -993,7 +993,7 @@ function renderSelectedCompany(idx){
   target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
     <div class="rail-selected-row"><b>1　ゴール・期待効果</b>${esc(conclusion.cardLine)}</div>
     <div class="rail-selected-row"><b>2　提案</b>${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
-    <div class="rail-selected-row"><b>3　接点を持つ方法</b>${esc(connection.route)} / ${esc(connection.status)}</div>
+    <div class="rail-selected-row"><b>3　接点を作る方法</b>${esc(connection.route)} / ${esc(connection.status)}</div>
     <div class="rail-selected-row"><b>4　最初の一歩</b>${esc(connection.firstStep)}</div>
     <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
     <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
