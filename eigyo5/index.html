@@ -656,12 +656,11 @@ function concludeDept(p){
   const cardRevenueRange = facts.revenueRangeText
     ? facts.revenueRangeText.replace(/^(.+?)億円以上[〜～](.+?)億円未満$/, "$1〜$2億円")
     : "";
-  let scalePart;
-  if(cardRevenueRange) scalePart = `売上${cardRevenueRange}`;
-  else if(revenueMan >= 10000) scalePart = `売上${(revenueMan/10000).toFixed(0)}億円`;
-  else if(capitalMan > 0) scalePart = `資本金${capitalMan}万円`;
-  else scalePart = `資本金?万円`;
-  const cardBudget = `${scalePart}・${employeeShort}`;
+  const capitalPart = capitalMan > 0 ? `資本金${capitalMan.toLocaleString("ja-JP")}万円` : "資本金?万円";
+  const revenuePart = cardRevenueRange ? `売上${cardRevenueRange}`
+    : revenueMan >= 10000 ? `売上${(revenueMan/10000).toFixed(0)}億円`
+    : "売上?円";
+  const cardBudget = `${capitalPart} ${revenuePart} ${employeeShort}`;
 
   let businessScale, businessScaleNote;
   if(facts.revenueRangeText){
@@ -913,27 +912,32 @@ function fitScore(p){
 }
 
 function companyCardLines(p, conclusion, connection){
-  const effect = conclusion.proposalReady
-    ? `${conclusion.effectAccountName}${conclusion.effectValue} 年間${conclusion.effectType === "費用減" ? "回避" : "増加"}余地`
-    : "効果根拠不足 金額提示保留";
-  const proposal = conclusion.proposalReady
-    ? `${conclusion.cardProduct} ${conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")}`
-    : "不足する効果根拠を確認";
-  const uniqueLines = {
-    "株式会社フジショウ": ["売上12億円 従業員75人", "運送業の合同説明会で会う", "県内の出展予定を確認する"],
-    "有限会社杉元建具": ["資本金500万円 従業員約4人", "建具組合の公開行事で会う", "参加可能な展示会を確認する"],
-    "有限会社三谷工業": ["資本金2,000万円 従業員23人", "公開投稿で告知する行事で会う", "一般参加できる予定を確認する"],
-    "株式会社シーエス建材トーヨー住器": ["資本金350万円 従業員16人", "LIXIL公開相談会で会う", "岡山の開催予定を確認する"],
-    "有限会社石井電業社": ["資本金300万円 月給20〜40万円", "電気工事系の合同説明会で会う", "県内の出展予定を確認する"],
-    "有限会社コバヤシ防災システム": ["月給24〜35万円 入札実績あり", "消防設備協会の公開講習で会う", "一般参加できる行事を確認する"],
-    "有限会社ワイ・エス・ピー": ["資本金400万円 求人4件掲載", "ビジネスモールから商談会へ", "商工会議所の開催予定を調べる"],
-    "竹森工芸株式会社": ["資本金1,000万円 従業員12人", "商工会議所の公開行事で会う", "ものづくり系の開催回を選ぶ"],
-    "日新機工有限会社": ["1962年設立 従業員3人", "機械設備の技術講習で会う", "県内の公開講習を確認する"],
-    "光陽警備保障株式会社": ["資本金と売上は公開情報なし", "警備業の合同説明会で会う", "県内の参加予定を確認する"]
+  const effectLines = conclusion.proposalReady
+    ? [`${conclusion.effectAccountName}${conclusion.effectValue}`, `年間${conclusion.effectType === "費用減" ? "回避" : "増加"}余地`]
+    : ["効果根拠不足", "金額提示保留"];
+  const proposalLines = conclusion.proposalReady
+    ? [conclusion.cardProduct, conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")]
+    : ["不足する効果根拠を確認", ""];
+  const uniqueApproachLines = {
+    "株式会社フジショウ": ["運送業の合同説明会で会う", "県内の出展予定を確認する"],
+    "有限会社杉元建具": ["建具組合の公開行事で会う", "参加可能な展示会を確認する"],
+    "有限会社三谷工業": ["公開投稿で告知する行事で会う", "一般参加できる予定を確認する"],
+    "株式会社シーエス建材トーヨー住器": ["LIXIL公開相談会で会う", "岡山の開催予定を確認する"],
+    "有限会社石井電業社": ["電気工事系の合同説明会で会う", "県内の出展予定を確認する"],
+    "有限会社コバヤシ防災システム": ["消防設備協会の公開講習で会う", "一般参加できる行事を確認する"],
+    "有限会社ワイ・エス・ピー": ["ビジネスモールから商談会へ", "商工会議所の開催予定を調べる"],
+    "竹森工芸株式会社": ["商工会議所の公開行事で会う", "ものづくり系の開催回を選ぶ"],
+    "日新機工有限会社": ["機械設備の技術講習で会う", "県内の公開講習を確認する"],
+    "光陽警備保障株式会社": ["警備業の合同説明会で会う", "県内の参加予定を確認する"]
   };
-  const specific = uniqueLines[p.name] || [proposal, connection.route, connection.firstStep];
-  const raw = [effect, proposal, specific[0], specific[1], specific[2]];
-  return raw.slice(0, 5).map(line => line.replace(/[。、，・｜|（）()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 20));
+  const approach = uniqueApproachLines[p.name] || [connection.route, connection.firstStep];
+  const clean = s => s.replace(/[。、，・｜|（）()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 20);
+  return {
+    effect: effectLines.map(clean).filter(Boolean),
+    proposal: proposalLines.map(clean).filter(Boolean),
+    scale: conclusion.cardBudget.split(" ").map(clean).filter(Boolean),
+    approach: approach.map(clean).filter(Boolean)
+  };
 }
 
 function cardHtml(p, idx){
@@ -945,7 +949,10 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
-      ${lines.map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}
+      <div class="line-group"><span class="connection-label">効果</span>${lines.effect.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group"><span class="connection-label">予算</span>${lines.scale.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group"><span class="connection-label">価格</span>${lines.proposal.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group"><span class="connection-label">対面</span>${lines.approach.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
     </div>`;
 }
 
