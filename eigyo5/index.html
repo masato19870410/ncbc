@@ -912,40 +912,40 @@ function fitScore(p){
   return score;
 }
 
-function companyCardSummary(p, conclusion, connection){
+function companyCardLines(p, conclusion, connection){
   const effect = conclusion.proposalReady
-    ? (conclusion.effectType === "費用減"
-      ? `採用費${conclusion.effectValue}/年の回避余地`
-      : `売上${conclusion.effectValue}/年の増加余地`)
-    : "効果額は未算定";
+    ? `${conclusion.effectAccountName}${conclusion.effectValue} 年間${conclusion.effectType === "費用減" ? "回避" : "増加"}余地`
+    : "効果根拠不足 金額提示保留";
   const proposal = conclusion.proposalReady
-    ? `${conclusion.cardProduct}を${conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")}で検討`
-    : "金額提示は保留";
-  const summaries = {
-    "株式会社フジショウ": `売上12億円・従業員75人で既存採用サイトも稼働中。${effect}。${proposal}。採用サイトの応募導線を1画面にした改善案から届ける。`,
-    "有限会社杉元建具": `資本金500万円・従業員約4人。Google評価4.3、岡山県建具組合連合会の正会員。${effect}。連合会の展示会や講習会で仕事を知るところから始める。`,
-    "有限会社三谷工業": `資本金2,000万円・従業員23人。主力の鉄骨組立工が自社採用ページに未掲載。${effect}。稼働中のInstagramで施工・採用活動を理解してから接触する。`,
-    "株式会社シーエス建材トーヨー住器": `従業員16人、資本金350万円。マド本舗岡山シーエスのYouTubeに5本の動画あり。${proposal}。公開動画を既存サイトへ生かす1画面案を先に作る。`,
-    "有限会社石井電業社": `月給20〜40万円で電気工事スタッフを募集中、資本金300万円。${effect}。engage求人を基に、応募前に知りたい会社情報の完成見本を作って届ける。`,
-    "有限会社コバヤシ防災システム": `月給24〜35万円の消防設備求人と公共入札実績あり。岡山県消防設備協会の1号会員。${effect}。協会の公開講習・行事で業界を学ぶ機会を入口にする。`,
-    "有限会社ワイ・エス・ピー": `月給25〜45万円の求人4件、大手ゼネコン案件中心、資本金400万円。${effect}。ザ・ビジネスモール掲載を手掛かりに商工会議所の商談会を探す。`,
-    "竹森工芸株式会社": `資本金1,000万円・従業員12人。岡山商工会議所所属で、あわぎん銀行のSDGs取材実績あり。${effect}。ものづくり系の公開行事で施工事例を知る。`,
-    "日新機工有限会社": `1962年設立、従業員3人・資本金300万円。60年以上の実績がネット上で見えない。${effect}。沿革と対応実績の1ページ見本を返信不要で郵送する。`,
-    "光陽警備保障株式会社": `公式サイト・SNS・現在の求人・県警備業協会掲載を確認できず、効果額も未算定。会社名検索の現状と改善後を比べた紙1枚を返信不要で郵送する。`
+    ? `${conclusion.cardProduct} ${conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")}`
+    : "不足する効果根拠を確認";
+  const uniqueLines = {
+    "株式会社フジショウ": ["売上12億円 従業員75人", "既存採用サイト窓口へ資料送付", "応募導線の1画面案を届ける"],
+    "有限会社杉元建具": ["資本金500万円 従業員約4人", "建具組合の公開行事で会う", "参加可能な展示会を確認する"],
+    "有限会社三谷工業": ["資本金2000万円 従業員23人", "Instagramの公開投稿から接触", "投稿に沿った質問を用意する"],
+    "株式会社シーエス建材トーヨー住器": ["資本金350万円 従業員16人", "公式YouTubeを入口にする", "動画を生かす1画面案を作る"],
+    "有限会社石井電業社": ["資本金300万円 月給20〜40万円", "engage採用窓口へ資料送付", "応募者向け完成見本を届ける"],
+    "有限会社コバヤシ防災システム": ["月給24〜35万円 入札実績あり", "消防設備協会の公開講習で会う", "一般参加できる行事を確認する"],
+    "有限会社ワイ・エス・ピー": ["資本金400万円 求人4件掲載", "ビジネスモールから商談会へ", "商工会議所の開催予定を調べる"],
+    "竹森工芸株式会社": ["資本金1000万円 従業員12人", "商工会議所の公開行事で会う", "ものづくり系の開催回を選ぶ"],
+    "日新機工有限会社": ["1962年設立 従業員3人", "沿革と実績の見本を郵送", "返信不要の1ページを作る"],
+    "光陽警備保障株式会社": ["資本金と売上は公開情報なし", "検索結果の改善見本を郵送", "返信不要の1枚資料を作る"]
   };
-  return summaries[p.name] || `${effect}。${proposal}。${connection.route}。${connection.firstStep}`;
+  const specific = uniqueLines[p.name] || [proposal, connection.route, connection.firstStep];
+  const raw = [effect, proposal, specific[0], specific[1], specific[2]];
+  return raw.slice(0, 5).map(line => line.replace(/[。、，,・｜|（）()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 20));
 }
 
 function cardHtml(p, idx){
   const concl = concludeDept(p);
   const connection = connectionPlan(p);
-  const summary = companyCardSummary(p, concl, connection);
+  const lines = companyCardLines(p, concl, connection);
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
-      <span class="compact-line" title="${esc(summary)}">${esc(clipText(summary, 250))}</span>
+      ${lines.map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}
     </div>`;
 }
 
