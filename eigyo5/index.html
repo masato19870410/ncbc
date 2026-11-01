@@ -70,6 +70,9 @@
   .card .connection-route{display:block;font-size:11.5px;font-weight:700;line-height:1.45}
   .card .connection-step{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.5}
   .card .compact-line{display:block;margin-top:7px;font-size:10.5px;line-height:1.6;overflow-wrap:anywhere}
+  .card .scale-lines{margin-top:7px}
+  .card .scale-lines .compact-line{margin-top:0}
+  .card .scale-lines .compact-line+.compact-line{margin-top:1px}
   .card .line-group{margin-top:7px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;background:var(--panel-2)}
   .card .line-group .compact-line{margin-top:4px}
   .card .line-group .compact-line:first-child{margin-top:0}
@@ -942,7 +945,7 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
-      ${concl.cardBudget.split("｜").map(part => `<span class="compact-line">${esc(part)}</span>`).join("")}
+      <div class="scale-lines">${concl.cardBudget.split("｜").map(part => `<span class="compact-line">${esc(part)}</span>`).join("")}</div>
       <div class="line-group cost-group">${lines.slice(0,2).map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}</div>
       <div class="line-group">${lines.slice(3,5).map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}</div>
     </div>`;
