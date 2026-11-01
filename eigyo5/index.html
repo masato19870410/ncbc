@@ -852,12 +852,15 @@ function cardHtml(p, idx){
   const concl = concludeDept(p);
   const connection = connectionPlan(p);
   const effect = concl.proposalReady
-    ? `${concl.effectAccountName} ${concl.effectValue}/年${concl.isEstimate ? "（業界推定）" : "の改善余地"}`
-    : "効果未算定・提案保留";
+    ? (concl.effectType === "費用減"
+      ? `年間${concl.effectValue}の${concl.effectAccountName}を減らせる可能性${concl.isEstimate ? "（推定）" : ""}`
+      : `年間${concl.effectValue}の売上増加余地${concl.isEstimate ? "（推定）" : ""}`)
+    : "効果を算定できるまで提案しない";
   const proposal = concl.proposalReady
-    ? `${concl.cardProduct} ${concl.cardInvestment.replace(/[（(]単発[）)]/g, "")}`
-    : "効果根拠を追加調査";
-  const meeting = connection.route.replace(/^会い方の候補：/, "");
+    ? `${concl.cardInvestment.replace(/[（(]単発[）)]/g, "")}で${concl.cardProduct}`
+    : "不足している効果根拠を調べる";
+  const meetingBase = connection.route.replace(/^会い方の候補：/, "");
+  const meeting = meetingBase === "会い方を追加調査" ? meetingBase : `${meetingBase}を起点に会い方を探す`;
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
