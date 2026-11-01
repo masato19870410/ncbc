@@ -36,10 +36,10 @@
   header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em;text-align:center;line-height:1.35}
 
   .desktop-shell{max-width:1040px;margin:0 auto}
-  .wrap{padding:12px 12px 40px;max-width:351px;margin:0 auto}
+  .wrap{padding:16px 16px 48px;max-width:480px;margin:0 auto}
   .desktop-rail{display:none}
   @media (min-width:960px){
-    .desktop-shell{display:grid;grid-template-columns:220px 351px 220px;gap:24px;align-items:start;justify-content:center;padding:0 24px}
+    .desktop-shell{display:grid;grid-template-columns:220px 480px 220px;gap:24px;align-items:start;justify-content:center;padding:0 24px}
     .desktop-rail{display:block;position:sticky;top:24px;margin-top:16px}
     .rail-panel{border:1px solid var(--border);border-radius:10px;background:var(--panel);padding:14px}
     .rail-panel+.rail-panel{margin-top:10px}
@@ -51,11 +51,12 @@
     .rail-note{margin-top:4px;font-size:10.5px;color:var(--muted);line-height:1.55}
     .rail-steps{margin:0;padding-left:18px;color:var(--muted);font-size:11px;line-height:1.7}
     .rail-steps b{color:var(--text)}
+    .wrap{padding-left:0;padding-right:0;width:480px}
   }
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;align-items:stretch}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:stretch}
   .disclaimer{margin:0 0 12px;border-left:2px solid var(--muted);padding:6px 8px;background:var(--panel-2);font-size:10px;line-height:1.55;color:var(--muted)}
   header.top .disclaimer{margin:4px 0 0;border:0;padding:0;background:transparent;font-size:9.5px;line-height:1.45}
-  .card{border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--panel);cursor:pointer;
+  .card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--panel);cursor:pointer;
     box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0;height:100%}
   .card:active{background:var(--panel-2)}
   .card[aria-current="true"]{border-color:var(--text)}
@@ -70,22 +71,26 @@
   .card .connection-route{display:block;font-size:11.5px;font-weight:700;line-height:1.45}
   .card .connection-step{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.5}
   .card .compact-line{display:block;margin-top:7px;font-size:10.5px;line-height:1.6;overflow-wrap:anywhere}
-  .card .line-group{margin-top:7px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;background:var(--panel-2)}
-  .card .line-group .compact-line{margin-top:4px}
-  .card .line-group .compact-line:first-child{margin-top:0}
-  .card .line-group.cost-group .compact-line:first-child{font-weight:700}
   .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-  .card .card-cost{font-size:11px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
+  .card .card-cost{font-size:11.5px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
   .card .stage-label{display:block;font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:3px}
   .card .proposal-stage{padding-top:7px;border-top:1px solid var(--border)}
-  .card .cost-tag{display:block;font-size:9.5px;font-weight:700;color:var(--ok);background:var(--ok-bg);
-    border-radius:4px;padding:2px 6px;width:100%;margin-bottom:5px;overflow-wrap:anywhere;line-height:1.45}
-  .card .card-budget{display:block;overflow-wrap:anywhere;font-size:9.5px;color:var(--muted);margin-bottom:2px}
+  .card .cost-tag{display:block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
+    border-radius:4px;padding:2px 6px;width:100%;margin-bottom:5px;overflow-wrap:anywhere}
+  .card .card-budget{display:block;overflow-wrap:anywhere;font-size:10px;color:var(--muted);margin-bottom:2px}
   .evidence-badge{display:inline-block;width:fit-content;border:1px solid var(--border);border-radius:999px;padding:1px 5px;font-size:9px;color:var(--muted);line-height:1.4}
   .card .card-investment,.card .card-product{display:block;overflow-wrap:anywhere}
   .card .card-investment{font-weight:600}
   .card .card-product{color:var(--muted)}
+  @media (max-width:390px){
+    .wrap{padding:12px 12px 40px}
+    .grid{gap:8px}
+    .card{padding:12px}
+    .card .card-cost{font-size:11px}
+    .card .cost-tag{font-size:9.5px;line-height:1.45}
+    .card .card-budget{font-size:9.5px}
+  }
   .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px;grid-column:1/-1}
   .hidden{display:none!important}
 
@@ -196,7 +201,7 @@
 <header class="top">
   <div class="inner">
     <h1>営業AI</h1>
-    <p class="disclaimer">金額は公開情報に基づく参考試算です<br>成果を保証するものではありません</p>
+    <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
   </div>
 </header>
 
@@ -211,7 +216,7 @@
     <div class="rail-panel">
       <div class="rail-title">最優先候補</div>
       <div class="rail-priority" id="rail-priority">読み込み中…</div>
-      <div class="rail-note">費用対効果｜会社規模｜提案しやすさから自動選定</div>
+      <div class="rail-note">費用対効果・会社規模・提案しやすさから自動選定</div>
     </div>
   </aside>
 
@@ -222,11 +227,11 @@
   <aside class="desktop-rail" aria-label="選択した会社の要点">
     <div class="rail-panel">
       <div class="rail-title">選択した会社</div>
-      <div class="rail-selected" id="rail-selected">カードを選択すると要点を表示します</div>
+      <div class="rail-selected" id="rail-selected">カードを選択すると要点を表示します。</div>
     </div>
     <div class="rail-panel">
       <div class="rail-title">表示順</div>
-      <div class="rail-note">費用対効果｜会社規模｜制作費の順で優先しています(接点の有無は順位に使いません)</div>
+      <div class="rail-note">費用対効果 → 会社規模 → 制作費の順で優先しています。接点の有無は順位に使いません。</div>
     </div>
   </aside>
 </div>
@@ -251,7 +256,6 @@ if(location.protocol === "file:"){
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1OmKyrwSlLxOEPetl5Q17Aox05Ata8FHMxhDEYgtDkX4/export?format=csv&gid=1331008365";
 
 const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const glue = html => html.replace(/万円/g, "万⁠円");
 const clipText = (s, max) => {
   const text = (s??"").toString().replace(/\s+/g, " ").trim();
   return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
@@ -389,7 +393,7 @@ function referenceEffectLabel(p, conclusion = concludeDept(p)){
   const effect = conclusion.effectType === "費用減"
     ? `${conclusion.effectAccountName}リスク ${conclusion.effectValue}/年`
     : `${conclusion.effectAccountName}増加の目安 ${conclusion.effectValue}/年`;
-  return `${effect}｜${prefix}`;
+  return `${prefix}｜${effect}`;
 }
 function researchMeta(p){
   const facts = RESEARCH_FACTS[p.name] || {};
@@ -655,26 +659,26 @@ function concludeDept(p){
   let scalePart;
   if(cardRevenueRange) scalePart = `売上${cardRevenueRange}`;
   else if(revenueMan >= 10000) scalePart = `売上${(revenueMan/10000).toFixed(0)}億円`;
-  else if(capitalMan > 0) scalePart = `資本金${capitalMan.toLocaleString("ja-JP")}万円`;
+  else if(capitalMan > 0) scalePart = `資本金${capitalMan}万円`;
   else scalePart = `資本金?万円`;
-  const cardBudget = `${scalePart}｜${employeeShort}`;
+  const cardBudget = `${scalePart}・${employeeShort}`;
 
   let businessScale, businessScaleNote;
   if(facts.revenueRangeText){
     businessScale = `年間売上高${facts.revenueRangeText}（${facts.revenueStatus}） / ${employeeScale}`;
-    businessScaleNote = `年間売上高は${facts.revenueStatus}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   } else if(revenueMan >= 10000){
     businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明）"}） / ${employeeScale}`;
-    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   } else if(capitalMan >= 800){
-    businessScale = `資本金${capitalMan.toLocaleString("ja-JP")}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
-    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
+    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   } else if(capitalMan > 0){
-    businessScale = `資本金${capitalMan.toLocaleString("ja-JP")}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
-    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
+    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   } else {
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
-    businessScaleNote = `売上高・資本金は未確認｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
+    businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
   }
 
   // 分岐順で提案を決めず、候補ごとに公開情報上の必要性を比較する。
@@ -910,27 +914,26 @@ function fitScore(p){
 
 function companyCardLines(p, conclusion, connection){
   const effect = conclusion.proposalReady
-    ? `${conclusion.effectAccountName}${conclusion.effectValue}｜年間${conclusion.effectType === "費用減" ? "回避" : "増加"}余地`
-    : "効果根拠不足｜金額提示保留";
+    ? `${conclusion.effectAccountName}${conclusion.effectValue} 年間${conclusion.effectType === "費用減" ? "回避" : "増加"}余地`
+    : "効果根拠不足 金額提示保留";
   const proposal = conclusion.proposalReady
-    ? `${conclusion.cardProduct}｜${conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")}`
+    ? `${conclusion.cardProduct} ${conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")}`
     : "不足する効果根拠を確認";
-  const uniqueApproachLines = {
-    "株式会社フジショウ": ["運送業の合同説明会で会う", "県内の出展予定を確認する"],
-    "有限会社杉元建具": ["建具組合の公開行事で会う", "参加可能な展示会を確認する"],
-    "有限会社三谷工業": ["公開投稿で告知する行事で会う", "一般参加できる予定を確認する"],
-    "株式会社シーエス建材トーヨー住器": ["LIXIL公開相談会で会う", "岡山の開催予定を確認する"],
-    "有限会社石井電業社": ["電気工事系の合同説明会で会う", "県内の出展予定を確認する"],
-    "有限会社コバヤシ防災システム": ["消防設備協会の公開講習で会う", "一般参加できる行事を確認する"],
-    "有限会社ワイ・エス・ピー": ["ビジネスモールから商談会へ", "商工会議所の開催予定を調べる"],
-    "竹森工芸株式会社": ["商工会議所の公開行事で会う", "ものづくり系の開催回を選ぶ"],
-    "日新機工有限会社": ["機械設備の技術講習で会う", "県内の公開講習を確認する"],
-    "光陽警備保障株式会社": ["警備業の合同説明会で会う", "県内の参加予定を確認する"]
+  const uniqueLines = {
+    "株式会社フジショウ": ["売上12億円 従業員75人", "運送業の合同説明会で会う", "県内の出展予定を確認する"],
+    "有限会社杉元建具": ["資本金500万円 従業員約4人", "建具組合の公開行事で会う", "参加可能な展示会を確認する"],
+    "有限会社三谷工業": ["資本金2,000万円 従業員23人", "公開投稿で告知する行事で会う", "一般参加できる予定を確認する"],
+    "株式会社シーエス建材トーヨー住器": ["資本金350万円 従業員16人", "LIXIL公開相談会で会う", "岡山の開催予定を確認する"],
+    "有限会社石井電業社": ["資本金300万円 月給20〜40万円", "電気工事系の合同説明会で会う", "県内の出展予定を確認する"],
+    "有限会社コバヤシ防災システム": ["月給24〜35万円 入札実績あり", "消防設備協会の公開講習で会う", "一般参加できる行事を確認する"],
+    "有限会社ワイ・エス・ピー": ["資本金400万円 求人4件掲載", "ビジネスモールから商談会へ", "商工会議所の開催予定を調べる"],
+    "竹森工芸株式会社": ["資本金1,000万円 従業員12人", "商工会議所の公開行事で会う", "ものづくり系の開催回を選ぶ"],
+    "日新機工有限会社": ["1962年設立 従業員3人", "機械設備の技術講習で会う", "県内の公開講習を確認する"],
+    "光陽警備保障株式会社": ["資本金と売上は公開情報なし", "警備業の合同説明会で会う", "県内の参加予定を確認する"]
   };
-  const approach = uniqueApproachLines[p.name] || [connection.route, connection.firstStep];
-  const scale = conclusion.cardBudget;
-  const raw = [effect, proposal, scale, approach[0], approach[1]];
-  return raw.slice(0, 5).map(line => line.replace(/[。、，・]/g, " ").replace(/\s+/g, " ").trim().slice(0, 20));
+  const specific = uniqueLines[p.name] || [proposal, connection.route, connection.firstStep];
+  const raw = [effect, proposal, specific[0], specific[1], specific[2]];
+  return raw.slice(0, 5).map(line => line.replace(/[。、，・｜|（）()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 20));
 }
 
 function cardHtml(p, idx){
@@ -942,10 +945,7 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
-      <div class="line-group cost-group"><span class="compact-line">${esc(lines[0])}</span></div>
-      <div class="line-group scale-lines">${concl.cardBudget.split("｜").map(part => `<span class="compact-line">${esc(part)}</span>`).join("")}</div>
-      <div class="line-group"><span class="compact-line">${esc(lines[1])}</span></div>
-      <div class="line-group">${lines.slice(3,5).map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}</div>
+      ${lines.map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}
     </div>`;
 }
 
@@ -969,7 +969,7 @@ function modalBodyHtml(p){
     ${p.area?`<div class="m-meta"><a href="${esc(googleMapsSearchUrl(p.area))}" target="_blank" rel="noopener">${esc(p.area)}（Googleマップで開く ↗）</a></div>`:""}
     <div class="card-detail">
       <div class="conclusion-box">
-        <div class="proposal-kicker">費用対効果｜営業仮説・参考シミュレーション</div>
+        <div class="proposal-kicker">営業仮説・参考シミュレーション</div>
         <div class="proposal-headline">${proposalReady
           ? `<strong>${esc(referenceEffectLabel(p, conclusion))}</strong><br>${esc(conclusion.priceLabel)}で${esc(conclusion.action)}を提案候補にする`
           : `<strong>提案保留</strong><br>費用対効果の根拠を追加調査する`}</div>
@@ -1004,7 +1004,7 @@ function modalBodyHtml(p){
           : `<div class="sim-row sim-win"><span class="sim-label">追加調査する情報</span>${esc(conclusion.calculationInputs)}</div>`}
         </div>
         <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
-        <p class="disclaimer">金額は公開情報に基づく参考試算です<br>成果を保証するものではありません</p>
+        <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
       </div>
       ${SHOW_OFFERING_STRATEGY ? offeringStrategyHtml(p) : ""}
       <details class="detail-toggle"><summary>課題仮説</summary>
@@ -1044,7 +1044,7 @@ const modal = document.getElementById("modal");
 function openModal(idx){
   const p = ITEMS[idx];
   if(!p) return;
-  modal.innerHTML = glue(modalBodyHtml(p));
+  modal.innerHTML = modalBodyHtml(p);
   overlay.classList.remove("hidden");
   openIdx = idx;
 }
@@ -1057,14 +1057,14 @@ function renderSelectedCompany(idx){
   const conclusion = concludeDept(p);
   const connection = connectionPlan(p);
   selectedIdx = idx;
-  target.innerHTML = glue(`<div class="rail-selected-name">${esc(p.name)}</div>
+  target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
     <div class="rail-selected-row"><b>相手に出せそうな効果</b>${esc(conclusion.cardLine)}</div>
     <div class="rail-selected-row"><b>予算に合いそうな提案</b>${esc(conclusion.cardBudget)} / ${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
     <div class="rail-selected-row"><b>お互いに無理のないつながり方</b>${esc(connection.route)}</div>
     <div class="rail-selected-row"><b>最初の一歩</b>${esc(connection.firstStep)}</div>
     <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
     <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
-    <button class="rail-detail-btn" type="button" data-open-selected>詳細を見る</button>`);
+    <button class="rail-detail-btn" type="button" data-open-selected>詳細を見る</button>`;
   document.querySelectorAll(".card").forEach(card=>card.setAttribute("aria-current", Number(card.dataset.idx) === idx ? "true" : "false"));
 }
 
@@ -1158,7 +1158,7 @@ function renderGrid(){
   if(!ITEMS.length) return;
   const order = ITEMS.map((p,i)=>({p,i,conclusion:concludeDept(p)}))
     .sort((a,b)=>fitScore(b.p)-fitScore(a.p));
-  grid.innerHTML = order.length ? glue(order.map(({p,i})=>cardHtml(p,i)).join("")) : `<div class="empty">条件に合う会社がありません。</div>`;
+  grid.innerHTML = order.length ? order.map(({p,i})=>cardHtml(p,i)).join("") : `<div class="empty">条件に合う会社がありません。</div>`;
   if(selectedIdx !== null) renderSelectedCompany(selectedIdx);
 }
 
