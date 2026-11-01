@@ -422,32 +422,32 @@ function connectionPlan(p){
   const social = channels.find(ch=>/Instagram|Facebook|X|note/.test(ch.n||"") && ch.u && (ch.r==="◎" || ch.r==="○"));
   const indeed = findChannel(channels, "Indeed");
   if(group) return {
-    status:"既存接点なし", route:`探索候補：${group.n}`,
-    reason:"この会社との関係はない。団体情報を手掛かりに、一般参加できる催しや主催者との接触経路を探す。",
+    status:"ゼロから開拓", route:`会い方の候補：${group.n}`,
+    reason:"団体情報を手掛かりに、一般参加できる催しや主催者との接触経路を探す。",
     evidence:group.m || "団体に関する公開情報あり",
     firstStep:"会社との関係が確認できる会員名簿、登壇・出展履歴、今後の公開イベントを調べる。"
   };
   if(news) return {
-    status:"既存接点なし", route:`探索候補：${news.n}`,
-    reason:"この会社との関係はない。公開発信を手掛かりに、担当者や一般参加できる活動を探す。",
+    status:"ゼロから開拓", route:`会い方の候補：${news.n}`,
+    reason:"公開発信を手掛かりに、担当者や一般参加できる活動を探す。",
     evidence:news.m || "公開活動を確認",
     firstStep:"発信元、担当者名、過去の取材・登壇・イベント参加履歴を調べる。"
   };
   if(social) return {
-    status:"既存接点なし", route:`探索候補：${social.n}の公開アカウント`,
-    reason:`この会社との関係はない。${social.n}は接点そのものではなく、活動や担当者を知るための手掛かりとして扱う。`,
+    status:"ゼロから開拓", route:`会い方の候補：${social.n}の公開アカウント`,
+    reason:`${social.n}は接点そのものではなく、活動や担当者を知るための手掛かりとして扱う。`,
     evidence:social.m || `${social.n}の公開アカウントを確認`,
     firstStep:"DM受付の記載と運用担当者を確認し、接触可能と分かってから文面を作る。"
   };
   if(indeed) return {
-    status:"既存接点なし", route:"探索候補：イベント・公開活動・新しい紹介経路",
+    status:"ゼロから開拓", route:"会い方を追加調査",
     reason:"求人掲載は課題のシグナルであり、会えることやヒアリングできることの根拠にはならない。",
     evidence:indeed.m || "求人掲載を確認",
     firstStep:"一般参加できるイベント、主催者、登壇・出展履歴、公開SNSの順に調べる。"
   };
   return {
-    status:"既存接点なし", route:"探索候補：イベント・公開活動・新しい紹介経路",
-    reason:"この会社との関係はない。会える場や自然に連絡できる経路をゼロから探す。",
+    status:"ゼロから開拓", route:"会い方を追加調査",
+    reason:"会える場や自然に連絡できる経路をゼロから探す。",
     evidence:"関係経路は未確認",
     firstStep:"一般参加できるイベント、主催者、登壇・出展履歴、公開SNSの順に調べる。"
   };
@@ -788,10 +788,9 @@ function concludeDept(p){
 
 function fitScore(p){
   // 費用対効果ファースト・予算セカンド: ROIが実額で見える会社を最優先し、
-  // 同条件なら資本金(予算感)が大きい会社を上に。情報の濃さは次点の加点にする。
+  // 同条件なら資本金(予算感)が大きい会社を上にする。接点・連絡経路の有無は順位に使わない。
   const c = p.contact || {};
   const channels = Array.isArray(c.channels) ? c.channels : [];
-  const known = channels.filter(ch => ch.r==="◎" || ch.r==="○").length;
   const diag = diagnoseApproach(p);
   const indeed = findChannel(channels, "Indeed");
   const concl = concludeDept(p);
@@ -841,9 +840,6 @@ function fitScore(p){
     else if(indeed.r === "○") score += 10;
   }
 
-  // 情報の濃さは次点(薄い会社は自動的に下位へ)
-  score += known * 5;
-
   return score;
 }
 
@@ -861,18 +857,18 @@ function cardHtml(p, idx){
       <span class="evidence-badge">${esc(meta.trust)} / ${esc(meta.checkedAt)}</span>
       <div class="card-cost">
         <div>
-          <span class="stage-label">1　ゴール・期待効果</span>
+          <span class="stage-label">1　この会社を候補にした理由</span>
           <span class="cost-tag">${esc(concl.cardLine)}</span>
           <span class="card-budget">${esc(concl.cardBudget)}</span>
         </div>
         <div class="proposal-stage">
-          <span class="stage-label">2　提案</span>
+          <span class="stage-label">2　できそうな提案</span>
           <span class="card-product">${esc(concl.cardProduct)}</span>
           <span class="card-investment">${esc(concl.cardInvestment)}</span>
         </div>
       </div>
       <div class="connection">
-        <span class="connection-label">3　接点を作る方法</span>
+        <span class="connection-label">3　スムーズな出会い方</span>
         <span class="connection-route">${esc(connection.route)}</span>
         <span class="connection-step">${esc(connection.reason)}</span>
         <span class="connection-label next">4　最初の一歩</span>
@@ -944,10 +940,10 @@ function modalBodyHtml(p){
         ${issueRow("人事", p.hypothesisHr)}
         ${issueRow("広報", p.hypothesisPr)}
       </details>
-      <details class="detail-toggle" open><summary>接点の作り方</summary>
-        ${issueRow("状態", connection.status)}
-        ${issueRow("推奨する接点", connection.route)}
-        ${issueRow("会う理由", connection.reason)}
+      <details class="detail-toggle" open><summary>スムーズな出会い方</summary>
+        ${issueRow("前提", connection.status)}
+        ${issueRow("会い方の候補", connection.route)}
+        ${issueRow("候補にした理由", connection.reason)}
         ${issueRow("確認済みの根拠", connection.evidence)}
         ${issueRow("最初の一歩", connection.firstStep)}
       </details>
@@ -991,9 +987,9 @@ function renderSelectedCompany(idx){
   const connection = connectionPlan(p);
   selectedIdx = idx;
   target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
-    <div class="rail-selected-row"><b>1　ゴール・期待効果</b>${esc(conclusion.cardLine)}</div>
-    <div class="rail-selected-row"><b>2　提案</b>${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
-    <div class="rail-selected-row"><b>3　接点を作る方法</b>${esc(connection.route)} / ${esc(connection.status)}</div>
+    <div class="rail-selected-row"><b>1　この会社を候補にした理由</b>${esc(conclusion.cardLine)} / ${esc(conclusion.cardBudget)}</div>
+    <div class="rail-selected-row"><b>2　できそうな提案</b>${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
+    <div class="rail-selected-row"><b>3　スムーズな出会い方</b>${esc(connection.route)} / ${esc(connection.status)}</div>
     <div class="rail-selected-row"><b>4　最初の一歩</b>${esc(connection.firstStep)}</div>
     <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
     <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
