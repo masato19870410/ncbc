@@ -201,7 +201,7 @@
 <header class="top">
   <div class="inner">
     <h1>営業AI</h1>
-    <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
+    <p class="disclaimer">金額は公開情報に基づく参考試算です(成果を保証するものではありません)</p>
   </div>
 </header>
 
@@ -216,7 +216,7 @@
     <div class="rail-panel">
       <div class="rail-title">最優先候補</div>
       <div class="rail-priority" id="rail-priority">読み込み中…</div>
-      <div class="rail-note">費用対効果・会社規模・提案しやすさから自動選定</div>
+      <div class="rail-note">費用対効果｜会社規模｜提案しやすさから自動選定</div>
     </div>
   </aside>
 
@@ -227,11 +227,11 @@
   <aside class="desktop-rail" aria-label="選択した会社の要点">
     <div class="rail-panel">
       <div class="rail-title">選択した会社</div>
-      <div class="rail-selected" id="rail-selected">カードを選択すると要点を表示します。</div>
+      <div class="rail-selected" id="rail-selected">カードを選択すると要点を表示します</div>
     </div>
     <div class="rail-panel">
       <div class="rail-title">表示順</div>
-      <div class="rail-note">費用対効果 → 会社規模 → 制作費の順で優先しています。接点の有無は順位に使いません。</div>
+      <div class="rail-note">費用対効果｜会社規模｜制作費の順で優先しています(接点の有無は順位に使いません)</div>
     </div>
   </aside>
 </div>
@@ -666,19 +666,19 @@ function concludeDept(p){
   let businessScale, businessScaleNote;
   if(facts.revenueRangeText){
     businessScale = `年間売上高${facts.revenueRangeText}（${facts.revenueStatus}） / ${employeeScale}`;
-    businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
   } else if(revenueMan >= 10000){
     businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明）"}） / ${employeeScale}`;
-    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
   } else if(capitalMan >= 800){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
-    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
   } else if(capitalMan > 0){
     businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
-    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
   } else {
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
-    businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+    businessScaleNote = `売上高・資本金は未確認｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
   }
 
   // 分岐順で提案を決めず、候補ごとに公開情報上の必要性を比較する。
@@ -914,26 +914,26 @@ function fitScore(p){
 
 function companyCardLines(p, conclusion, connection){
   const effect = conclusion.proposalReady
-    ? `${conclusion.effectAccountName}${conclusion.effectValue} 年間${conclusion.effectType === "費用減" ? "回避" : "増加"}余地`
-    : "効果根拠不足 金額提示保留";
+    ? `${conclusion.effectAccountName}${conclusion.effectValue}｜年間${conclusion.effectType === "費用減" ? "回避" : "増加"}余地`
+    : "効果根拠不足｜金額提示保留";
   const proposal = conclusion.proposalReady
-    ? `${conclusion.cardProduct} ${conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")}`
+    ? `${conclusion.cardProduct}｜${conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")}`
     : "不足する効果根拠を確認";
   const uniqueLines = {
-    "株式会社フジショウ": ["売上12億円 従業員75人", "運送業の合同説明会で会う", "県内の出展予定を確認する"],
-    "有限会社杉元建具": ["資本金500万円 従業員約4人", "建具組合の公開行事で会う", "参加可能な展示会を確認する"],
-    "有限会社三谷工業": ["資本金2,000万円 従業員23人", "公開投稿で告知する行事で会う", "一般参加できる予定を確認する"],
-    "株式会社シーエス建材トーヨー住器": ["資本金350万円 従業員16人", "LIXIL公開相談会で会う", "岡山の開催予定を確認する"],
-    "有限会社石井電業社": ["資本金300万円 月給20〜40万円", "電気工事系の合同説明会で会う", "県内の出展予定を確認する"],
-    "有限会社コバヤシ防災システム": ["月給24〜35万円 入札実績あり", "消防設備協会の公開講習で会う", "一般参加できる行事を確認する"],
-    "有限会社ワイ・エス・ピー": ["資本金400万円 求人4件掲載", "ビジネスモールから商談会へ", "商工会議所の開催予定を調べる"],
-    "竹森工芸株式会社": ["資本金1,000万円 従業員12人", "商工会議所の公開行事で会う", "ものづくり系の開催回を選ぶ"],
-    "日新機工有限会社": ["1962年設立 従業員3人", "機械設備の技術講習で会う", "県内の公開講習を確認する"],
-    "光陽警備保障株式会社": ["資本金と売上は公開情報なし", "警備業の合同説明会で会う", "県内の参加予定を確認する"]
+    "株式会社フジショウ": ["売上12億円｜従業員75人", "運送業の合同説明会で会う", "県内の出展予定を確認する"],
+    "有限会社杉元建具": ["資本金500万円｜従業員約4人", "建具組合の公開行事で会う", "参加可能な展示会を確認する"],
+    "有限会社三谷工業": ["資本金2,000万円｜従業員23人", "公開投稿で告知する行事で会う", "一般参加できる予定を確認する"],
+    "株式会社シーエス建材トーヨー住器": ["資本金350万円｜従業員16人", "LIXIL公開相談会で会う", "岡山の開催予定を確認する"],
+    "有限会社石井電業社": ["資本金300万円｜月給20〜40万円", "電気工事系の合同説明会で会う", "県内の出展予定を確認する"],
+    "有限会社コバヤシ防災システム": ["月給24〜35万円｜入札実績あり", "消防設備協会の公開講習で会う", "一般参加できる行事を確認する"],
+    "有限会社ワイ・エス・ピー": ["資本金400万円｜求人4件掲載", "ビジネスモールから商談会へ", "商工会議所の開催予定を調べる"],
+    "竹森工芸株式会社": ["資本金1,000万円｜従業員12人", "商工会議所の公開行事で会う", "ものづくり系の開催回を選ぶ"],
+    "日新機工有限会社": ["1962年設立｜従業員3人", "機械設備の技術講習で会う", "県内の公開講習を確認する"],
+    "光陽警備保障株式会社": ["資本金と売上｜公開情報なし", "警備業の合同説明会で会う", "県内の参加予定を確認する"]
   };
   const specific = uniqueLines[p.name] || [proposal, connection.route, connection.firstStep];
   const raw = [effect, proposal, specific[0], specific[1], specific[2]];
-  return raw.slice(0, 5).map(line => line.replace(/[。、，・｜|（）()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 20));
+  return raw.slice(0, 5).map(line => line.replace(/[。、，・]/g, " ").replace(/\s+/g, " ").trim().slice(0, 20));
 }
 
 function cardHtml(p, idx){
@@ -1004,7 +1004,7 @@ function modalBodyHtml(p){
           : `<div class="sim-row sim-win"><span class="sim-label">追加調査する情報</span>${esc(conclusion.calculationInputs)}</div>`}
         </div>
         <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
-        <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
+        <p class="disclaimer">金額は公開情報に基づく参考試算です(成果を保証するものではありません)</p>
       </div>
       ${SHOW_OFFERING_STRATEGY ? offeringStrategyHtml(p) : ""}
       <details class="detail-toggle"><summary>課題仮説</summary>
