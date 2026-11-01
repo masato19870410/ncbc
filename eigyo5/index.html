@@ -914,9 +914,9 @@ function fitScore(p){
 function companyCardLines(p, conclusion, connection){
   const effectLines = conclusion.proposalReady
     ? (conclusion.effectType === "費用減"
-        ? [`人材紹介を使うと年${conclusion.effectValue}`, "かかる見込み"]
-        : [`${conclusion.effectAccountName}が年${conclusion.effectValue}`, "増える見込み"])
-    : ["効果根拠不足", "金額提示保留"];
+        ? [`人材紹介費 年${conclusion.effectValue}`]
+        : [`${conclusion.effectAccountName} 年${conclusion.effectValue}`])
+    : ["効果根拠不足 金額提示保留"];
   const proposalLines = conclusion.proposalReady
     ? [conclusion.cardProduct, conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")]
     : ["不足する効果根拠を確認", ""];
