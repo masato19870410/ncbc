@@ -944,6 +944,7 @@ function cardHtml(p, idx){
       <div class="row-head">
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
+      ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
       <span class="compact-line" title="${esc(summary)}">${esc(clipText(summary, 250))}</span>
     </div>`;
 }
