@@ -147,6 +147,10 @@
   .calc-alert.is-calculated b{color:var(--ok)}
   .calc-account{display:block;margin-top:4px;color:var(--muted)}
   .proposal-flow{display:flex;align-items:stretch;gap:5px;margin:0 0 12px}
+  .roi-bar{width:100%;max-width:320px;height:auto;margin:0 0 12px;display:block}
+  .roi-bar-label{font-size:9px;fill:var(--muted);font-family:inherit}
+  .roi-bar-effect{fill:var(--ok)}
+  .roi-bar-price{fill:var(--muted)}
   .proposal-step{flex:1;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 7px;font-size:11px;font-weight:600;line-height:1.45;text-align:center}
   .proposal-arrow{align-self:center;color:var(--muted);font-weight:700}
   .client-benefit-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:3px}
@@ -401,6 +405,25 @@ function referenceEffectLabel(p, conclusion = concludeDept(p)){
     ? `${conclusion.effectAccountName}リスク ${conclusion.effectValue}/年`
     : `${conclusion.effectAccountName}増加の目安 ${conclusion.effectValue}/年`;
   return `${effect}（${prefix}）`;
+}
+function roiBarSvg(conclusion){
+  if(!conclusion.proposalReady) return "";
+  const nums = s => (String(s||"").match(/\d+(?:,\d{3})*(?:\.\d+)?/g) || []).map(n=>parseFloat(n.replace(/,/g,"")));
+  const effectNums = nums(conclusion.effectValue);
+  const priceNums = nums(conclusion.priceLabel);
+  if(!effectNums.length || !priceNums.length) return "";
+  const effectHigh = Math.max(...effectNums);
+  const priceHigh = Math.max(...priceNums);
+  const maxVal = Math.max(effectHigh, priceHigh) || 1;
+  const barW = v => Math.max(4, Math.round((v / maxVal) * 220));
+  const effectLabel = `${conclusion.effectAccountName}${conclusion.effectType === "費用減" ? "リスク" : "増"} ${conclusion.effectValue}/年`;
+  const priceLabelText = conclusion.priceLabel.replace(/[（(]単発[）)]/g, "");
+  return `<svg class="roi-bar" viewBox="0 0 320 58" role="img" aria-label="費用対効果の比較グラフ">
+    <text x="0" y="12" class="roi-bar-label">${esc(effectLabel)}</text>
+    <rect x="0" y="16" width="${barW(effectHigh)}" height="14" rx="4" class="roi-bar-effect"></rect>
+    <text x="0" y="42" class="roi-bar-label">${esc(priceLabelText)}</text>
+    <rect x="0" y="46" width="${barW(priceHigh)}" height="10" rx="4" class="roi-bar-price"></rect>
+  </svg>`;
 }
 function researchMeta(p){
   const facts = RESEARCH_FACTS[p.name] || {};
@@ -1005,6 +1028,7 @@ function modalBodyHtml(p){
           ${esc(conclusion.calculationFormula)}<br>${conclusion.effectValue === "未算定" ? `確認項目：${esc(conclusion.calculationInputs)}` : `要確認：${esc(conclusion.calculationInputs)}`}
           ${proposalReady ? `<span class="calc-account">${esc(conclusion.accountingNote)} 投資の勘定科目（想定）：${esc(conclusion.accountItem)}</span>` : ""}
         </div>
+        ${roiBarSvg(conclusion)}
         <div class="proposal-flow">${proposalReady
           ? `<div class="proposal-step">${esc(conclusion.effectDisplay)}${conclusion.isEstimate ? "（業種推定）" : "（試算）"}</div><div class="proposal-arrow">↔</div><div class="proposal-step">${esc(conclusion.priceLabel)}</div><div class="proposal-arrow">↔</div><div class="proposal-step">${esc(conclusion.action)}</div>`
           : `<div class="proposal-step">追加調査</div><div class="proposal-arrow">→</div><div class="proposal-step">効果算定</div><div class="proposal-arrow">→</div><div class="proposal-step">提案判断</div>`}
