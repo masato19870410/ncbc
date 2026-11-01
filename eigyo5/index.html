@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>営業AI v5</title>
+<title>営業AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -55,6 +55,7 @@
   }
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:stretch}
   .disclaimer{margin:0 0 12px;border-left:2px solid var(--muted);padding:6px 8px;background:var(--panel-2);font-size:10px;line-height:1.55;color:var(--muted)}
+  header.top .disclaimer{margin:4px 0 0;border:0;padding:0;background:transparent;font-size:9.5px;line-height:1.45}
   .card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--panel);cursor:pointer;
     box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0;height:100%}
   .card:active{background:var(--panel-2)}
@@ -191,7 +192,8 @@
 
 <header class="top">
   <div class="inner">
-    <h1>営業AI v5</h1>
+    <h1>営業AI</h1>
+    <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
   </div>
 </header>
 
@@ -211,7 +213,6 @@
   </aside>
 
   <main class="wrap">
-    <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
     <div class="grid" id="grid"><div class="empty">読み込み中…</div></div>
   </main>
 
