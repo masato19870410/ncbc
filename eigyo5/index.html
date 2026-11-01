@@ -65,6 +65,10 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card .meta{display:block;font-size:11px;color:var(--muted);line-height:1.6;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .connection{margin:9px 0 7px;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--panel-2)}
+  .card .connection-label{display:block;font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:2px}
+  .card .connection-route{display:block;font-size:11.5px;font-weight:700;line-height:1.45}
+  .card .connection-step{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.5}
   .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .card .card-cost{font-size:11.5px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
@@ -845,11 +849,17 @@ function cardHtml(p, idx){
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const concl = concludeDept(p);
   const meta = researchMeta(p);
+  const connection = connectionPlan(p);
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
       ${p.area?`<div class="meta">${esc(p.area)}</div>`:""}
+      <div class="connection">
+        <span class="connection-label">つながり方</span>
+        <span class="connection-route">${esc(connection.route)}</span>
+        <span class="connection-step">${esc(connection.firstStep)}</span>
+      </div>
       <span class="evidence-badge">${esc(meta.trust)} / ${esc(meta.checkedAt)}</span>
       <div class="card-cost">
         <span class="cost-tag">${esc(concl.cardLine)}</span>
