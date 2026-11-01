@@ -205,7 +205,7 @@
 <header class="top">
   <div class="inner">
     <h1>営業AI</h1>
-    <p class="disclaimer">金額は公開情報に基づく参考試算です(成果を保証するものではありません)</p>
+    <p class="disclaimer">金額は公開情報に基づく参考試算です<br>(成果を保証するものではありません)</p>
   </div>
 </header>
 
@@ -950,8 +950,8 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
-      <div class="line-group cost-group">${lines.slice(0,2).map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}</div>
       <span class="compact-line">${esc(lines[2])}</span>
+      <div class="line-group cost-group">${lines.slice(0,2).map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}</div>
       <div class="line-group">${lines.slice(3,5).map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}</div>
     </div>`;
 }
@@ -1011,7 +1011,7 @@ function modalBodyHtml(p){
           : `<div class="sim-row sim-win"><span class="sim-label">追加調査する情報</span>${esc(conclusion.calculationInputs)}</div>`}
         </div>
         <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
-        <p class="disclaimer">金額は公開情報に基づく参考試算です(成果を保証するものではありません)</p>
+        <p class="disclaimer">金額は公開情報に基づく参考試算です<br>(成果を保証するものではありません)</p>
       </div>
       ${SHOW_OFFERING_STRATEGY ? offeringStrategyHtml(p) : ""}
       <details class="detail-toggle"><summary>課題仮説</summary>
