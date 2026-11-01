@@ -857,12 +857,12 @@ function cardHtml(p, idx){
       <span class="evidence-badge">${esc(meta.trust)} / ${esc(meta.checkedAt)}</span>
       <div class="card-cost">
         <div>
-          <span class="stage-label">1　この会社を候補にした理由</span>
+          <span class="stage-label">1　相手に出せそうな効果</span>
           <span class="cost-tag">${esc(concl.cardLine)}</span>
           <span class="card-budget">${esc(concl.cardBudget)}</span>
         </div>
         <div class="proposal-stage">
-          <span class="stage-label">2　できそうな提案</span>
+          <span class="stage-label">2　予算に合いそうな提案</span>
           <span class="card-product">${esc(concl.cardProduct)}</span>
           <span class="card-investment">${esc(concl.cardInvestment)}</span>
         </div>
@@ -987,8 +987,8 @@ function renderSelectedCompany(idx){
   const connection = connectionPlan(p);
   selectedIdx = idx;
   target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
-    <div class="rail-selected-row"><b>1　この会社を候補にした理由</b>${esc(conclusion.cardLine)} / ${esc(conclusion.cardBudget)}</div>
-    <div class="rail-selected-row"><b>2　できそうな提案</b>${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
+    <div class="rail-selected-row"><b>1　相手に出せそうな効果</b>${esc(conclusion.cardLine)}</div>
+    <div class="rail-selected-row"><b>2　予算に合いそうな提案</b>${esc(conclusion.cardBudget)} / ${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
     <div class="rail-selected-row"><b>3　お互いに無理のないつながり方</b>${esc(connection.route)} / ${esc(connection.status)}</div>
     <div class="rail-selected-row"><b>4　最初の一歩</b>${esc(connection.firstStep)}</div>
     <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
