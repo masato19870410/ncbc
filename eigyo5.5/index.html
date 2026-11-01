@@ -1,0 +1,1231 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>営業AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Design system: strict monochrome grayscale, quiet borders, no
+     gradients/shadows — modeled after Linear / Vercel / shadcn-ui tone. */
+  :root{
+    --bg:#fafafa; --panel:#ffffff; --panel-2:#f4f4f5; --border:#e4e4e7;
+    --text:#18181b; --muted:#71717a;
+    --ok:#27272a; --ok-bg:#f4f4f5; --warn:#52525b; --warn-bg:#f4f4f5;
+    --bad:#71717a; --bad-bg:#fafafa;
+    --radius:6px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0a0a0b; --panel:#111113; --panel-2:#19191c; --border:#27272a;
+      --text:#f4f4f5; --muted:#8b8b93;
+      --ok:#e4e4e7; --ok-bg:#202023; --warn:#a1a1aa; --warn-bg:#19191c;
+      --bad:#71717a; --bad-bg:#111113;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Inter","Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  a{color:var(--text)}
+
+  header.top{border-bottom:1px solid var(--border);background:var(--panel)}
+  header.top .inner{max-width:480px;margin:0 auto;padding:14px 16px 12px;text-align:center}
+  header.top h1{font-size:14px;margin:0;font-weight:600;letter-spacing:-.005em;text-align:center;line-height:1.35}
+
+  .desktop-shell{max-width:1040px;margin:0 auto}
+  .wrap{padding:16px 16px 48px;max-width:480px;margin:0 auto}
+  .desktop-rail{display:none}
+  @media (min-width:960px){
+    .desktop-shell{display:grid;grid-template-columns:220px 480px 220px;gap:24px;align-items:start;justify-content:center;padding:0 24px}
+    .desktop-rail{display:block;position:sticky;top:24px;margin-top:16px}
+    .rail-panel{border:1px solid var(--border);border-radius:10px;background:var(--panel);padding:14px}
+    .rail-panel+.rail-panel{margin-top:10px}
+    .rail-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:10px}
+    .rail-stat{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--border);font-size:11.5px}
+    .rail-stat:first-of-type{border-top:0;padding-top:0}
+    .rail-stat strong{font-size:13px}
+    .rail-priority{font-size:12px;font-weight:700;line-height:1.5}
+    .rail-note{margin-top:4px;font-size:10.5px;color:var(--muted);line-height:1.55}
+    .rail-steps{margin:0;padding-left:18px;color:var(--muted);font-size:11px;line-height:1.7}
+    .rail-steps b{color:var(--text)}
+    .wrap{padding-left:0;padding-right:0;width:480px}
+  }
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:stretch}
+  .disclaimer{margin:0 0 12px;border-left:2px solid var(--muted);padding:6px 8px;background:var(--panel-2);font-size:10px;line-height:1.55;color:var(--muted)}
+  header.top .disclaimer{margin:4px 0 0;border:0;padding:0;background:transparent;font-size:9.5px;line-height:1.45}
+  .card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--panel);cursor:pointer;
+    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 10px rgba(0,0,0,.04);min-width:0;height:100%}
+  .card:active{background:var(--panel-2)}
+  .card[aria-current="true"]{border-color:var(--text)}
+  .card .row-head{display:flex;align-items:baseline;gap:6px;min-width:0;margin-bottom:4px}
+  .card .name{font-weight:700;font-size:13.5px;letter-spacing:-.01em;flex:1;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .meta{display:block;font-size:11px;color:var(--muted);line-height:1.6;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .connection{margin:9px 0 7px;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--panel-2)}
+  .card .connection-label{display:block;font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:2px}
+  .card .connection-label.next{margin-top:7px}
+  .card .connection-route{display:block;font-size:11.5px;font-weight:700;line-height:1.45}
+  .card .connection-step{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.5}
+  .card .compact-line{display:block;margin-top:7px;font-size:10.5px;line-height:1.6;overflow-wrap:anywhere}
+  .card .line-group{margin-top:8px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;background:var(--panel-2)}
+  .card .line-group .compact-line{margin-top:4px}
+  .card .line-group .compact-line:first-child{margin-top:0}
+  .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .card .card-cost{font-size:11.5px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
+  .card .stage-label{display:block;font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:3px}
+  .card .proposal-stage{padding-top:7px;border-top:1px solid var(--border)}
+  .card .cost-tag{display:block;font-size:10px;font-weight:700;color:var(--ok);background:var(--ok-bg);
+    border-radius:4px;padding:2px 6px;width:100%;margin-bottom:5px;overflow-wrap:anywhere}
+  .card .card-budget{display:block;overflow-wrap:anywhere;font-size:10px;color:var(--muted);margin-bottom:2px}
+  .evidence-badge{display:inline-block;width:fit-content;border:1px solid var(--border);border-radius:999px;padding:1px 5px;font-size:9px;color:var(--muted);line-height:1.4}
+  .card .card-investment,.card .card-product{display:block;overflow-wrap:anywhere}
+  .card .card-investment{font-weight:600}
+  .card .card-product{color:var(--muted)}
+  @media (max-width:390px){
+    .wrap{padding:12px 12px 40px}
+    .grid{gap:8px}
+    .card{padding:12px}
+    .card .card-cost{font-size:11px}
+    .card .cost-tag{font-size:9.5px;line-height:1.45}
+    .card .card-budget{font-size:9.5px}
+  }
+  .empty{text-align:center;color:var(--muted);padding:48px 16px;font-size:13px;grid-column:1/-1}
+  .hidden{display:none!important}
+
+  .card-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;line-height:1.7}
+  .card-detail .txt{white-space:pre-wrap;margin:8px 0 0;color:var(--muted)}
+  .issue-row{margin-top:10px}
+  .issue-row:first-child{margin-top:0}
+  .dept-value{display:block;font-size:10.5px;font-weight:700;color:var(--text);
+    background:var(--panel-2);border-radius:4px;padding:1px 6px;width:fit-content;margin-bottom:4px}
+  .issue-row>span:last-child{display:block;font-size:12.5px;color:var(--text);line-height:1.6}
+  .ch-group{margin-top:10px}
+  .ch-group:first-child{margin-top:0}
+  .ch-group b{display:block;font-size:10.5px;font-weight:700;color:var(--text);
+    background:var(--panel-2);border-radius:4px;padding:1px 6px;width:fit-content;margin-bottom:6px}
+  .meta a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+
+  .ch-list{margin:6px 0 0;list-style:none;padding:0}
+  .ch-list li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
+  .ch-list .r{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
+    border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0}
+  .ch-list .r-good{background:var(--ok-bg);color:var(--ok)}
+  .ch-list .r-mid{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+  .ch-list .r-weak{background:var(--warn-bg);color:var(--warn)}
+  .ch-list .r-none{background:var(--bad-bg);color:var(--bad)}
+  .ch-list .n{flex:1}
+  .ch-list a.n{color:var(--text);text-decoration:underline;text-underline-offset:2px}
+  .ch-list .n-nolink{color:var(--muted)}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+  .overlay.hidden{display:none}
+  .modal{background:var(--panel);width:100%;max-width:480px;max-height:94vh;overflow-y:auto;
+    border-radius:16px 16px 0 0;padding:20px 18px 28px;position:relative}
+  @media (min-width:520px){ .overlay{align-items:center} .modal{border-radius:14px;max-height:92vh;min-height:70vh} }
+  .modal .close{position:sticky;float:right;top:12px;right:14px;margin-left:-40px;margin-top:-4px;
+    border:none;background:var(--panel);border-radius:50%;font-size:20px;z-index:1;
+    color:var(--muted);cursor:pointer;line-height:1;padding:4px 8px;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  .modal .m-name{font-weight:700;font-size:16px;margin:0 28px 4px 0}
+  .modal .m-meta{font-size:12px;color:var(--muted);margin-bottom:2px}
+  .modal .m-meta a{color:var(--muted)}
+  .approach-note{background:var(--panel-2);border-radius:8px;padding:10px 12px;font-size:12.5px;
+    color:var(--text);line-height:1.6;margin-top:4px}
+
+  .conclusion-box{background:var(--panel-2);border:2px solid var(--text);border-radius:10px;
+    padding:14px 16px;margin-bottom:16px}
+  .proposal-kicker{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.05em;margin-bottom:4px}
+  .proposal-headline{font-size:16px;font-weight:800;line-height:1.45;color:var(--text);margin-bottom:10px}
+  .proposal-headline strong{color:var(--ok)}
+  .calc-alert{border:1px solid var(--warn);background:var(--warn-bg);border-radius:7px;padding:8px 9px;margin:0 0 10px;font-size:11.5px;line-height:1.55}
+  .calc-alert b{display:block;font-size:10px;margin-bottom:2px;color:var(--warn)}
+  .calc-alert.is-calculated{border-color:var(--ok);background:var(--ok-bg)}
+  .calc-alert.is-calculated b{color:var(--ok)}
+  .calc-account{display:block;margin-top:4px;color:var(--muted)}
+  .proposal-flow{display:flex;align-items:stretch;gap:5px;margin:0 0 12px}
+  .proposal-step{flex:1;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 7px;font-size:11px;font-weight:600;line-height:1.45;text-align:center}
+  .proposal-arrow{align-self:center;color:var(--muted);font-weight:700}
+  .client-benefit-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:3px}
+  .client-benefit-text{font-size:13px;font-weight:600;line-height:1.65;color:var(--text);margin-bottom:4px}
+  .benefit-source{margin-bottom:12px;font-size:11px}
+  .benefit-source a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+  .conclusion-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .conclusion-cost{font-size:13px;font-weight:700;margin:2px 0 2px;color:var(--text)}
+  .conclusion-dept{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:8px}
+  .conclusion-budget{font-size:11px;color:var(--warn);font-weight:600;margin-bottom:8px}
+
+  .num-row{display:flex;gap:8px;margin-bottom:12px}
+  .num-tile{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    padding:8px 6px;text-align:center}
+  .num-label{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px}
+  .num-value{font-size:22px;font-weight:800;color:var(--ok);line-height:1.1}
+  .num-value-sm{font-size:16px}
+  .num-unit{font-size:11px;font-weight:600;margin-left:1px}
+  .sim-box{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+  .sim-row{font-size:12px;line-height:1.6;margin-top:6px}
+  .sim-row:first-child{margin-top:0}
+  .sim-label{display:block;font-size:10.5px;font-weight:700;margin-bottom:2px}
+  .sim-win .sim-label{color:var(--ok)}
+  .sim-lose .sim-label{color:var(--bad)}
+  .wrap-up{margin-top:10px;padding-top:10px;border-top:2px solid var(--text);font-size:13px;font-weight:700}
+  .conclusion-reason{font-size:12.5px;color:var(--text);line-height:1.6}
+
+  .ai-strategy{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px;background:var(--panel)}
+  .ai-strategy .ai-kicker{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.05em;margin-bottom:3px}
+  .ai-strategy h2{font-size:15px;line-height:1.45;margin:0 0 8px}
+  .ai-status{display:inline-block;padding:2px 7px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:10.5px;font-weight:700;margin-bottom:8px}
+  .ai-row{margin-top:10px;font-size:12px;line-height:1.65}
+  .ai-row b{display:block;font-size:10.5px;color:var(--muted);margin-bottom:2px}
+  .ai-row ul{margin:3px 0 0;padding-left:18px}
+  .ai-row li{margin:2px 0}
+  .ai-confirmed{color:var(--ok)}
+  .ai-estimate{color:var(--warn)}
+  .ai-unknown{color:var(--bad)}
+  .detail-toggle{margin:0;border:0;border-top:1px solid var(--border);border-radius:0;padding:10px 0;background:transparent}
+  .detail-toggle summary{cursor:pointer;font-size:11px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;list-style-position:inside}
+  .detail-toggle[open] summary{margin-bottom:10px;color:var(--text)}
+  .detail-toggle:last-child{border-bottom:1px solid var(--border)}
+  .trust-box,.priority-box{margin:10px 0;border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--panel-2);font-size:11px;line-height:1.65}
+  .trust-box b,.priority-box b{display:block;margin-bottom:3px;font-size:10px;color:var(--muted)}
+  .rail-selected{font-size:11px;line-height:1.55}
+  .rail-selected-name{font-size:13px;font-weight:700;margin-bottom:8px}
+  .rail-selected-row{margin-top:8px}
+  .rail-selected-row b{display:block;font-size:9.5px;color:var(--muted);margin-bottom:2px}
+  .rail-detail-btn{width:100%;margin-top:12px;border:1px solid var(--border);border-radius:7px;background:var(--text);color:var(--bg);font:inherit;font-size:11px;font-weight:700;padding:8px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <h1>営業AI</h1>
+    <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
+  </div>
+</header>
+
+<div class="desktop-shell">
+  <aside class="desktop-rail" aria-label="営業サマリー">
+    <div class="rail-panel">
+      <div class="rail-title">営業サマリー</div>
+      <div class="rail-stat"><span>掲載企業</span><strong id="rail-total">—</strong></div>
+      <div class="rail-stat"><span>金額試算あり</span><strong id="rail-calculated">—</strong></div>
+      <div class="rail-stat"><span>業種推定</span><strong id="rail-estimated">—</strong></div>
+    </div>
+    <div class="rail-panel">
+      <div class="rail-title">最優先候補</div>
+      <div class="rail-priority" id="rail-priority">読み込み中…</div>
+      <div class="rail-note">費用対効果・会社規模・提案しやすさから自動選定</div>
+    </div>
+    <div class="rail-panel">
+      <div class="rail-title">優先度TOP3</div>
+      <ol class="rail-steps" id="rail-top3" style="list-style:decimal;padding-left:18px;margin:0">読み込み中…</ol>
+    </div>
+  </aside>
+
+  <main class="wrap">
+    <div class="grid" id="grid"><div class="empty">読み込み中…</div></div>
+  </main>
+
+  <aside class="desktop-rail" aria-label="選択した会社の要点">
+    <div class="rail-panel">
+      <div class="rail-title">選択した会社</div>
+      <div class="rail-selected" id="rail-selected">カードを選択すると要点を表示します。</div>
+    </div>
+    <div class="rail-panel">
+      <div class="rail-title">表示順</div>
+      <div class="rail-note">費用対効果 → 会社規模 → 制作費の順で優先しています。接点の有無は順位に使いません。</div>
+    </div>
+  </aside>
+</div>
+
+<div class="overlay hidden" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+if(location.protocol === "file:"){
+  location.replace("https://masato19870410.github.io/ncbc/eigyo5.5/?from=local");
+}
+/* =======================================================================
+   v4: データ取得元を Googleスプレッドシートの「ウェブに公開」CSVに変更。
+   UI/CSS/チェックリスト表示ロジックは eigyo3.5 ベース + アプローチの切り口を追加。
+
+   ★ユーザー作業が必要★
+   下の SHEET_CSV_URL に、Googleスプレッドシート側で
+   「ファイル→共有→ウェブに公開」した後に発行されるCSVエクスポートURLを
+   設定すること。手順は README.md を参照。
+   ======================================================================= */
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1OmKyrwSlLxOEPetl5Q17Aox05Ata8FHMxhDEYgtDkX4/export?format=csv&gid=1331008365";
+
+const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const clipText = (s, max) => {
+  const text = (s??"").toString().replace(/\s+/g, " ").trim();
+  return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
+};
+const googleMapsSearchUrl = address => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || "")}`;
+
+const RATING_CLASS = { "◎":"r-good", "○":"r-mid", "△":"r-weak", "✕":"r-none" };
+function channelLi(ch){
+  const cls = RATING_CLASS[ch.r] || "r-mid";
+  const note = ch.m ? ` title="${esc(ch.m)}"` : "";
+  const label = ch.u
+    ? `<a class="n" href="${esc(ch.u)}" target="_blank" rel="noopener"${note}>${esc(ch.n)}</a>`
+    : `<span class="n n-nolink"${note}>${esc(ch.n)}</span>`;
+  return `<li><span class="r ${cls}">${esc(ch.r)}</span>${label}</li>`;
+}
+const CH_ORDER = ["自社サイト", "採用サイト", "Instagram", "X", "Facebook", "LINE公式", "YouTube", "note", "TikTok", "Googleマップ", "Yahoo!マップ", "ホットペッパービューティー", "Indeed"];
+function sortChannels(channels){
+  const rank = n => { const i = CH_ORDER.indexOf(n); return i === -1 ? CH_ORDER.length : i; };
+  return channels
+    .map((ch, i) => ({ ch, i }))
+    .sort((a, b) => rank(a.ch.n) - rank(b.ch.n) || a.i - b.i)
+    .map(x => x.ch);
+}
+
+const OWN_MEDIA = new Set(["自社サイト", "Instagram", "X", "Facebook", "LINE公式", "YouTube", "note", "TikTok"]);
+
+// 商談で「どこまで裏取り済みか」を混同しないための調査メモ。
+// 公開情報で確認した値と、企業データベース由来の推定値を分けて表示する。
+const RESEARCH_FACTS = {
+  "株式会社フジショウ": {
+    employeeCount:"75", employeeStatus:"確定（公式サイト75人。2026年求人票は81人のため最新値は要確認）", employeeSource:"公式サイト・ハローワーク求人票",
+    revenueRangeText:"12億円", revenueStatus:"確定（公式サイト）",
+    capitalMan:1000, capitalStatus:"確定（公式サイト）",
+    additionalSources:[
+      { label:"フジショウ公式サイト・会社概要", url:"https://www.fujisho-company.info/blank-1", note:"所在地は岡山市南区内尾479-21、従業員75人、資本金1,000万円、年間売上12億円（2026-10-31確認）。" },
+      { label:"フジショウ採用サイト", url:"https://entori.jp/fujisho-company", note:"既存の採用専用サイトと募集中求人を確認（2026-10-31確認）。採用ページが無いという旧仮説は撤回。" },
+      { label:"ハローワーク求人（市内便ドライバー）", url:"https://www.hellowork.mhlw.go.jp/kensaku/GECA110020.do?action=dispDetailBtn&fullPart=1&kjNo=3301025400061", note:"2026-08-17受付。4t・5t・7t車の市内便、機械・金属製造等の部品配送。月給27〜33万円の求人情報。" },
+      { label:"トーウン：株式取得のお知らせ", url:"https://tohun.co.jp/20251226.pdf", note:"2025-12-22に全株式を取得し子会社化。西日本エリアの機能拡張・輸送品目獲得を目的とする公式発表。" },
+    ],
+  },
+  "有限会社杉元建具": {
+    employeeCount:"5", employeeStatus:"確定（ハローワーク求人票、企業全体の従業員数）", employeeSource:"ハローワーク求人票",
+    capitalMan:500, capitalStatus:"確定（国土交通省データベース・ハローワーク求人票の2系統で一致）",
+    additionalSources:[
+      { label:"国土交通省 建設業者・宅建業者等企業情報検索システム", url:"https://etsuran2.mlit.go.jp/TAKKEN/kensetuKensaku.do?outPutKbn=1", note:"岡山県知事許可第020041号。資本金額5,000千円（500万円）、代表者 杉元大介、電話086-282-4664（2026-10-31確認）。検索画面で「杉元建具」「岡山県」を指定すると同じ結果が再現できる（個票への直接リンクは発行されないシステムのため）。" },
+      { label:"ハローワーク求人票（建具・家具工）", url:"https://jp.indeed.com/viewjob?jk=1047c47011759774&tk=1k68epdnu21sm000", note:"求人番号33010-27754661。賃金形態：日給10,000円〜15,000円（月平均労働日数21.6日で月額換算216,000円〜324,000円）。企業全体の従業員数5人、資本金500万円、設立昭和63年（2026-10-31確認）。" },
+    ],
+  },
+  "有限会社三谷工業": {
+    employeeCount:"23", employeeStatus:"確定（ハローワーク求人票、企業全体の従業員数）", employeeSource:"ハローワーク求人票",
+    capitalMan:2000, capitalStatus:"確定（国土交通省データベース・ハローワーク求人票の2系統で一致）",
+    additionalSources:[
+      { label:"国土交通省 建設業者・宅建業者等企業情報検索システム", url:"https://etsuran2.mlit.go.jp/TAKKEN/kensetuKensaku.do?outPutKbn=1", note:"岡山県知事許可第021084号。資本金額20,000千円（2,000万円）、代表者 三谷洋文（2026-10-31確認）。検索画面で「三谷工業」「岡山県」を指定すると同じ結果が再現できる。" },
+      { label:"ハローワーク求人票（鉄骨組立工）", url:"https://jp.indeed.com/jobs?q=%22%E4%B8%89%E8%B0%B7%E5%B7%A5%E6%A5%AD%22&l=%E5%B2%A1%E5%B1%B1%E5%B8%82", note:"求人番号33010-27653061。月給21万円〜35万円（月平均労働日数20.0日）。企業全体の従業員数23人、資本金2,000万円、設立平成7年、三蟠農協前バス停から徒歩5分（2026-10-31確認）。" },
+    ],
+  },
+  "株式会社シーエス建材トーヨー住器": { employeeCount:"16", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:350, capitalStatus:"推定（根拠不明）" },
+  "有限会社石井電業社": { employeeCount:"5", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明）" },
+  "有限会社コバヤシ防災システム": { employeeCount:"9", employeeStatus:"推定（根拠不明）", employeeSource:"未確認" },
+  "有限会社ワイ・エス・ピー": { employeeCount:"7〜8", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:400, capitalStatus:"推定（根拠不明）" },
+  "竹森工芸株式会社": { employeeCount:"12", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:1000, capitalStatus:"推定（根拠不明）" },
+  "日新機工有限会社": { employeeCount:"3", employeeStatus:"推定（根拠不明）", employeeSource:"未確認", capitalMan:300, capitalStatus:"推定（根拠不明）" },
+};
+function applyVerifiedOverrides(p){
+  if(p.name !== "株式会社フジショウ") return p;
+  const channels = (p.contact?.channels || []).map(ch=>ch.n === "自社サイト"
+    ? { ...ch, r:"○", u:"https://www.fujisho-company.info/", m:"HTTPS対応の公式サイト。会社概要を確認（2026-10-31確認）" }
+    : ch);
+  if(!channels.some(ch=>ch.n === "採用サイト")){
+    channels.push({ n:"採用サイト", r:"○", u:"https://entori.jp/fujisho-company", m:"外部採用専用サイトで募集中求人を掲載（2026-10-31確認）" });
+  }
+  return {
+    ...p,
+    area:"岡山県岡山市南区内尾479-21",
+    hypothesisHr:"Indeed等で採用活動中。既存の採用専用サイトもあるため、新設ではなく求人情報と応募導線の更新・改善余地を確認する。",
+    hypothesisSales:"公式サイトはHTTPS対応済み。問い合わせ導線や情報更新の効果はアクセス解析を確認するまで未算定。",
+    contact:{
+      ...p.contact,
+      channels,
+      proposal:"既存の採用専用サイトと求人媒体の情報を揃え、職種別の応募導線と効果計測を改善する提案。",
+      approachNote:"採用サイトの新設やSSL化は提案しない。既存導線の閲覧数・応募数を確認し、必要な改善だけを提案する。",
+      message:"株式会社フジショウ様の公式サイトと採用サイトを拝見しました。既存の求人導線を活かし、職種別の情報整理と応募計測を改善できる余地がないか確認したくご連絡しました。",
+      script:"公式サイトと採用サイトを拝見し、新設ではなく既存の求人導線の改善余地についてお伺いしたくご連絡しました。",
+    },
+  };
+}
+function channelGroup(label, channels){
+  if(!channels.length) return "";
+  return `<div class="ch-group"><b>${esc(label)}</b><ul class="ch-list">${channels.map(channelLi).join("")}</ul></div>`;
+}
+
+function issueRow(label, text){
+  if(!text) return "";
+  return `<div class="issue-row"><span class="dept-value">${esc(label)}</span><span>${esc(text)}</span></div>`;
+}
+
+function findChannel(channels, name){ return channels.find(ch=>ch.n===name); }
+
+/* ---- 提供商材・営業条件: 企業診断はこのプロフィールを起点にする ---- */
+const SELLER_PROFILE_KEY = "eigyo_seller_profile_v1";
+const OFFERING_CATALOG = [
+  { id:"ai_training", name:"AI研修", scope:"研修内容・提供価格・導入実績は未設定" },
+  { id:"ai_org", name:"AIを活用した組織開発・業務改善支援", scope:"支援範囲・提供価格・導入実績は未設定" },
+];
+const MARKET_REFERENCES = [
+  { label:"AI研修の公開料金例（市場参考）", url:"https://www.ai-skill-kentei.jp/blog/corporate-ai-training-cost/", note:"集合研修20〜50万円/回、個社カスタム30〜100万円超など。提供会社の公開料金例を集約した参考値であり、統一相場や自分の販売価格ではない。" },
+  { label:"人材開発支援助成金（厚生労働省）", url:"https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/kyufukin/d01-1.html", note:"職務関連訓練の経費・賃金の一部を助成する制度。対象コース・申請時期・要件を事前確認し、受給を前提に価格提案しない。" },
+  { label:"物流DXの推進（国土交通省）", url:"https://www.mlit.go.jp/seisakutokatsu/freight/seisakutokatsu_freight_mn1_000018.html", note:"物流事業者のデジタル化事例・導入課題の公的な参考。個社の効果額を保証する資料ではない。" },
+];
+function getSellerProfile(){
+  const base = { offerings:OFFERING_CATALOG.map(o=>o.id), experience:"", strengths:"", networks:"", preferredApproach:"" };
+  try{
+    const saved = JSON.parse(localStorage.getItem(SELLER_PROFILE_KEY) || "{}");
+    return { ...base, ...saved, offerings:Array.isArray(saved.offerings) ? saved.offerings : base.offerings };
+  }catch(e){ return base; }
+}
+function offeringName(id){ return OFFERING_CATALOG.find(o=>o.id===id)?.name || "未選択"; }
+function sourceLink(ch, label){
+  const text = label || ch?.n || "参照元";
+  return ch?.u ? `<a href="${esc(ch.u)}" target="_blank" rel="noopener">${esc(text)} ↗</a>` : `${esc(text)}（URL未登録）`;
+}
+function referenceLink(ref){ return `<a href="${esc(ref.url)}" target="_blank" rel="noopener">${esc(ref.label)} ↗</a>：${esc(ref.note)}`; }
+
+function assessmentType(p, conclusion = concludeDept(p)){
+  if(conclusion.effectValue === "未算定") return "unpriced";
+  return conclusion.isEstimate ? "estimate" : "actual";
+}
+function assessmentLabel(p, conclusion = concludeDept(p)){
+  const type = assessmentType(p, conclusion);
+  return type === "actual" ? "実データによる参考試算" : type === "estimate" ? "業界平均による参考試算" : "未算定";
+}
+function referenceEffectLabel(p, conclusion = concludeDept(p)){
+  if(conclusion.effectValue === "未算定") return "未算定";
+  const prefix = conclusion.isEstimate ? "業界平均の参考試算" : "実データの参考試算";
+  const effect = conclusion.effectType === "費用減"
+    ? `${conclusion.effectAccountName}リスク ${conclusion.effectValue}/年`
+    : `${conclusion.effectAccountName}増加の目安 ${conclusion.effectValue}/年`;
+  return `${effect}（${prefix}）`;
+}
+function researchMeta(p){
+  const facts = RESEARCH_FACTS[p.name] || {};
+  const factSources = Array.isArray(facts.additionalSources) ? facts.additionalSources : [];
+  const channelSources = (p.contact?.channels || []).filter(ch=>ch.u).map(ch=>({ label:ch.n, url:ch.u, note:ch.m || "" }));
+  const sources = [...factSources, ...channelSources].filter((s,i,all)=>s.url && all.findIndex(x=>x.url===s.url)===i);
+  const dates = sources.flatMap(s=>String(s.note || "").match(/20\d{2}-\d{2}-\d{2}/g) || []).sort();
+  const checkedAt = dates.length ? dates[dates.length - 1] : "確認日未登録";
+  const statuses = [facts.employeeStatus, facts.capitalStatus, facts.revenueStatus].filter(Boolean);
+  const trust = statuses.some(s=>String(s).startsWith("確定")) ? "確認済み情報あり"
+    : statuses.some(s=>String(s).startsWith("推定")) ? "外部情報からの推定" : "未確認項目あり";
+  return { facts, sources, checkedAt, trust };
+}
+function priorityReason(p, conclusion = concludeDept(p)){
+  if(conclusion.effectValue === "未算定") return "効果根拠が不足しているため追加調査が必要";
+  const channels = p.contact?.channels || [];
+  const facts = RESEARCH_FACTS[p.name] || {};
+  const reasons = [];
+  if(conclusion.effectValue !== "未算定") reasons.push(conclusion.isEstimate ? "業界平均で参考試算可能" : "求人データで参考試算可能");
+  if(findChannel(channels, "Indeed")) reasons.push("求人課題あり");
+  if(facts.employeeCount || facts.capitalMan || facts.revenueRangeText) reasons.push("会社規模情報あり");
+  if(!reasons.length) reasons.push("公開情報から提案根拠を確認できる候補");
+  return reasons.join("・");
+}
+
+/* ---- v5: v4の費用対効果・優先順位は変えず、「どう会うか」だけを追加する ---- */
+const COMPANY_CONNECTION_PLANS = {
+  "株式会社フジショウ": {
+    status:"ゼロから開拓", route:"運送業の合同企業説明会",
+    reason:"複数職種を採用中のため、求職者向けの合同説明会なら採用導線を現地で確かめられる。",
+    evidence:"既存の採用専用サイトと募集中求人を確認",
+    firstStep:"岡山県内の運送・物流系合同企業説明会で出展予定を確認する。"
+  },
+  "有限会社杉元建具": {
+    status:"ゼロから開拓", route:"岡山県建具組合連合会の公開行事",
+    reason:"同社は連合会の正会員名簿に掲載されているため、無関係な交流会より業界の公開行事を選ぶ方が自然。",
+    evidence:"岡山県建具組合連合会の正会員名簿に掲載",
+    firstStep:"連合会の一般参加可能な展示会・講習会を確認し、建具事例を見に行く。"
+  },
+  "有限会社三谷工業": {
+    status:"ゼロから開拓", route:"Instagramで告知される公開行事",
+    reason:"公開アカウントは連絡手段ではなく、施工展示や採用イベントの参加予定を見つける情報源として使う。",
+    evidence:"Instagramの稼働を確認",
+    firstStep:"投稿と自社サイトから一般参加できる展示・採用行事を確認する。"
+  },
+  "株式会社シーエス建材トーヨー住器": {
+    status:"ゼロから開拓", route:"LIXILショールームの公開相談会",
+    reason:"マド本舗としての活動が確認できるため、住宅設備の公開相談会や地域イベントが対面の入口に合う。",
+    evidence:"公式YouTubeチャンネルで5本の投稿を確認",
+    firstStep:"岡山のLIXILショールームとマド本舗の公開イベント予定を確認する。"
+  },
+  "有限会社石井電業社": {
+    status:"ゼロから開拓", route:"電気工事系の合同企業説明会",
+    reason:"電気工事スタッフを募集中のため、採用目的の対面イベントなら仕事内容を知る会話から始められる。",
+    evidence:"engage採用ページと求人掲載を確認",
+    firstStep:"岡山県内の建設・電気工事系合同企業説明会への出展予定を確認する。"
+  },
+  "有限会社コバヤシ防災システム": {
+    status:"ゼロから開拓", route:"岡山県消防設備協会の公開講習・行事",
+    reason:"同社は消防設備協会の登録会員名簿に掲載されており、業界の学びの場なら営業目的だけの接触になりにくい。",
+    evidence:"岡山県消防設備協会の1号会員名簿に掲載",
+    firstStep:"協会の一般参加可能な講習会・行事を確認し、消防設備業界の採用課題を学びに行く。"
+  },
+  "有限会社ワイ・エス・ピー": {
+    status:"ゼロから開拓", route:"ザ・ビジネスモールの企業情報を起点にする",
+    reason:"商工会議所系の企業情報に掲載があるため、一般的な営業リストではなく、商談会や地域事業者向けの場を通す方が自然。",
+    evidence:"ザ・ビジネスモールの企業情報掲載を確認",
+    firstStep:"岡山商工会議所の商談会・交流会で参加可能なものを確認する。"
+  },
+  "竹森工芸株式会社": {
+    status:"ゼロから開拓", route:"岡山商工会議所の公開セミナー・交流会",
+    reason:"同社は岡山商工会議所所属を公表し、銀行のSDGs取材実績もあるため、地域企業の公開活動が自然な入口になる。",
+    evidence:"岡山商工会議所所属と、あわぎん銀行の取材実績を確認",
+    firstStep:"商工会議所の一般参加可能な行事から、ものづくり・採用・広報に近い回を選ぶ。"
+  },
+  "日新機工有限会社": {
+    status:"ゼロから開拓", route:"機械設備の展示会・技術講習",
+    reason:"機械器具の修理・設置会社なので、一般交流会より設備保全や製造業の技術行事が仕事の文脈に合う。",
+    evidence:"創業60年超、公開SNSと自社サイトは未確認",
+    firstStep:"岡山県内の設備保全・製造業向け展示会と公開講習を確認する。"
+  },
+  "光陽警備保障株式会社": {
+    status:"ゼロから開拓", route:"警備業の合同企業説明会",
+    reason:"公開媒体が少ないため、警備職の採用イベントで仕事内容を知る対面の入口を優先する。",
+    evidence:"公式サイト・SNS・県警備業協会での掲載は未確認",
+    firstStep:"岡山県内の警備・保安職向け合同企業説明会への参加予定を確認する。"
+  }
+};
+
+function connectionPlan(p){
+  if(COMPANY_CONNECTION_PLANS[p.name]) return COMPANY_CONNECTION_PLANS[p.name];
+  const channels = Array.isArray(p.contact?.channels) ? p.contact.channels : [];
+  const group = channels.find(ch=>/業界団体|商工|組合/.test(ch.n||"") && ch.u);
+  const news = channels.find(ch=>/業界ニュース|お知らせ|プレス/.test(ch.n||"") && ch.u);
+  const social = channels.find(ch=>/Instagram|Facebook|X|note/.test(ch.n||"") && ch.u && (ch.r==="◎" || ch.r==="○"));
+  const indeed = findChannel(channels, "Indeed");
+  if(group) return {
+    status:"ゼロから開拓", route:`会い方の候補：${group.n}`,
+    reason:"団体情報を手掛かりに、一般参加できる催しや主催者との接触経路を探す。",
+    evidence:group.m || "団体に関する公開情報あり",
+    firstStep:"会社との関係が確認できる会員名簿、登壇・出展履歴、今後の公開イベントを調べる。"
+  };
+  if(news) return {
+    status:"ゼロから開拓", route:`会い方の候補：${news.n}`,
+    reason:"公開発信を手掛かりに、担当者や一般参加できる活動を探す。",
+    evidence:news.m || "公開活動を確認",
+    firstStep:"発信元、担当者名、過去の取材・登壇・イベント参加履歴を調べる。"
+  };
+  if(social) return {
+    status:"ゼロから開拓", route:`会い方の候補：${social.n}の公開アカウント`,
+    reason:`${social.n}は接点そのものではなく、活動や担当者を知るための手掛かりとして扱う。`,
+    evidence:social.m || `${social.n}の公開アカウントを確認`,
+    firstStep:"公開投稿から一般参加できる展示会・相談会・採用行事を探す。"
+  };
+  if(indeed) return {
+    status:"ゼロから開拓", route:"募集職種に近い合同企業説明会",
+    reason:"求人掲載は課題のシグナルであり、会えることやヒアリングできることの根拠にはならない。",
+    evidence:indeed.m || "求人掲載を確認",
+    firstStep:"一般参加できるイベント、主催者、登壇・出展履歴、公開SNSの順に調べる。"
+  };
+  return {
+    status:"ゼロから開拓", route:"業界の公開展示会・講習会",
+    reason:"会える場や自然に連絡できる経路をゼロから探す。",
+    evidence:"関係経路は未確認",
+    firstStep:"一般参加できるイベント、主催者、登壇・出展履歴、公開SNSの順に調べる。"
+  };
+}
+function trustBoxHtml(p, conclusion = concludeDept(p)){
+  const meta = researchMeta(p);
+  const sourceLinks = meta.sources.length
+    ? meta.sources.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)} ↗</a>`).join("、")
+    : "出典リンク未登録";
+  return `<div class="trust-box"><b>情報の信頼度・出典</b>
+    ${esc(assessmentLabel(p, conclusion))} / ${esc(meta.trust)}<br>
+    情報確認日：${esc(meta.checkedAt)}<br>
+    主な出典：${sourceLinks}<br>
+    <span class="rail-note">公開情報は更新・削除される可能性があります。提案前に再確認してください。</span>
+  </div>`;
+}
+// 発表デモでは「提供商材から考える営業戦略」(AI研修診断)を一時非表示にする。
+// 10社中9社が判定保留(根拠不足)になり、本筋のROI説明の邪魔になるため。
+// 機能自体は温存(次回作でのAI活用は主力の方向性のため)。再表示するにはtrueに戻すだけ。
+const SHOW_OFFERING_STRATEGY = false;
+
+/* ---- 商材起点の営業戦略: 1社目は根拠が揃う企業だけを「検証候補」にする ---- */
+function diagnoseOfferingFit(p){
+  const profile = getSellerProfile();
+  const facts = RESEARCH_FACTS[p.name] || {};
+  const channels = p.contact?.channels || [];
+  const indeed = findChannel(channels, "Indeed");
+  const news = findChannel(channels, "業界ニュース");
+  const activeHiring = /Indeedに21件|21件の求人/.test(p.hypothesisHr || "") || /21件/.test(indeed?.m || "");
+  const workforceKnown = Number(String(facts.employeeCount || "").replace(/[^0-9]/g,"")) >= 50;
+  const isCaseStudy = workforceKnown && activeHiring;
+  const preferred = profile.offerings.includes("ai_training") ? "ai_training" : profile.offerings[0];
+  const offering = offeringName(preferred);
+
+  if(!isCaseStudy){
+    return {
+      isCaseStudy:false, offering,
+      status:"判定保留（根拠不足）",
+      why:"AI研修・業務改善支援との適合を判断するための、教育課題・業務時間・現場のAI利用状況が公開情報からは不足している。",
+      confirmed:[esc(`公開情報：${p.industry || "業種未確認"}、${facts.employeeCount ? `従業員${facts.employeeCount}人（${facts.employeeStatus}）` : "従業員数未確認"}`)],
+      inference:"人員規模や業務課題が分からない段階で、AI研修が適合すると断定しない。",
+      unknown:"教育対象者・現場の反復業務・既存ツール・決裁者・予算",
+      effect:"年額効果は未算定",
+      formula:"年額効果 = 対象人数 × 1人あたり月間削減時間 × 時間単価 × 12 − 年額費用",
+      route:`確認済みの電話番号${p.phone ? `（${p.phone}）` : "が無いため、連絡手段の確認から"}`,
+      firstAction:"業務改善・教育の担当者と、AIを使って減らしたい定型業務があるかを確認する。",
+    };
+  }
+
+  const employeeNote = `従業員数：${facts.employeeCount}人（${facts.employeeStatus}）`;
+  return {
+    isCaseStudy:true, offering,
+    status:"1社目の検証候補（適合は仮説）",
+    why:"確認済みの従業員規模と複数職種の採用活動があり、教育・定型業務の課題をヒアリングする合理性がある。AI導入ニーズ自体は未確認。",
+    confirmed:[employeeNote, `${sourceLink(indeed, "Indeed求人")}：${esc(indeed?.m || "求人掲載あり（件数は要再確認）")}`, news?.m ? `${sourceLink(news, "業界ニュース")}：${esc(news.m)}` : "業界ニュース：未確認", ...(facts.additionalSources || []).map(referenceLink), `連絡先：電話 ${p.phone || "未確認"}（メールは未確認）`],
+    inference:"採用拡大・組織変化の局面では、教育の標準化や定型業務の見直しが課題になり得る。ただし現場課題・AI利用意向は未確認。",
+    unknown:"研修対象人数、現在の教育工数、反復業務、AI利用ルール、決裁者、予算、導入実績に求める条件",
+    effect:"年額効果は未算定",
+    formula:"年額効果 = 研修対象人数 × 1人あたり月間削減時間 × 時間単価 × 12 − 年額費用",
+    route:`最優先：代表電話（${p.phone}）で「人材育成・業務改善のご担当者」を確認。紹介・団体接点は現時点で未確認のため、存在する前提にしない。`,
+    firstAction:`最初の接触では「${offering}を売り込む」前に、求人増加に伴う教育・引継ぎ・定型業務で時間が掛かっている点があるか、15分だけ確認したいと伝える。`,
+  };
+}
+function offeringStrategyHtml(p){
+  const d = diagnoseOfferingFit(p);
+  return `<section class="ai-strategy">
+    <div class="ai-kicker">提供商材から考える営業戦略</div>
+    <span class="ai-status">${esc(d.status)}</span>
+    <h2>${esc(d.offering)} × ${esc(p.name || "対象企業")}</h2>
+    <div class="ai-row"><b>選定理由</b>${esc(d.why)}</div>
+    <div class="ai-row"><b class="ai-confirmed">確認済みの情報</b><ul>${d.confirmed.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    <div class="ai-row"><b class="ai-estimate">仮説（確認が必要）</b>${esc(d.inference)}</div>
+    <div class="ai-row"><b class="ai-unknown">未確認・金額化に必要な情報</b>${esc(d.unknown)}</div>
+    <div class="calc-alert"><b>効果の計算式（未算定）</b>${esc(d.formula)}<br>必要情報：${esc(d.unknown)}</div>
+    <div class="ai-row"><b>市場参考・制度（自社価格／先方実績ではない）</b><ul>${MARKET_REFERENCES.map(ref=>`<li>${referenceLink(ref)}</li>`).join("")}</ul></div>
+    <div class="ai-row"><b>最も現実的な営業ルート</b>${esc(d.route)}</div>
+    <div class="ai-row"><b>最初に伝えること／次の行動</b>${esc(d.firstAction)}</div>
+  </section>`;
+}
+
+// 一覧の優先順位計算に使う企業側の営業タイプ。画面上の診断詳細は表示しない。
+function diagnoseApproach(p){
+  const channels = Array.isArray(p.contact?.channels) ? p.contact.channels : [];
+  const site = findChannel(channels, "自社サイト");
+  const recruitSite = findChannel(channels, "採用サイト");
+  const gmap = findChannel(channels, "Googleマップ");
+  const indeed = findChannel(channels, "Indeed");
+
+  if(indeed && (indeed.r === "◎" || indeed.r === "○") &&
+      (recruitSite || !site || site.r === "✕" || /未掲載/.test(site.m || ""))){
+    return { type:"応募導線型" };
+  }
+  if((!site || site.r === "✕") && (!gmap || gmap.r === "✕")){
+    return { type:"認知構築型" };
+  }
+  if(site && site.r === "△") return { type:"改善提案型" };
+  return { type:"信頼補強型" };
+}
+
+/* ---- 求人票に給与記載が無い場合、業種が近い職種の全国平均年収(公的統計)で代用する ----
+   実在の企業データが取れない場合のみ使うフォールバック。該当が無ければnullを返し、
+   未算定のまま表示する(存在しない業種を無理に当てはめて捏造しない)。 */
+function industryWageBenchmark(industry){
+  const table = [
+    { match: /機械器具の修理|機械.*設置|機械修理|機械整備/,
+      label: "物流設備管理・保全（岡山県）", lowMan: 550, highMan: 680,
+      source: "厚生労働省 job tag 職業情報（物流設備管理・保全、岡山県平均年収614.8万円、令和7年賃金構造基本統計調査）",
+      sourceUrl: "https://shigoto.mhlw.go.jp/User/Occupation/Detail/269" },
+  ];
+  const hit = table.find(t => industry && t.match.test(industry));
+  return hit || null;
+}
+
+/* ---- 営業/人事/広報のうちどれが最も費用対効果が高いかを結論づける ---- */
+function concludeDept(p){
+  const c = p.contact || {};
+  const channels = Array.isArray(c.channels) ? c.channels : [];
+  const site = findChannel(channels, "自社サイト");
+  const recruitSite = findChannel(channels, "採用サイト");
+  const gmap = findChannel(channels, "Googleマップ");
+  const indeed = findChannel(channels, "Indeed");
+  const facts = RESEARCH_FACTS[p.name] || {};
+
+  // 資本金・売上高は事業規模の参考情報。制作予算そのものではないため、予算額の推定には使わない。
+  // ステータス表記(確定/推定/未確認)は出典ごとに個社管理(RESEARCH_FACTS)し、ここでは汎用ラベルを付けない。
+  const capitalMan = parseFloat(p.capitalMan || facts.capitalMan) || 0;
+  const revenueMan = parseFloat(p.revenueMan || facts.revenueMan) || 0;
+  const employeeScale = facts.employeeCount
+    ? `従業員${facts.employeeCount}人（${facts.employeeStatus}）`
+    : "従業員数は未確認";
+
+  // カードの「会社規模」行は資本金・売上高・従業員数を参考値としてそのまま並べるだけで、
+  // 予算そのものを試算・推定することはしない(資本金→予算の換算に使える実在の相場が無いため)。
+  // 不明な項目は他カードと見た目を揃えるため「?」で埋める(資本金?万円・従業員?人)。
+  const employeeShort = facts.employeeCount ? `従業員：${facts.employeeCount}人` : "従業員：？人";
+  // カード上では「10億円以上〜50億円未満」を「10〜50億円」に縮め、1行に収める。
+  const cardRevenueRange = facts.revenueRangeText
+    ? facts.revenueRangeText.replace(/^(.+?)億円以上[〜～](.+?)億円未満$/, "$1〜$2億円")
+    : "";
+  const capitalPart = capitalMan > 0 ? `資本金：${capitalMan.toLocaleString("ja-JP")}万円` : "資本金：？万円";
+  const revenuePart = cardRevenueRange ? `売上高：${cardRevenueRange}`
+    : revenueMan >= 10000 ? `売上高：${(revenueMan/10000).toFixed(0)}億円`
+    : "売上高：？円";
+  const cardBudget = `${revenuePart} ${capitalPart} ${employeeShort}`;
+
+  let businessScale, businessScaleNote;
+  if(facts.revenueRangeText){
+    businessScale = `年間売上高${facts.revenueRangeText}（${facts.revenueStatus}） / ${employeeScale}`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+  } else if(revenueMan >= 10000){
+    businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+  } else if(capitalMan >= 800){
+    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+  } else if(capitalMan > 0){
+    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+  } else {
+    businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
+    businessScaleNote = `売上高・資本金は未確認。${employeeScale}。今回の制作・運用予算は提案前に確認する。`;
+  }
+
+  // 分岐順で提案を決めず、候補ごとに公開情報上の必要性を比較する。
+  const activeJob = !!(indeed && (indeed.r==="◎" || indeed.r==="○"));
+  const proposalScores = {
+    recruit: (activeJob ? 40 : 0) + ((!site || site.r==="✕") ? 15 : 0) + (/未掲載/.test(site?.m || "") ? 15 : 0) + (recruitSite ? 10 : 0),
+    map: (!gmap || gmap.r==="✕") ? 20 : 0,
+    site: (site?.r==="△") ? 25 : ((!site || site.r==="✕") ? 15 : 0),
+    social: ["Instagram","X","Facebook","LINE公式"].filter(name=>{ const ch=findChannel(channels,name); return !ch || ch.r==="✕"; }).length * 3,
+  };
+  const proposalKind = Object.entries(proposalScores).sort((a,b)=>b[1]-a[1])[0][0];
+
+  let result;
+  if(proposalKind === "map"){
+    result = {
+      cost: "導入コスト: 無料・即日",
+      action: "Googleビジネスプロフィールの登録",
+      accountItem: "外注費（初期設定代行）",
+      dept: "営業",
+      text: p.hypothesisSales,
+      priceLabel: "初期費用 2〜3万円（単発）",
+      effectType: "売上増",
+      effectValue: "未算定",
+      effectNote: "算定には問い合わせ・成約データが必要",
+      calculationFormula: "年額の増収効果 = 月間の追加問い合わせ数 × 成約率 × 1件あたりの粗利 × 12",
+      calculationInputs: "月間問い合わせ数・成約率・平均粗利・Googleマップ経由の割合",
+      clientBenefit: "検索経由の問い合わせを取りこぼしている可能性がある。ただしアクセス解析データが無く、具体的な金額は算出できない(誠実に「不明」とする)。",
+      benefitStatus: "未算定（必要情報なし）",
+      reason: `Googleビジネスプロフィール自体は無料。初期設定を代行する提案として、低い初期費用から始められる。${businessScaleNote}`,
+      winCase: "Googleマップ経由の問い合わせ数を、登録前後で計測できる状態にする。",
+      loseCase: "登録後に見る指標(表示回数・電話・ルート検索・問い合わせ)を先に合意する。",
+    };
+  } else if(proposalKind === "recruit"){
+    // 相手側の効果(採用コスト削減)を、求人票記載の月給レンジ×人材紹介手数料相場(年収の30%が業界慣行)から試算。
+    // 金額換算できるのはこの採用系だけ(営業/広報は流入→成約の実データが無く金額換算は困難)。
+    // 自社サイトはあるが、Indeedで募集中の主力職種が自社サイトの採用ページに載っていない(「未掲載」)ケースは、
+    // 「新設」ではなく「拡充」を商材にする。サイトの有無ではなく、採用ページが主力職種をカバーできているかで分岐する。
+    const siteHasRecruitGap = !!(site && /未掲載/.test(site.m||""));
+    const hasRecruitSite = !!recruitSite;
+    let clientBenefit = "採用に関する具体的な損失額は、求人票に給与情報が無く算出できない。";
+    let clientBenefitAmount = "";
+    let benefitIsEstimate = false;
+    let benefitSourceUrl = "";
+    let benefitSourceLabel = "";
+    let benefitFormula = "";
+    const monthlyMatch = indeed.m && indeed.m.match(/月給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
+    const dailyMatch = !monthlyMatch && indeed.m && indeed.m.match(/日給(\d+(?:\.\d+)?)万?(?:[〜~](\d+(?:\.\d+)?)万?)?円/);
+    const DAYS_PER_MONTH = 21.6; // ハローワーク求人票の「月平均労働日数」で使われる日給→月額換算の標準係数
+    if(monthlyMatch || dailyMatch){
+      const m = monthlyMatch || dailyMatch;
+      let lo = parseFloat(m[1]);
+      let hi = m[2] ? parseFloat(m[2]) : lo;
+      const unitLabel = monthlyMatch ? "月給" : "日給";
+      const basisNote = dailyMatch ? `(日給→月給換算: 稼働${DAYS_PER_MONTH}日/月と仮定)` : "";
+      if(dailyMatch){ lo = lo * DAYS_PER_MONTH; hi = hi * DAYS_PER_MONTH; }
+      const feeLo = Math.round(lo * 12 * 0.3);
+      const feeHi = Math.round(hi * 12 * 0.3);
+      clientBenefitAmount = `${feeLo}〜${feeHi}万円`;
+      clientBenefit = `試算条件: 求人票の${unitLabel}(${m[0].replace("円","")}円)${basisNote}、人材紹介の成功報酬相場を年収の30%と置く。現状ハローワーク等の無料掲載だけで採用できているなら、今は発生していないコスト。ただし応募が集まらず人材紹介に頼らざるを得なくなった場合、1名あたり${feeLo}〜${feeHi}万円の費用がかかる。採用ページはその保険として機能する。`;
+      if(indeed.u){ benefitSourceUrl = indeed.u; benefitSourceLabel = "求人票（Indeed）を見る"; }
+      benefitFormula = dailyMatch
+        ? `日給${m[1]}${m[2]?`〜${m[2]}`:""}万円 × 稼働${DAYS_PER_MONTH}日/月 = 月給換算${lo.toFixed(1)}〜${hi.toFixed(1)}万円 → × 12か月 × 人材紹介手数料率30% = ${feeLo}〜${feeHi}万円`
+        : `月給${lo}${hi!==lo?`〜${hi}`:""}万円 × 12か月 × 人材紹介手数料率30% = ${feeLo}〜${feeHi}万円`;
+    } else {
+      // 求人票に給与記載がない場合、業種が近い職種の全国平均年収(厚生労働省 job tag)を根拠に推定する。
+      // 個社の実データではなく全国平均であることを明記し、試算(個社データ)とは区別する。
+      const benchmark = industryWageBenchmark(p.industry);
+      if(benchmark){
+        const feeLo = Math.round(benchmark.lowMan * 0.3);
+        const feeHi = Math.round(benchmark.highMan * 0.3);
+        clientBenefitAmount = `${feeLo}〜${feeHi}万円`;
+        benefitIsEstimate = true;
+        clientBenefit = `推定条件: 求人票に給与記載が無いため、業種が近い「${benchmark.label}」の平均年収(${benchmark.lowMan}〜${benchmark.highMan}万円、出典: ${benchmark.source})で代用。人材紹介の成功報酬相場を年収の30%と置く。現状ハローワーク等の無料掲載だけで採用できているなら、今は発生していないコスト。応募が集まらず人材紹介に頼らざるを得なくなった場合の備えとして提示する。実際の給与水準とは異なる可能性があるため、商談で要確認。`;
+        if(benchmark.sourceUrl){ benefitSourceUrl = benchmark.sourceUrl; benefitSourceLabel = "出典（job tag）を見る"; }
+        benefitFormula = `業種平均年収${benchmark.lowMan}〜${benchmark.highMan}万円 × 人材紹介手数料率30% = ${feeLo}〜${feeHi}万円`;
+      }
+    }
+    result = {
+      cost: "導入コスト: 低",
+      action: hasRecruitSite ? "既存採用サイトの求人導線改善" : (siteHasRecruitGap ? "採用ページの職種拡充" : "採用特化ページの新設"),
+      accountItem: (hasRecruitSite || siteHasRecruitGap) ? "外注費（改修費）" : "外注費（制作費）",
+      dept: "人事",
+      text: p.hypothesisHr,
+      priceLabel: (hasRecruitSite || siteHasRecruitGap) ? "改修費 5〜8万円（単発）" : "制作費 8〜15万円（単発）",
+      effectType: "費用減",
+      effectValue: clientBenefitAmount || "未算定",
+      effectNote: clientBenefitAmount ? "将来、人材紹介に頼らざるを得なくなった場合に回避できる費用" : "給与・紹介会社利用の確認が必要",
+      calculationFormula: benefitFormula || (clientBenefitAmount ? `年額の削減余地 = 求人票の月給 × 12か月 × 人材紹介手数料率30% × 自社採用できた人数(1名)` : "年額の削減余地 = 想定年収 × 人材紹介手数料率 × 自社採用できた人数"),
+      calculationInputs: clientBenefitAmount ? "人材紹介を実際に利用しているか・年間採用人数・自社採用に置き換わった人数" : "求人の給与・人材紹介の利用有無・手数料率・年間採用人数",
+      clientBenefit,
+      clientBenefitAmount,
+      isEstimate: benefitIsEstimate,
+      benefitSourceUrl, benefitSourceLabel,
+      benefitStatus: clientBenefitAmount ? (benefitIsEstimate ? "推定（業種別平均を代用、1名を自社採用できた場合）" : "試算（1名を自社採用できた場合）") : "未算定（給与情報なし）",
+      reason: hasRecruitSite
+        ? `既存の採用専用サイトがあるため新設は行わず、求人媒体との情報整合・職種別導線・応募計測の改善余地を確認する。${businessScaleNote}`
+        : (siteHasRecruitGap
+          ? `自社サイトに採用ページはあるが、Indeedで募集中の主力職種が未掲載。既存サイトに職種を追加する提案。${businessScaleNote}`
+          : `Indeed掲載中に、応募者が会社・仕事内容を確認できる受け皿を用意する提案。${businessScaleNote}`),
+      winCase: "現状ハローワーク等の無料掲載だけで応募が十分に集まっているか、人材紹介を使う可能性が今後あるかを確認する。",
+      loseCase: "ページ公開後は、Indeedからの流入・応募数・採用数を計測し、効果を検証する。",
+    };
+  } else if(proposalKind === "site"){
+    result = {
+      cost: "導入コスト: 低",
+      action: "既存サイトの情報・問い合わせ導線改善",
+      accountItem: "外注費（IT関連費）",
+      dept: "営業",
+      text: p.hypothesisSales,
+      priceLabel: "改修費 5〜8万円（単発）",
+      effectType: "売上増",
+      effectValue: "未算定",
+      effectNote: "算定にはアクセス・問い合わせ・成約データが必要",
+      calculationFormula: "年額の増収効果 = 月間の問い合わせ増加数 × 成約率 × 1件あたりの粗利 × 12",
+      calculationInputs: "現状アクセス数・問い合わせ数・成約率・平均粗利・改善後の変化",
+      clientBenefit: "既存サイトの情報不足や問い合わせ導線による機会損失の可能性がある。ただしアクセス解析データが無く、具体的な金額は算出できない。SSL対応など、確認できていない不具合は前提にしない。",
+      benefitStatus: "未算定（必要情報なし）",
+      reason: `既存サイトを活かし、公開情報で確認できた不足だけを対象に、情報更新や問い合わせ導線を改善する提案。${businessScaleNote}`,
+      winCase: "アクセス解析、問い合わせ件数、離脱箇所を確認し、改善対象を事実に基づいて決める。",
+      loseCase: "改修範囲、管理権限、現在のアクセス数を確認してから費用と期待効果を確定する。",
+    };
+  } else {
+    result = {
+      cost: "導入コスト: 中(時間要)",
+      action: "SNS等での情報発信の開始",
+      accountItem: "広告宣伝費",
+      dept: "広報",
+      text: p.hypothesisPr,
+      priceLabel: "月額 3〜5万円（運用支援）",
+      effectType: "売上増",
+      effectValue: "未算定",
+      effectNote: "算定には問い合わせ・成約データが必要",
+      calculationFormula: "年額の増収効果 = 月間のSNS由来問い合わせ増加数 × 成約率 × 1件あたりの粗利 × 12",
+      calculationInputs: "月間投稿数・SNS由来の問い合わせ数・成約率・平均粗利",
+      clientBenefit: "情報発信が無いことによる新規問い合わせの機会損失があると考えられるが、具体的な金額は算出できない(誠実に「不明」とする)。",
+      benefitStatus: "未算定（必要情報なし）",
+      reason: `施工実績・会社情報を継続して発信し、問い合わせにつながる情報を増やす提案。${businessScaleNote}`,
+      winCase: "月間の投稿本数、閲覧数、問い合わせ数を決め、月次で効果を確認する。",
+      loseCase: "投稿素材の提供担当者と、月額内に含める作業範囲を事前に決める。",
+    };
+  }
+
+  // 効果額は比較・回収計算に使うため、金額の有無にかかわらず期間を必ず明示する。
+  // 採用の試算は月給×12、売上系は年次の問い合わせ・成約実績で検証する前提。
+  result.effectPeriod = "年額";
+  const effectLabel = `${result.effectPeriod}の${result.effectType} ${result.effectValue}`;
+  // 効果（先方の収益・費用）と投資（今回の制作・運用費）を混同しない。
+  // 採用費は会社ごとの会計方針で広告宣伝費・外注費等になる場合があるため、あくまで想定として表示する。
+  result.effectAccountName = result.effectType === "費用減" ? "採用費" : "売上高";
+  result.effectSign = result.effectType === "費用減" ? "−" : "+";
+  result.effectDisplay = result.effectValue === "未算定"
+    ? `${result.effectPeriod} ${result.effectAccountName} 未算定`
+    : `${result.effectPeriod} ${result.effectAccountName} ${result.effectValue}の可能性`;
+  result.accountingNote = result.effectType === "費用減"
+    ? "効果の勘定科目（想定）：採用費。先方の会計方針により広告宣伝費・外注費等への計上もあり得るため要確認。"
+    : "効果の勘定科目：売上高。利益額ではなく売上増の効果であり、粗利・営業利益への影響は別途確認。";
+  result.businessScale = businessScale;
+  result.cardBudget = cardBudget;
+  result.proposalReady = result.effectValue !== "未算定";
+  result.topConclusion = !result.proposalReady
+    ? "効果根拠が不足しているため提案は保留。公開情報を追加調査してから提案可否を判断する。"
+    : `${effectLabel}の${result.effectType === "費用減" ? "回避可能性" : "増加目安"}を参考に、${result.action}への${result.priceLabel}の投資可否を判断する。`;
+  result.wrapUp = result.proposalReady
+    ? `結論: まずは${result.dept}課題(${result.action})を${result.priceLabel}で提案する。`
+    : "結論: 現時点では提案しない。効果算定に必要な情報を追加調査する。";
+  // 効果を先、投資内容を後に置いて、ラベルに頼らず読める順にする。
+  const shortAction = result.action.replace(/[(（].*?[)）]/g,"");
+  // カード一覧は横幅が狭いため「年額」を省略し、括弧を外して1行に収まりやすくする。
+  // 「年額」は省くが、年ベースの数字であることは経営判断に必須の情報なので「/年」で必ず残す。
+  result.cardLine = result.proposalReady ? referenceEffectLabel(p, result) : "提案保留｜効果根拠を追加調査";
+  result.cardInvestment = result.proposalReady ? result.priceLabel : "費用提示なし";
+  result.cardProduct = result.proposalReady ? shortAction : "追加調査が必要";
+
+  return result;
+}
+
+function fitScore(p){
+  // 費用対効果ファースト・予算セカンド: ROIが実額で見える会社を最優先し、
+  // 同条件なら資本金(予算感)が大きい会社を上にする。接点・連絡経路の有無は順位に使わない。
+  const c = p.contact || {};
+  const channels = Array.isArray(c.channels) ? c.channels : [];
+  const diag = diagnoseApproach(p);
+  const indeed = findChannel(channels, "Indeed");
+  const concl = concludeDept(p);
+
+  let score = 0;
+  // 最優先: 個社の実データに基づく「試算」 > 全国・都道府県平均を使った「業種推定」 > 「未算定」。
+  // 各階層の間は金額差では絶対に逆転しないよう、階層ごとに大きな間隔(10000点)を空ける。
+  // 階層内では効果額(上限)が大きい順に並ぶよう、階層の点数に金額をそのまま加算する(金額は数百までなので階層をまたがない)。
+  if(concl.effectValue !== "未算定"){
+    const nums = String(concl.effectValue).match(/\d+(?:\.\d+)?/g);
+    const upper = nums && nums.length ? Math.max(...nums.map(Number)) : 0;
+    score += (concl.isEstimate ? 10000 : 20000) + upper;
+  }
+
+  // 予算セカンド: 会社規模(資本金・売上高・従業員数)が分かる会社ほど加点(確定>推定、金額が大きいほど加点)。
+  // 不明な会社は無理に下げないが、分かる会社がより上に来るようにする。
+  const facts = RESEARCH_FACTS[p.name] || {};
+  const capitalMan = parseFloat(p.capitalMan || facts.capitalMan) || 0;
+  const revenueManForScore = parseFloat(p.revenueMan || facts.revenueMan) || 0;
+  if(capitalMan > 0){
+    score += Math.min(capitalMan / 100, 20); // 100万円ごとに1点、上限20点
+    if(facts.capitalStatus && facts.capitalStatus.startsWith("確定")) score += 5;
+  }
+  if(revenueManForScore > 0 || facts.revenueRangeText) score += 8; // 売上規模が分かる会社を少し優先
+  if(facts.employeeCount){
+    score += 3; // 従業員数が分かる会社を少し優先
+    if(facts.employeeStatus && facts.employeeStatus.startsWith("確定")) score += 2;
+  }
+
+  // 価格サード: 商材価格(priceLabel)が安いほど導入ハードルが低く提案しやすいので、わずかに加点する。
+  // ROI・予算より優先度を下げるため最大5点に抑える(予算の最大加点25点を上回らない)。
+  const priceNums = String(concl.priceLabel || "").match(/\d+(?:\.\d+)?/g);
+  if(priceNums && priceNums.length){
+    const priceLower = Math.min(...priceNums.map(Number));
+    score += Math.max(5 - priceLower / 10, 0); // 安いほど加点、50万円以上で加点ゼロ
+  }
+
+  // 低コストで直せる(改善提案・応募導線)ほどROIが高い。ゼロから作る(認知構築)は工数が重い。
+  if(diag.type === "改善提案型") score += 30;
+  else if(diag.type === "応募導線型") score += 25;
+  else if(diag.type === "信頼補強型") score += 15;
+  else score += 5; // 認知構築型
+
+  // 相手の採用予算感(求人の活発さ)をROIの代理指標にする
+  if(indeed){
+    if(indeed.r === "◎") score += 20;
+    else if(indeed.r === "○") score += 10;
+  }
+
+  return score;
+}
+
+function companyCardLines(p, conclusion, connection){
+  const effectLines = conclusion.proposalReady
+    ? (conclusion.effectType === "費用減"
+        ? [`人材紹介費：年${conclusion.effectValue}`]
+        : [`${conclusion.effectAccountName}：年${conclusion.effectValue}`])
+    : ["効果根拠不足のため金額提示保留"];
+  const compactLabel = {
+    "Googleビジネスプロフィールの登録": "GBP登録費",
+    "既存採用サイトの求人導線改善": "採用導線改修費",
+    "採用ページの職種拡充": "採用ページ改修費",
+    "採用特化ページの新設": "採用ページ新設費",
+    "既存サイトの情報・問い合わせ導線改善": "サイト改修費",
+    "SNS等での情報発信の開始": "SNS運用費"
+  };
+  const amountOnly = conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "").replace(/^\S+\s+/, "");
+  const proposalLines = conclusion.proposalReady
+    ? [`${compactLabel[conclusion.cardProduct] || conclusion.cardProduct}：${amountOnly}`]
+    : ["不足する効果根拠を確認"];
+  const uniqueApproachLines = {
+    "株式会社フジショウ": "運送業の合同説明会",
+    "有限会社杉元建具": "建具組合の公開行事",
+    "有限会社三谷工業": "公開投稿で告知する行事",
+    "株式会社シーエス建材トーヨー住器": "LIXIL公開相談会",
+    "有限会社石井電業社": "電気工事系の合同説明会",
+    "有限会社コバヤシ防災システム": "消防設備協会の公開講習",
+    "有限会社ワイ・エス・ピー": "商工会議所の商談会・交流会",
+    "竹森工芸株式会社": "商工会議所の公開行事",
+    "日新機工有限会社": "機械設備の技術講習",
+    "光陽警備保障株式会社": "警備業の合同説明会"
+  };
+  const approach = [uniqueApproachLines[p.name] || connection.route];
+  const clean = s => s.replace(/[。、，・｜|（）()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 20);
+  return {
+    effect: effectLines.map(clean).filter(Boolean),
+    proposal: proposalLines.map(clean).filter(Boolean),
+    scale: conclusion.cardBudget.split(" ").map(clean).filter(Boolean),
+    approach: approach.map(clean).filter(Boolean)
+  };
+}
+
+function cardHtml(p, idx){
+  const concl = concludeDept(p);
+  const connection = connectionPlan(p);
+  const lines = companyCardLines(p, concl, connection);
+  return `<div class="card" data-idx="${idx}">
+      <div class="row-head">
+        <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
+      </div>
+      ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
+      <div class="line-group">${lines.effect.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group">${lines.scale.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group">${lines.proposal.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group">${lines.approach.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+    </div>`;
+}
+
+function modalBodyHtml(p){
+  const c = p.contact || {};
+  const channels = Array.isArray(c.channels) ? c.channels : [];
+  const own = sortChannels(channels.filter(ch=>OWN_MEDIA.has(ch.n)));
+  const other = sortChannels(channels.filter(ch=>!OWN_MEDIA.has(ch.n)));
+  const conclusion = concludeDept(p);
+  const connection = connectionPlan(p);
+  const proposalReady = conclusion.proposalReady;
+  const holdText = "効果根拠が揃うまで保留";
+  const phoneApproach = proposalReady ? (c.script || "未設定") : holdText;
+  const emailApproach = proposalReady ? (p.email ? (c.message || "未設定") : "送信先未確認") : holdText;
+  const formApproach = proposalReady ? "問い合わせフォーム未確認" : holdText;
+  const communityApproach = proposalReady ? "紹介・地域団体などの接点は未確認" : holdText;
+  const otherApproach = proposalReady ? (c.approachNote || "未設定") : holdText;
+  return `
+    <button class="close" aria-label="閉じる" data-close>×</button>
+    <div class="m-name">${esc(p.name||"")}</div>
+    ${p.area?`<div class="m-meta"><a href="${esc(googleMapsSearchUrl(p.area))}" target="_blank" rel="noopener">${esc(p.area)}（Googleマップで開く ↗）</a></div>`:""}
+    <div class="card-detail">
+      <div class="conclusion-box">
+        <div class="proposal-kicker">営業仮説・参考シミュレーション</div>
+        <div class="proposal-headline">${proposalReady
+          ? `<strong>${esc(referenceEffectLabel(p, conclusion))}</strong><br>${esc(conclusion.priceLabel)}で${esc(conclusion.action)}を提案候補にする`
+          : `<strong>提案保留</strong><br>費用対効果の根拠を追加調査する`}</div>
+        <div class="priority-box"><b>${proposalReady ? "この会社を優先する理由" : "提案を保留する理由"}</b>${esc(priorityReason(p, conclusion))}</div>
+        ${trustBoxHtml(p, conclusion)}
+        <div class="calc-alert ${conclusion.effectValue === "未算定" ? "" : "is-calculated"}">
+          <b>${conclusion.effectValue === "未算定" ? "未算定｜この情報があれば金額化できます" : (conclusion.isEstimate ? "業種推定の計算式・前提（全国平均を代用）" : "試算の計算式・前提")}</b>
+          ${esc(conclusion.calculationFormula)}<br>${conclusion.effectValue === "未算定" ? `確認項目：${esc(conclusion.calculationInputs)}` : `要確認：${esc(conclusion.calculationInputs)}`}
+          ${proposalReady ? `<span class="calc-account">${esc(conclusion.accountingNote)} 投資の勘定科目（想定）：${esc(conclusion.accountItem)}</span>` : ""}
+        </div>
+        <div class="proposal-flow">${proposalReady
+          ? `<div class="proposal-step">${esc(conclusion.effectDisplay)}${conclusion.isEstimate ? "（業種推定）" : "（試算）"}</div><div class="proposal-arrow">↔</div><div class="proposal-step">${esc(conclusion.priceLabel)}</div><div class="proposal-arrow">↔</div><div class="proposal-step">${esc(conclusion.action)}</div>`
+          : `<div class="proposal-step">追加調査</div><div class="proposal-arrow">→</div><div class="proposal-step">効果算定</div><div class="proposal-arrow">→</div><div class="proposal-step">提案判断</div>`}
+        </div>
+        <div class="client-benefit-label">相手(先方)の得・損（${esc(conclusion.benefitStatus)}）</div>
+        <div class="client-benefit-text">${esc(conclusion.clientBenefit)}</div>
+        ${conclusion.benefitSourceUrl ? `<div class="benefit-source"><a href="${esc(conclusion.benefitSourceUrl)}" target="_blank" rel="noopener">${esc(conclusion.benefitSourceLabel)} ↗</a></div>` : ""}
+        ${proposalReady ? `<div class="num-row">
+          <div class="num-tile">
+            <div class="num-label">商材</div>
+            <div class="num-value num-value-sm">${esc(conclusion.action)}</div>
+          </div>
+          <div class="num-tile">
+            <div class="num-label">費用・契約形態（目安）</div>
+            <div class="num-value num-value-sm">${esc(conclusion.priceLabel)}</div>
+          </div>
+        </div>` : ""}
+        <div class="conclusion-dept">${proposalReady ? `${esc(conclusion.dept)}課題 / ${esc(conclusion.accountItem)}` : `調査対象: ${esc(conclusion.dept)}課題`}<br>規模データ: ${esc(conclusion.businessScale)}</div>
+        <div class="conclusion-reason">${esc(conclusion.reason)}</div>
+        <div class="sim-box">${proposalReady
+          ? `<div class="sim-row sim-win"><span class="sim-label">確認したいこと</span>${esc(conclusion.winCase)}</div><div class="sim-row sim-lose"><span class="sim-label">提案前に決めること</span>${esc(conclusion.loseCase)}</div>`
+          : `<div class="sim-row sim-win"><span class="sim-label">追加調査する情報</span>${esc(conclusion.calculationInputs)}</div>`}
+        </div>
+        <div class="wrap-up">${esc(conclusion.wrapUp)}</div>
+        <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
+      </div>
+      ${SHOW_OFFERING_STRATEGY ? offeringStrategyHtml(p) : ""}
+      <details class="detail-toggle"><summary>課題仮説</summary>
+        ${issueRow("営業", p.hypothesisSales)}
+        ${issueRow("人事", p.hypothesisHr)}
+        ${issueRow("広報", p.hypothesisPr)}
+      </details>
+      <details class="detail-toggle" open><summary>接触方法</summary>
+        ${issueRow("会い方の候補", connection.route)}
+        ${issueRow("候補にした理由", connection.reason)}
+        ${issueRow("確認済みの根拠", connection.evidence)}
+        ${issueRow("最初の一歩", connection.firstStep)}
+      </details>
+      <details class="detail-toggle"><summary>営業手段</summary>
+        ${issueRow("電話営業", phoneApproach)}
+        ${issueRow("メール営業", emailApproach)}
+        ${issueRow("フォーム営業", formApproach)}
+        ${issueRow("コミュニティ営業", communityApproach)}
+        ${issueRow("その他", otherApproach)}
+      </details>
+      <details class="detail-toggle"><summary>媒体状況</summary>
+        ${channelGroup("自社媒体", own)}
+        ${channelGroup("他社媒体", other)}
+      </details>
+      <details class="detail-toggle"><summary>連絡情報</summary>
+        ${issueRow("電話", p.phone || "なし")}
+        ${issueRow("メール", p.email || "なし")}
+      </details>
+    </div>`;
+}
+
+let ITEMS = [];
+let openIdx = null;
+let selectedIdx = null;
+const overlay = document.getElementById("overlay");
+const modal = document.getElementById("modal");
+function openModal(idx){
+  const p = ITEMS[idx];
+  if(!p) return;
+  modal.innerHTML = modalBodyHtml(p);
+  overlay.classList.remove("hidden");
+  openIdx = idx;
+}
+function closeModal(){ overlay.classList.add("hidden"); openIdx = null; }
+
+function renderSelectedCompany(idx){
+  const p = ITEMS[idx];
+  const target = document.getElementById("rail-selected");
+  if(!p || !target) return;
+  const conclusion = concludeDept(p);
+  const connection = connectionPlan(p);
+  selectedIdx = idx;
+  target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
+    <div class="rail-selected-row"><b>相手に出せそうな効果</b>${esc(conclusion.cardLine)}</div>
+    <div class="rail-selected-row"><b>予算に合いそうな提案</b>${esc(conclusion.cardBudget)} / ${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
+    <div class="rail-selected-row"><b>接触方法</b>${esc(connection.route)}</div>
+    <div class="rail-selected-row"><b>最初の一歩</b>${esc(connection.firstStep)}</div>
+    <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
+    <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
+    <button class="rail-detail-btn" type="button" data-open-selected>詳細を見る</button>`;
+  document.querySelectorAll(".card").forEach(card=>card.setAttribute("aria-current", Number(card.dataset.idx) === idx ? "true" : "false"));
+}
+
+document.getElementById("grid").addEventListener("click", e=>{
+  if(e.target.closest("a")) return;
+  const card = e.target.closest(".card");
+  if(!card) return;
+  const idx = Number(card.dataset.idx);
+  if(window.matchMedia("(min-width:960px)").matches){
+    renderSelectedCompany(idx);
+  }
+  if(idx === openIdx && !overlay.classList.contains("hidden")){ closeModal(); return; }
+  openModal(idx);
+});
+document.querySelector(".desktop-shell").addEventListener("click", e=>{
+  if(e.target.closest("[data-open-selected]") && selectedIdx !== null) openModal(selectedIdx);
+});
+overlay.addEventListener("click", e=>{
+  if(e.target === overlay || e.target.closest("[data-close]")) { closeModal(); return; }
+});
+document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeModal(); });
+
+/* ---- CSVパース（RFC4180相当。カンマ/改行/二重引用符を含むフィールドに対応） ---- */
+function parseCsv(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        field += ch;
+      }
+    } else {
+      if(ch === '"'){
+        inQuotes = true;
+      } else if(ch === ','){
+        row.push(field); field = "";
+      } else if(ch === '\n'){
+        row.push(field); field = "";
+        rows.push(row); row = [];
+      } else if(ch === '\r'){
+        // skip, \n (or end) will close the row
+      } else {
+        field += ch;
+      }
+    }
+  }
+  // 末尾に改行が無いファイルの最終フィールド/行を回収
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.length > 1 || (r.length===1 && r[0] !== ""));
+}
+
+function rowsToItems(rows){
+  if(!rows.length) return [];
+  const header = rows[0];
+  const idx = {};
+  header.forEach((h,i)=> idx[h.trim()] = i);
+  return rows.slice(1).filter(r=>r.length>1 || r[0]).map(r=>{
+    let channels = [];
+    try{ channels = JSON.parse(r[idx.channels_json] || "[]"); }catch(e){}
+    return applyVerifiedOverrides({
+      name: r[idx.name],
+      category: r[idx.category],
+      industry: r[idx.industry],
+      area: r[idx.area],
+      phone: r[idx.phone],
+      email: r[idx.email],
+      dept: r[idx.dept],
+      hypothesisSales: r[idx.hypothesis_sales],
+      hypothesisHr: r[idx.hypothesis_hr],
+      hypothesisPr: r[idx.hypothesis_pr],
+      capitalMan: r[idx.capital_man],
+      revenueMan: r[idx.revenue_man],
+      contact: {
+        channels,
+        proposal: r[idx.proposal],
+        approachNote: r[idx.approach_note],
+        message: r[idx.message],
+        script: r[idx.script],
+      },
+    });
+  }).filter(p=>p.name);
+}
+
+function renderGrid(){
+  const grid = document.getElementById("grid");
+  if(!ITEMS.length) return;
+  const order = ITEMS.map((p,i)=>({p,i,conclusion:concludeDept(p)}))
+    .sort((a,b)=>fitScore(b.p)-fitScore(a.p));
+  grid.innerHTML = order.length ? order.map(({p,i})=>cardHtml(p,i)).join("") : `<div class="empty">条件に合う会社がありません。</div>`;
+  if(selectedIdx !== null) renderSelectedCompany(selectedIdx);
+}
+
+function renderDesktopSummary(){
+  const conclusions = ITEMS.map(p=>concludeDept(p));
+  const calculated = conclusions.filter(c=>c.effectValue !== "未算定");
+  const estimated = calculated.filter(c=>c.isEstimate);
+  const ranked = ITEMS.map((p,i)=>({p,i})).sort((a,b)=>fitScore(b.p)-fitScore(a.p));
+  const priorityEntry = ranked[0];
+  const priority = priorityEntry?.p;
+  document.getElementById("rail-total").textContent = `${ITEMS.length}社`;
+  document.getElementById("rail-calculated").textContent = `${calculated.length}社`;
+  document.getElementById("rail-estimated").textContent = `${estimated.length}社`;
+  document.getElementById("rail-priority").innerHTML = priority
+    ? `<b>${esc(priority.name)}</b><div class="rail-note">${esc(priorityReason(priority))}</div>` : "—";
+  document.getElementById("rail-top3").innerHTML = ranked.slice(0,3).map(({p})=>{
+    const c = concludeDept(p);
+    return `<li style="margin-bottom:8px"><b>${esc(clipText(p.name,13))}</b><br><span class="rail-note" style="margin-top:2px">${esc(c.effectValue !== "未算定" ? `${c.effectAccountName} ${c.effectValue}/年` : "効果未算定")}</span></li>`;
+  }).join("");
+  if(priorityEntry) renderSelectedCompany(priorityEntry.i);
+}
+
+async function load(){
+  const grid = document.getElementById("grid");
+  try{
+    if(!SHEET_CSV_URL || SHEET_CSV_URL.indexOf("__SET_SHEET_CSV_URL_HERE__") !== -1){
+      throw new Error("SHEET_CSV_URL未設定");
+    }
+    const res = await fetch(SHEET_CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const rows = parseCsv(text);
+    const items = rowsToItems(rows);
+    if(!items.length) throw new Error("no rows");
+    ITEMS = items;
+    renderGrid();
+    renderDesktopSummary();
+  }catch(err){
+    console.error(err);
+    grid.innerHTML = `<div class="empty">データを読み込めませんでした。(${esc(err.message)})<br>SHEET_CSV_URLの設定、またはシートの「ウェブに公開」設定を確認してください。README.mdを参照。</div>`;
+  }
+}
+load();
+</script>
+</body>
+</html>
