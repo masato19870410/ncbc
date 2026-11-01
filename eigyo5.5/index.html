@@ -155,10 +155,17 @@
   .rail-breakdown-bar{display:flex;width:100%;height:8px;border-radius:4px;overflow:hidden;margin-top:8px;background:var(--panel-2)}
   .rail-breakdown-seg{height:100%}
   .seg-actual{background:var(--ok)}
-  .seg-estimate{background:#f5a623}
+  .seg-estimate{background:var(--muted)}
   .seg-unpriced{background:var(--border)}
   .rail-breakdown-legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:9.5px;color:var(--muted);align-items:center}
   .legend-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px}
+  .ranking-chart{display:flex;flex-direction:column;gap:7px}
+  .ranking-row{display:grid;grid-template-columns:52px 1fr 34px;align-items:center;gap:6px}
+  .ranking-name{font-size:9.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ranking-bar-track{display:block;height:7px;border-radius:4px;background:var(--panel-2)}
+  .ranking-bar-fill{display:block;height:100%;border-radius:4px;background:var(--text)}
+  .ranking-bar-unpriced{background:var(--border)}
+  .ranking-value{font-size:9.5px;color:var(--muted);text-align:right}
   .proposal-step{flex:1;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 7px;font-size:11px;font-weight:600;line-height:1.45;text-align:center}
   .proposal-arrow{align-self:center;color:var(--muted);font-weight:700}
   .client-benefit-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:3px}
@@ -237,6 +244,10 @@
     <div class="rail-panel">
       <div class="rail-title">優先度TOP3</div>
       <ol class="rail-steps" id="rail-top3" style="list-style:decimal;padding-left:18px;margin:0">読み込み中…</ol>
+    </div>
+    <div class="rail-panel">
+      <div class="rail-title">全社比較(年間効果額)</div>
+      <div id="rail-ranking"></div>
     </div>
   </aside>
 
@@ -1255,6 +1266,19 @@ function renderDesktopSummary(){
     const c = concludeDept(p);
     return `<li style="margin-bottom:8px"><b>${esc(clipText(p.name,13))}</b><br><span class="rail-note" style="margin-top:2px">${esc(c.effectValue !== "未算定" ? `${c.effectAccountName} ${c.effectValue}/年` : "効果未算定")}</span></li>`;
   }).join("");
+  const nums = s => (String(s||"").match(/\d+(?:,\d{3})*(?:\.\d+)?/g) || []).map(n=>parseFloat(n.replace(/,/g,"")));
+  const ranking = ranked.map(({p,i})=>{
+    const c = concludeDept(p);
+    const high = Math.max(...nums(c.effectValue), 0);
+    return {name:p.name, high, unpriced: c.effectValue === "未算定"};
+  });
+  const maxEffect = Math.max(...ranking.map(r=>r.high), 1);
+  document.getElementById("rail-ranking").innerHTML = `<div class="ranking-chart">${ranking.map(r=>`
+    <div class="ranking-row">
+      <span class="ranking-name">${esc(clipText(r.name,9))}</span>
+      <span class="ranking-bar-track"><span class="ranking-bar-fill${r.unpriced?" ranking-bar-unpriced":""}" style="width:${r.unpriced?6:Math.max(4,Math.round(r.high/maxEffect*100))}%"></span></span>
+      <span class="ranking-value">${r.unpriced?"—":Math.round(r.high)+"万"}</span>
+    </div>`).join("")}</div>`;
   if(priorityEntry) renderSelectedCompany(priorityEntry.i);
 }
 
