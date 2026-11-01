@@ -868,7 +868,7 @@ function cardHtml(p, idx){
         </div>
       </div>
       <div class="connection">
-        <span class="connection-label">3　スムーズな出会い方</span>
+        <span class="connection-label">3　お互いに無理のないつながり方</span>
         <span class="connection-route">${esc(connection.route)}</span>
         <span class="connection-step">${esc(connection.reason)}</span>
         <span class="connection-label next">4　最初の一歩</span>
@@ -940,7 +940,7 @@ function modalBodyHtml(p){
         ${issueRow("人事", p.hypothesisHr)}
         ${issueRow("広報", p.hypothesisPr)}
       </details>
-      <details class="detail-toggle" open><summary>スムーズな出会い方</summary>
+      <details class="detail-toggle" open><summary>お互いに無理のないつながり方</summary>
         ${issueRow("前提", connection.status)}
         ${issueRow("会い方の候補", connection.route)}
         ${issueRow("候補にした理由", connection.reason)}
@@ -989,7 +989,7 @@ function renderSelectedCompany(idx){
   target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
     <div class="rail-selected-row"><b>1　この会社を候補にした理由</b>${esc(conclusion.cardLine)} / ${esc(conclusion.cardBudget)}</div>
     <div class="rail-selected-row"><b>2　できそうな提案</b>${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
-    <div class="rail-selected-row"><b>3　スムーズな出会い方</b>${esc(connection.route)} / ${esc(connection.status)}</div>
+    <div class="rail-selected-row"><b>3　お互いに無理のないつながり方</b>${esc(connection.route)} / ${esc(connection.status)}</div>
     <div class="rail-selected-row"><b>4　最初の一歩</b>${esc(connection.firstStep)}</div>
     <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
     <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
