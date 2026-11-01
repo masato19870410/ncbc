@@ -68,6 +68,12 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card .meta{display:block;font-size:11px;color:var(--muted);line-height:1.6;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card-approach{margin-top:14px}
+  .card-approach-label{display:block;font-size:9.5px;color:var(--muted);letter-spacing:.03em;margin-bottom:3px}
+  .card-approach-text{display:block;font-size:13px;font-weight:700;line-height:1.5;color:var(--text)}
+  .card-step{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+  .card-step-label{display:block;font-size:9.5px;color:var(--muted);letter-spacing:.03em;margin-bottom:3px}
+  .card-step-text{display:block;font-size:11.5px;line-height:1.55;color:var(--muted)}
   .card .connection{margin:9px 0 7px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-xs);background:var(--panel-2)}
   .card .connection-label{display:block;font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-bottom:2px}
   .card .connection-label.next{margin-top:7px}
@@ -241,28 +247,11 @@
       <div class="rail-stat"><span>掲載企業</span><strong id="rail-total">—</strong></div>
       <div class="rail-stat"><span>金額試算あり</span><strong id="rail-calculated">—</strong></div>
       <div class="rail-stat"><span>業種推定</span><strong id="rail-estimated">—</strong></div>
-      <div id="rail-breakdown"></div>
     </div>
     <div class="rail-panel">
       <div class="rail-title">最優先候補</div>
       <div class="rail-priority" id="rail-priority">読み込み中…</div>
       <div class="rail-note">費用対効果・会社規模・提案しやすさから自動選定</div>
-    </div>
-    <div class="rail-panel">
-      <div class="rail-title">優先度TOP3</div>
-      <ol class="rail-steps" id="rail-top3" style="list-style:decimal;padding-left:18px;margin:0">読み込み中…</ol>
-    </div>
-    <div class="rail-panel">
-      <div class="rail-title">全社比較(年間効果額)</div>
-      <div id="rail-ranking"></div>
-    </div>
-    <div class="rail-panel">
-      <div class="rail-title">投資回収倍率(効果÷価格)</div>
-      <div id="rail-roi-ranking"></div>
-    </div>
-    <div class="rail-panel">
-      <div class="rail-title">課題カテゴリ内訳</div>
-      <div id="rail-dept-breakdown"></div>
     </div>
   </aside>
 
@@ -1024,12 +1013,13 @@ function companyCardLines(p, conclusion, connection){
     "光陽警備保障株式会社": "警備業の合同説明会"
   };
   const approach = [uniqueApproachLines[p.name] || connection.route];
-  const clean = s => s.replace(/[。、，・｜|（）()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 20);
+  const clean = (s,max) => s.replace(/[。、，・｜|（）()]/g, " ").replace(/\s+/g, " ").trim().slice(0, max||20);
   return {
-    effect: effectLines.map(clean).filter(Boolean),
-    proposal: proposalLines.map(clean).filter(Boolean),
-    scale: conclusion.cardBudget.split(" ").map(clean).filter(Boolean),
-    approach: approach.map(clean).filter(Boolean)
+    effect: effectLines.map(l=>clean(l)).filter(Boolean),
+    proposal: proposalLines.map(l=>clean(l)).filter(Boolean),
+    scale: conclusion.cardBudget.split(" ").map(l=>clean(l)).filter(Boolean),
+    approach: approach.map(l=>clean(l,26)).filter(Boolean),
+    firstStep: clean(conclusion.proposalReady ? connection.firstStep : "費用対効果の根拠を追加調査する", 45)
   };
 }
 
@@ -1042,13 +1032,14 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
-      <div class="line-group hero-group">${lines.effect.map(l => {
-        const [label, num] = l.includes("：") ? l.split(/：(.+)/) : [null, l];
-        return label ? `<span class="hero-label">${esc(label)}</span><span class="compact-line hero-number">${esc(num)}</span>` : `<span class="compact-line hero-number">${esc(num)}</span>`;
-      }).join("")}${roiBarCompactSvg(concl)}</div>
-      <div class="line-group">${lines.scale.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
-      <div class="line-group">${lines.proposal.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
-      <div class="line-group">${lines.approach.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="card-approach">
+        <span class="card-approach-label">接触のきっかけ</span>
+        <span class="card-approach-text">${esc(lines.approach[0] || "")}</span>
+      </div>
+      <div class="card-step">
+        <span class="card-step-label">最初の一歩</span>
+        <span class="card-step-text">${esc(lines.firstStep)}</span>
+      </div>
     </div>`;
 }
 
@@ -1275,58 +1266,8 @@ function renderDesktopSummary(){
   document.getElementById("rail-total").textContent = `${ITEMS.length}社`;
   document.getElementById("rail-calculated").textContent = `${calculated.length}社`;
   document.getElementById("rail-estimated").textContent = `${estimated.length}社`;
-  const actual = calculated.length - estimated.length;
-  const unpriced = ITEMS.length - calculated.length;
-  const seg = (n,cls) => ITEMS.length ? `<div class="rail-breakdown-seg ${cls}" style="width:${(n/ITEMS.length*100).toFixed(1)}%"></div>` : "";
-  document.getElementById("rail-breakdown").innerHTML = ITEMS.length
-    ? `<div class="rail-breakdown-bar">${seg(actual,"seg-actual")}${seg(estimated.length,"seg-estimate")}${seg(unpriced,"seg-unpriced")}</div>
-       <div class="rail-breakdown-legend"><span class="legend-dot seg-actual"></span>試算 ${actual}<span class="legend-dot seg-estimate"></span>推定 ${estimated.length}<span class="legend-dot seg-unpriced"></span>未算定 ${unpriced}</div>`
-    : "";
   document.getElementById("rail-priority").innerHTML = priority
     ? `<b>${esc(priority.name)}</b><div class="rail-note">${esc(priorityReason(priority))}</div>` : "—";
-  document.getElementById("rail-top3").innerHTML = ranked.slice(0,3).map(({p})=>{
-    const c = concludeDept(p);
-    return `<li style="margin-bottom:8px"><b>${esc(clipText(p.name,13))}</b><br><span class="rail-note" style="margin-top:2px">${esc(c.effectValue !== "未算定" ? `${c.effectAccountName} ${c.effectValue}/年` : "効果未算定")}</span></li>`;
-  }).join("");
-  const nums = s => (String(s||"").match(/\d+(?:,\d{3})*(?:\.\d+)?/g) || []).map(n=>parseFloat(n.replace(/,/g,"")));
-  const ranking = ranked.map(({p,i})=>{
-    const c = concludeDept(p);
-    const high = Math.max(...nums(c.effectValue), 0);
-    return {name:p.name, high, unpriced: c.effectValue === "未算定"};
-  });
-  const maxEffect = Math.max(...ranking.map(r=>r.high), 1);
-  document.getElementById("rail-ranking").innerHTML = `<div class="ranking-chart">${ranking.map(r=>`
-    <div class="ranking-row">
-      <span class="ranking-name">${esc(clipText(r.name,9))}</span>
-      <span class="ranking-bar-track"><span class="ranking-bar-fill${r.unpriced?" ranking-bar-unpriced":""}" style="width:${r.unpriced?6:Math.max(4,Math.round(r.high/maxEffect*100))}%"></span></span>
-      <span class="ranking-value">${r.unpriced?"—":Math.round(r.high)+"万"}</span>
-    </div>`).join("")}</div>`;
-
-  const roiRanking = ITEMS.map(p=>{
-    const c = concludeDept(p);
-    if(!c.proposalReady) return null;
-    const effectHigh = Math.max(...nums(c.effectValue), 0);
-    const priceHigh = Math.max(...nums(c.priceLabel), 0);
-    if(!effectHigh || !priceHigh) return null;
-    return {name:p.name, multiple: effectHigh/priceHigh};
-  }).filter(Boolean).sort((a,b)=>b.multiple-a.multiple);
-  const maxMultiple = Math.max(...roiRanking.map(r=>r.multiple), 1);
-  document.getElementById("rail-roi-ranking").innerHTML = `<div class="ranking-chart">${roiRanking.map(r=>`
-    <div class="ranking-row">
-      <span class="ranking-name">${esc(clipText(r.name,9))}</span>
-      <span class="ranking-bar-track"><span class="ranking-bar-fill" style="width:${Math.max(4,Math.round(r.multiple/maxMultiple*100))}%"></span></span>
-      <span class="ranking-value">${r.multiple.toFixed(1)}倍</span>
-    </div>`).join("")}</div>`;
-
-  const deptCount = {};
-  ITEMS.forEach(p=>{ const c = concludeDept(p); const d = c.proposalReady ? c.dept : "保留"; deptCount[d] = (deptCount[d]||0) + 1; });
-  const deptOrder = ["営業","人事","広報","保留"].filter(d=>deptCount[d]);
-  const deptSeg = (n,cls) => ITEMS.length ? `<div class="rail-breakdown-seg ${cls}" style="width:${(n/ITEMS.length*100).toFixed(1)}%"></div>` : "";
-  const deptClass = {"営業":"seg-actual","人事":"seg-estimate","広報":"seg-unpriced","保留":"seg-unpriced"};
-  document.getElementById("rail-dept-breakdown").innerHTML = ITEMS.length
-    ? `<div class="rail-breakdown-bar">${deptOrder.map(d=>deptSeg(deptCount[d],deptClass[d])).join("")}</div>
-       <div class="rail-breakdown-legend">${deptOrder.map(d=>`<span class="legend-dot ${deptClass[d]}"></span>${esc(d)} ${deptCount[d]}`).join("")}</div>`
-    : "";
   if(priorityEntry) renderSelectedCompany(priorityEntry.i);
 }
 
