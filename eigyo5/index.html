@@ -221,6 +221,10 @@
       <div class="rail-priority" id="rail-priority">読み込み中…</div>
       <div class="rail-note">費用対効果・会社規模・提案しやすさから自動選定</div>
     </div>
+    <div class="rail-panel">
+      <div class="rail-title">優先度TOP3</div>
+      <ol class="rail-steps" id="rail-top3" style="list-style:decimal;padding-left:18px;margin:0">読み込み中…</ol>
+    </div>
   </aside>
 
   <main class="wrap">
@@ -1186,13 +1190,18 @@ function renderDesktopSummary(){
   const conclusions = ITEMS.map(p=>concludeDept(p));
   const calculated = conclusions.filter(c=>c.effectValue !== "未算定");
   const estimated = calculated.filter(c=>c.isEstimate);
-  const priorityEntry = ITEMS.map((p,i)=>({p,i})).sort((a,b)=>fitScore(b.p)-fitScore(a.p))[0];
+  const ranked = ITEMS.map((p,i)=>({p,i})).sort((a,b)=>fitScore(b.p)-fitScore(a.p));
+  const priorityEntry = ranked[0];
   const priority = priorityEntry?.p;
   document.getElementById("rail-total").textContent = `${ITEMS.length}社`;
   document.getElementById("rail-calculated").textContent = `${calculated.length}社`;
   document.getElementById("rail-estimated").textContent = `${estimated.length}社`;
   document.getElementById("rail-priority").innerHTML = priority
     ? `<b>${esc(priority.name)}</b><div class="rail-note">${esc(priorityReason(priority))}</div>` : "—";
+  document.getElementById("rail-top3").innerHTML = ranked.slice(0,3).map(({p})=>{
+    const c = concludeDept(p);
+    return `<li style="margin-bottom:8px"><b>${esc(clipText(p.name,13))}</b><br><span class="rail-note" style="margin-top:2px">${esc(c.effectValue !== "未算定" ? `${c.effectAccountName} ${c.effectValue}/年` : "効果未算定")}</span></li>`;
+  }).join("");
   if(priorityEntry) renderSelectedCompany(priorityEntry.i);
 }
 
