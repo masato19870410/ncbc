@@ -1023,6 +1023,11 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
+      <div class="line-group hero-group">${lines.effect.map(l => {
+        const [label, num] = l.includes("：") ? l.split(/：(.+)/) : [null, l];
+        return label ? `<span class="hero-label">${esc(label)}</span><span class="compact-line hero-number">${esc(num)}</span>` : `<span class="compact-line hero-number">${esc(num)}</span>`;
+      }).join("")}${roiBarCompactSvg(concl)}</div>
+      <div class="line-group">${lines.proposal.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
       <div class="card-approach">
         <span class="card-approach-label">接触のきっかけ</span>
         <span class="card-approach-text">${esc(lines.approach[0] || "")}</span>
