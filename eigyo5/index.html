@@ -400,7 +400,7 @@ function referenceEffectLabel(p, conclusion = concludeDept(p)){
   const effect = conclusion.effectType === "費用減"
     ? `${conclusion.effectAccountName}リスク ${conclusion.effectValue}/年`
     : `${conclusion.effectAccountName}増加の目安 ${conclusion.effectValue}/年`;
-  return `${effect}｜${prefix}`;
+  return `${effect}（${prefix}）`;
 }
 function researchMeta(p){
   const facts = RESEARCH_FACTS[p.name] || {};
