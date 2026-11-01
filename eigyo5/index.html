@@ -942,8 +942,9 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
-      <div class="line-group cost-group">${lines.slice(0,2).map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}</div>
+      <div class="line-group cost-group"><span class="compact-line">${esc(lines[0])}</span></div>
       <div class="line-group scale-lines">${concl.cardBudget.split("｜").map(part => `<span class="compact-line">${esc(part)}</span>`).join("")}</div>
+      <div class="line-group"><span class="compact-line">${esc(lines[1])}</span></div>
       <div class="line-group">${lines.slice(3,5).map(line => `<span class="compact-line">${esc(line)}</span>`).join("")}</div>
     </div>`;
 }
