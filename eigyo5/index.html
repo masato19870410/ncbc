@@ -70,7 +70,7 @@
   .card .connection-label.next{margin-top:7px}
   .card .connection-route{display:block;font-size:11.5px;font-weight:700;line-height:1.45}
   .card .connection-step{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.5}
-  .card .compact-line{display:block;margin-top:7px;font-size:10.5px;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .compact-line{display:-webkit-box;margin-top:7px;font-size:10.5px;line-height:1.45;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2}
   .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .card .card-cost{font-size:11.5px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
@@ -851,14 +851,20 @@ function fitScore(p){
 function cardHtml(p, idx){
   const concl = concludeDept(p);
   const connection = connectionPlan(p);
-  const proposal = `${concl.cardProduct}・${concl.cardInvestment}`;
+  const effect = concl.proposalReady
+    ? `${concl.effectAccountName} ${concl.effectValue}/年${concl.isEstimate ? "（業界推定）" : "の改善余地"}`
+    : "効果未算定・提案保留";
+  const proposal = concl.proposalReady
+    ? `${concl.cardProduct} ${concl.cardInvestment.replace(/[（(]単発[）)]/g, "")}`
+    : "効果根拠を追加調査";
+  const meeting = connection.route.replace(/^会い方の候補：/, "");
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
-      <span class="compact-line" title="${esc(concl.cardLine)}">${esc(clipText(concl.cardLine, 33))}</span>
-      <span class="compact-line" title="${esc(proposal)}">${esc(clipText(proposal, 33))}</span>
-      <span class="compact-line" title="${esc(connection.route)}">${esc(clipText(connection.route, 34))}</span>
+      <span class="compact-line" title="${esc(effect)}">${esc(effect)}</span>
+      <span class="compact-line" title="${esc(proposal)}">${esc(proposal)}</span>
+      <span class="compact-line" title="${esc(meeting)}">${esc(meeting)}</span>
     </div>`;
 }
 
