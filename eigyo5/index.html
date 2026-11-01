@@ -921,7 +921,7 @@ function companyCardLines(p, conclusion, connection){
         : [`${conclusion.effectAccountName}：年${conclusion.effectValue}`])
     : ["効果根拠不足のため金額提示保留"];
   const proposalLines = conclusion.proposalReady
-    ? [conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "").replace(/^(\S+)\s+/, "$1：")]
+    ? [`${conclusion.cardProduct}（${conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "").replace(/^(\S+)\s+/, "$1：")}）`]
     : ["不足する効果根拠を確認"];
   const uniqueApproachLines = {
     "株式会社フジショウ": "運送業の合同説明会で会う",
