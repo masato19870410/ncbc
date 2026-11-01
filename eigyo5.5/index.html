@@ -255,6 +255,14 @@
       <div class="rail-title">全社比較(年間効果額)</div>
       <div id="rail-ranking"></div>
     </div>
+    <div class="rail-panel">
+      <div class="rail-title">投資回収倍率(効果÷価格)</div>
+      <div id="rail-roi-ranking"></div>
+    </div>
+    <div class="rail-panel">
+      <div class="rail-title">課題カテゴリ内訳</div>
+      <div id="rail-dept-breakdown"></div>
+    </div>
   </aside>
 
   <main class="wrap">
@@ -1288,6 +1296,32 @@ function renderDesktopSummary(){
       <span class="ranking-bar-track"><span class="ranking-bar-fill${r.unpriced?" ranking-bar-unpriced":""}" style="width:${r.unpriced?6:Math.max(4,Math.round(r.high/maxEffect*100))}%"></span></span>
       <span class="ranking-value">${r.unpriced?"—":Math.round(r.high)+"万"}</span>
     </div>`).join("")}</div>`;
+
+  const roiRanking = ITEMS.map(p=>{
+    const c = concludeDept(p);
+    if(!c.proposalReady) return null;
+    const effectHigh = Math.max(...nums(c.effectValue), 0);
+    const priceHigh = Math.max(...nums(c.priceLabel), 0);
+    if(!effectHigh || !priceHigh) return null;
+    return {name:p.name, multiple: effectHigh/priceHigh};
+  }).filter(Boolean).sort((a,b)=>b.multiple-a.multiple);
+  const maxMultiple = Math.max(...roiRanking.map(r=>r.multiple), 1);
+  document.getElementById("rail-roi-ranking").innerHTML = `<div class="ranking-chart">${roiRanking.map(r=>`
+    <div class="ranking-row">
+      <span class="ranking-name">${esc(clipText(r.name,9))}</span>
+      <span class="ranking-bar-track"><span class="ranking-bar-fill" style="width:${Math.max(4,Math.round(r.multiple/maxMultiple*100))}%"></span></span>
+      <span class="ranking-value">${r.multiple.toFixed(1)}倍</span>
+    </div>`).join("")}</div>`;
+
+  const deptCount = {};
+  ITEMS.forEach(p=>{ const c = concludeDept(p); const d = c.proposalReady ? c.dept : "保留"; deptCount[d] = (deptCount[d]||0) + 1; });
+  const deptOrder = ["営業","人事","広報","保留"].filter(d=>deptCount[d]);
+  const deptSeg = (n,cls) => ITEMS.length ? `<div class="rail-breakdown-seg ${cls}" style="width:${(n/ITEMS.length*100).toFixed(1)}%"></div>` : "";
+  const deptClass = {"営業":"seg-actual","人事":"seg-estimate","広報":"seg-unpriced","保留":"seg-unpriced"};
+  document.getElementById("rail-dept-breakdown").innerHTML = ITEMS.length
+    ? `<div class="rail-breakdown-bar">${deptOrder.map(d=>deptSeg(deptCount[d],deptClass[d])).join("")}</div>
+       <div class="rail-breakdown-legend">${deptOrder.map(d=>`<span class="legend-dot ${deptClass[d]}"></span>${esc(d)} ${deptCount[d]}`).join("")}</div>`
+    : "";
   if(priorityEntry) renderSelectedCompany(priorityEntry.i);
 }
 
