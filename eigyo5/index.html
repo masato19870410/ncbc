@@ -655,7 +655,7 @@ function concludeDept(p){
   let scalePart;
   if(cardRevenueRange) scalePart = `売上${cardRevenueRange}`;
   else if(revenueMan >= 10000) scalePart = `売上${(revenueMan/10000).toFixed(0)}億円`;
-  else if(capitalMan > 0) scalePart = `資本金${capitalMan}万円`;
+  else if(capitalMan > 0) scalePart = `資本金${capitalMan.toLocaleString("ja-JP")}万円`;
   else scalePart = `資本金?万円`;
   const cardBudget = `${scalePart}・${employeeShort}`;
 
@@ -667,10 +667,10 @@ function concludeDept(p){
     businessScale = `年間売上高${(revenueMan/10000).toFixed(0)}億円（${facts.revenueStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `年間売上高は${facts.revenueStatus || "推定（根拠不明）"}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
   } else if(capitalMan >= 800){
-    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScale = `資本金${capitalMan.toLocaleString("ja-JP")}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
   } else if(capitalMan > 0){
-    businessScale = `資本金${capitalMan}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
+    businessScale = `資本金${capitalMan.toLocaleString("ja-JP")}万円（${facts.capitalStatus || "推定（根拠不明）"}） / ${employeeScale}`;
     businessScaleNote = `資本金は${facts.capitalStatus || "推定（根拠不明）"}｜${employeeScale}(今回の制作・運用予算は提案前に確認する)`;
   } else {
     businessScale = `売上高・資本金は未確認 / ${employeeScale}`;
