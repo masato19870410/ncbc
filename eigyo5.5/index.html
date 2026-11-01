@@ -151,6 +151,14 @@
   .roi-bar-label{font-size:9px;fill:var(--muted);font-family:inherit}
   .roi-bar-effect{fill:var(--ok)}
   .roi-bar-price{fill:var(--muted)}
+  .roi-bar-mini{width:100%;max-width:120px;height:auto;display:block;margin-top:4px}
+  .rail-breakdown-bar{display:flex;width:100%;height:8px;border-radius:4px;overflow:hidden;margin-top:8px;background:var(--panel-2)}
+  .rail-breakdown-seg{height:100%}
+  .seg-actual{background:var(--ok)}
+  .seg-estimate{background:#f5a623}
+  .seg-unpriced{background:var(--border)}
+  .rail-breakdown-legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:9.5px;color:var(--muted);align-items:center}
+  .legend-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px}
   .proposal-step{flex:1;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 7px;font-size:11px;font-weight:600;line-height:1.45;text-align:center}
   .proposal-arrow{align-self:center;color:var(--muted);font-weight:700}
   .client-benefit-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:3px}
@@ -219,6 +227,7 @@
       <div class="rail-stat"><span>掲載企業</span><strong id="rail-total">—</strong></div>
       <div class="rail-stat"><span>金額試算あり</span><strong id="rail-calculated">—</strong></div>
       <div class="rail-stat"><span>業種推定</span><strong id="rail-estimated">—</strong></div>
+      <div id="rail-breakdown"></div>
     </div>
     <div class="rail-panel">
       <div class="rail-title">最優先候補</div>
@@ -423,6 +432,19 @@ function roiBarSvg(conclusion){
     <rect x="0" y="16" width="${barW(effectHigh)}" height="14" rx="4" class="roi-bar-effect"></rect>
     <text x="0" y="42" class="roi-bar-label">${esc(priceLabelText)}</text>
     <rect x="0" y="46" width="${barW(priceHigh)}" height="10" rx="4" class="roi-bar-price"></rect>
+  </svg>`;
+}
+function roiBarCompactSvg(conclusion){
+  if(!conclusion.proposalReady) return "";
+  const nums = s => (String(s||"").match(/\d+(?:,\d{3})*(?:\.\d+)?/g) || []).map(n=>parseFloat(n.replace(/,/g,"")));
+  const effectHigh = Math.max(...nums(conclusion.effectValue), 0);
+  const priceHigh = Math.max(...nums(conclusion.priceLabel), 0);
+  if(!effectHigh || !priceHigh) return "";
+  const maxVal = Math.max(effectHigh, priceHigh) || 1;
+  const barW = v => Math.max(3, Math.round((v / maxVal) * 100));
+  return `<svg class="roi-bar-mini" viewBox="0 0 100 15" role="img" aria-label="効果と価格の比較">
+    <rect x="0" y="0" width="${barW(effectHigh)}" height="6" rx="2" class="roi-bar-effect"></rect>
+    <rect x="0" y="9" width="${barW(priceHigh)}" height="5" rx="2" class="roi-bar-price"></rect>
   </svg>`;
 }
 function researchMeta(p){
@@ -990,7 +1012,7 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
-      <div class="line-group">${lines.effect.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group">${lines.effect.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}${roiBarCompactSvg(concl)}</div>
       <div class="line-group">${lines.scale.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
       <div class="line-group">${lines.proposal.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
       <div class="line-group">${lines.approach.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
@@ -1220,6 +1242,13 @@ function renderDesktopSummary(){
   document.getElementById("rail-total").textContent = `${ITEMS.length}社`;
   document.getElementById("rail-calculated").textContent = `${calculated.length}社`;
   document.getElementById("rail-estimated").textContent = `${estimated.length}社`;
+  const actual = calculated.length - estimated.length;
+  const unpriced = ITEMS.length - calculated.length;
+  const seg = (n,cls) => ITEMS.length ? `<div class="rail-breakdown-seg ${cls}" style="width:${(n/ITEMS.length*100).toFixed(1)}%"></div>` : "";
+  document.getElementById("rail-breakdown").innerHTML = ITEMS.length
+    ? `<div class="rail-breakdown-bar">${seg(actual,"seg-actual")}${seg(estimated.length,"seg-estimate")}${seg(unpriced,"seg-unpriced")}</div>
+       <div class="rail-breakdown-legend"><span class="legend-dot seg-actual"></span>試算 ${actual}<span class="legend-dot seg-estimate"></span>推定 ${estimated.length}<span class="legend-dot seg-unpriced"></span>未算定 ${unpriced}</div>`
+    : "";
   document.getElementById("rail-priority").innerHTML = priority
     ? `<b>${esc(priority.name)}</b><div class="rail-note">${esc(priorityReason(priority))}</div>` : "—";
   document.getElementById("rail-top3").innerHTML = ranked.slice(0,3).map(({p})=>{
