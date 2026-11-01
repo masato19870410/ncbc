@@ -419,13 +419,13 @@ function connectionPlan(p){
   const social = channels.find(ch=>/Instagram|Facebook|X|note/.test(ch.n||"") && ch.u && (ch.r==="◎" || ch.r==="○"));
   const indeed = findChannel(channels, "Indeed");
   if(group) return {
-    status:"接点候補あり", route:"業界団体・組合",
+    status:"接点候補あり", route:group.n,
     reason:`${group.n}への参加・掲載が確認できるため、団体の活動や業界課題を聞く情報交換から始める。`,
     evidence:group.m || "団体への参加を公開情報で確認",
     firstStep:"団体の公開イベント・勉強会・紹介可能な知人を1件だけ確認する。"
   };
   if(news) return {
-    status:"接点候補あり", route:"公開活動・取材",
+    status:"接点候補あり", route:news.n,
     reason:`${news.n}の発信内容を読み、取り組みの背景を聞く短い取材・情報交換から始める。`,
     evidence:news.m || "公開活動を確認",
     firstStep:"発信内容を確認し、売り込みをせず15分の情報交換を依頼する。"
@@ -855,17 +855,18 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(p.name||"")}</div>
       </div>
       ${p.area?`<div class="meta">${esc(p.area)}</div>`:""}
-      <div class="connection">
-        <span class="connection-label">つながり方</span>
-        <span class="connection-route">${esc(connection.route)}</span>
-        <span class="connection-step">${esc(connection.firstStep)}</span>
-      </div>
       <span class="evidence-badge">${esc(meta.trust)} / ${esc(meta.checkedAt)}</span>
       <div class="card-cost">
         <span class="cost-tag">${esc(concl.cardLine)}</span>
         <span class="card-budget">${esc(concl.cardBudget)}</span>
         <span class="card-investment">${esc(concl.cardInvestment)}</span>
         <span class="card-product">${esc(concl.cardProduct)}</span>
+      </div>
+      <div class="connection">
+        <span class="connection-label">接点を持つ方法</span>
+        <span class="connection-route">${esc(connection.route)}</span>
+        <span class="connection-step">${esc(connection.reason)}</span>
+        <span class="connection-step"><b>次に調べること：</b>${esc(connection.firstStep)}</span>
       </div>
     </div>`;
 }
