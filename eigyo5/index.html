@@ -913,7 +913,7 @@ function fitScore(p){
 
 function companyCardLines(p, conclusion, connection){
   const effectLines = conclusion.proposalReady
-    ? [`${conclusion.effectAccountName}${conclusion.effectValue}`, `年間${conclusion.effectType === "費用減" ? "回避" : "増加"}余地`]
+    ? [`${conclusion.effectAccountName}${conclusion.effectType === "費用減" ? "リスク" : "増加の目安"}`, `${conclusion.effectValue}/年`]
     : ["効果根拠不足", "金額提示保留"];
   const proposalLines = conclusion.proposalReady
     ? [conclusion.cardProduct, conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")]
