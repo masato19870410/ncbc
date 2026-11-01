@@ -124,9 +124,9 @@
 
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:10}
   .overlay.hidden{display:none}
-  .modal{background:var(--panel);width:100%;max-width:480px;max-height:85vh;overflow-y:auto;
+  .modal{background:var(--panel);width:100%;max-width:480px;max-height:94vh;overflow-y:auto;
     border-radius:16px 16px 0 0;padding:20px 18px 28px;position:relative}
-  @media (min-width:520px){ .overlay{align-items:center} .modal{border-radius:14px;max-height:80vh} }
+  @media (min-width:520px){ .overlay{align-items:center} .modal{border-radius:14px;max-height:92vh;min-height:70vh} }
   .modal .close{position:sticky;float:right;top:12px;right:14px;margin-left:-40px;margin-top:-4px;
     border:none;background:var(--panel);border-radius:50%;font-size:20px;z-index:1;
     color:var(--muted);cursor:pointer;line-height:1;padding:4px 8px;box-shadow:0 1px 4px rgba(0,0,0,.12)}
@@ -1096,7 +1096,6 @@ document.getElementById("grid").addEventListener("click", e=>{
   const idx = Number(card.dataset.idx);
   if(window.matchMedia("(min-width:960px)").matches){
     renderSelectedCompany(idx);
-    return;
   }
   if(idx === openIdx && !overlay.classList.contains("hidden")){ closeModal(); return; }
   openModal(idx);
