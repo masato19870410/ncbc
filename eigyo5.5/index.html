@@ -154,6 +154,7 @@
   .roi-bar-label{font-size:9px;fill:var(--muted);font-family:inherit}
   .roi-bar-effect{fill:var(--ok)}
   .roi-bar-price{fill:var(--muted)}
+  .roi-bar-track{fill:var(--panel-2)}
   .roi-bar-mini{width:100%;max-width:120px;height:auto;display:block;margin-top:4px}
   .rail-breakdown-bar{display:flex;width:100%;height:8px;border-radius:var(--radius-xs);overflow:hidden;margin-top:8px;background:var(--panel-2)}
   .rail-breakdown-seg{height:100%}
@@ -446,17 +447,21 @@ function roiBarSvg(conclusion){
   const effectNums = nums(conclusion.effectValue);
   const priceNums = nums(conclusion.priceLabel);
   if(!effectNums.length || !priceNums.length) return "";
+  const effectLow = effectNums.length > 1 ? Math.min(...effectNums) : 0;
   const effectHigh = Math.max(...effectNums);
+  const priceLow = priceNums.length > 1 ? Math.min(...priceNums) : 0;
   const priceHigh = Math.max(...priceNums);
   const maxVal = Math.max(effectHigh, priceHigh) || 1;
-  const barW = v => Math.max(4, Math.round((v / maxVal) * 220));
+  const pos = v => Math.round((v / maxVal) * 220);
   const effectLabel = `${conclusion.effectAccountName}${conclusion.effectType === "費用減" ? "リスク" : "増"} ${conclusion.effectValue}/年`;
   const priceLabelText = conclusion.priceLabel.replace(/[（(]単発[）)]/g, "");
-  return `<svg class="roi-bar" viewBox="0 0 320 58" role="img" aria-label="費用対効果の比較グラフ">
+  return `<svg class="roi-bar" viewBox="0 0 320 58" role="img" aria-label="費用対効果の比較グラフ(範囲表示)">
     <text x="0" y="12" class="roi-bar-label">${esc(effectLabel)}</text>
-    <rect x="0" y="16" width="${barW(effectHigh)}" height="14" rx="4" class="roi-bar-effect"></rect>
+    <rect x="0" y="16" width="220" height="14" rx="4" class="roi-bar-track"></rect>
+    <rect x="${pos(effectLow)}" y="16" width="${Math.max(4, pos(effectHigh)-pos(effectLow))}" height="14" rx="4" class="roi-bar-effect"></rect>
     <text x="0" y="42" class="roi-bar-label">${esc(priceLabelText)}</text>
-    <rect x="0" y="46" width="${barW(priceHigh)}" height="10" rx="4" class="roi-bar-price"></rect>
+    <rect x="0" y="46" width="220" height="10" rx="4" class="roi-bar-track"></rect>
+    <rect x="${pos(priceLow)}" y="46" width="${Math.max(4, pos(priceHigh)-pos(priceLow))}" height="10" rx="4" class="roi-bar-price"></rect>
   </svg>`;
 }
 function roiBarCompactSvg(conclusion){
