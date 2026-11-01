@@ -657,10 +657,10 @@ function concludeDept(p){
     ? facts.revenueRangeText.replace(/^(.+?)億円以上[〜～](.+?)億円未満$/, "$1〜$2億円")
     : "";
   const capitalPart = capitalMan > 0 ? `資本金${capitalMan.toLocaleString("ja-JP")}万円` : "資本金?万円";
-  const revenuePart = cardRevenueRange ? `売上${cardRevenueRange}`
-    : revenueMan >= 10000 ? `売上${(revenueMan/10000).toFixed(0)}億円`
-    : "売上?円";
-  const cardBudget = `${capitalPart} ${revenuePart} ${employeeShort}`;
+  const revenuePart = cardRevenueRange ? `売上高${cardRevenueRange}`
+    : revenueMan >= 10000 ? `売上高${(revenueMan/10000).toFixed(0)}億円`
+    : "売上高?円";
+  const cardBudget = `${revenuePart} ${capitalPart} ${employeeShort}`;
 
   let businessScale, businessScaleNote;
   if(facts.revenueRangeText){
