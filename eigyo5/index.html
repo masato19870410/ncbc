@@ -938,7 +938,7 @@ function companyCardLines(p, conclusion, connection){
   };
   const specific = uniqueLines[p.name] || [proposal, connection.route, connection.firstStep];
   const raw = [effect, proposal, specific[0], specific[1], specific[2]];
-  return raw.slice(0, 5).map(line => line.replace(/[。、，・]/g, " ").replace(/\s+/g, " ").trim().slice(0, 15));
+  return raw.slice(0, 5).map(line => line.replace(/[。、，・]/g, " ").replace(/\s+/g, " ").trim().slice(0, 12));
 }
 
 function cardHtml(p, idx){
