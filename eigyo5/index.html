@@ -70,7 +70,7 @@
   .card .connection-label.next{margin-top:7px}
   .card .connection-route{display:block;font-size:11.5px;font-weight:700;line-height:1.45}
   .card .connection-step{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.5}
-  .card .compact-line{display:-webkit-box;margin-top:7px;font-size:10.5px;line-height:1.5;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+  .card .compact-line{display:block;margin-top:7px;font-size:10.5px;line-height:1.6;overflow-wrap:anywhere}
   .card .pitch{font-size:12px;margin-top:8px;margin-bottom:10px;line-height:1.55;min-height:55.8px;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .card .card-cost{font-size:11.5px;margin-top:8px;margin-bottom:0;line-height:1.5;display:grid;gap:5px}
@@ -420,7 +420,71 @@ function priorityReason(p, conclusion = concludeDept(p)){
 }
 
 /* ---- v5: v4の費用対効果・優先順位は変えず、「どう会うか」だけを追加する ---- */
+const COMPANY_CONNECTION_PLANS = {
+  "株式会社フジショウ": {
+    status:"ゼロから開拓", route:"既存の採用サイト経由で1枚の改善案を届ける",
+    reason:"採用専用サイトが稼働しているため、採用担当が確認できる経路に、応募導線の改善案だけを短く届ける方法が負担を増やしにくい。",
+    evidence:"既存の採用専用サイトと募集中求人を確認",
+    firstStep:"採用サイトの応募導線を1画面に整理し、改善点を1つだけ示した資料を作る。"
+  },
+  "有限会社杉元建具": {
+    status:"ゼロから開拓", route:"岡山県建具組合連合会の公開行事で会う",
+    reason:"同社は連合会の正会員名簿に掲載されているため、無関係な交流会より業界の公開行事を選ぶ方が自然。",
+    evidence:"岡山県建具組合連合会の正会員名簿に掲載",
+    firstStep:"連合会の一般参加可能な展示会・講習会を確認し、建具事例を見に行く。"
+  },
+  "有限会社三谷工業": {
+    status:"ゼロから開拓", route:"稼働中のInstagramから公開活動を知る",
+    reason:"同社自身が更新している公開アカウントがあるため、投稿内容を理解してから反応する方が突然の営業電話より自然。",
+    evidence:"Instagramの稼働を確認",
+    firstStep:"直近の施工・採用投稿を読み、内容に沿った質問を1つ用意する。"
+  },
+  "株式会社シーエス建材トーヨー住器": {
+    status:"ゼロから開拓", route:"マド本舗岡山シーエスのYouTubeを起点にする",
+    reason:"自社の動画チャンネルがあるため、公開済みの活動を理解したうえで、動画とサイトをつなぐ改善案を届けやすい。",
+    evidence:"公式YouTubeチャンネルで5本の投稿を確認",
+    firstStep:"公開動画を1本選び、その内容を既存サイトで活かす1画面の案を作る。"
+  },
+  "有限会社石井電業社": {
+    status:"ゼロから開拓", route:"公開中の採用ページへ1枚の受け皿案を届ける",
+    reason:"採用ページと求人は公開されているが自社サイトがないため、応募者向け情報の不足を補う案なら目的が明確で押し売りになりにくい。",
+    evidence:"engage採用ページと求人掲載を確認",
+    firstStep:"求人内容から、応募前に知りたい会社情報を1ページにまとめた見本を作る。"
+  },
+  "有限会社コバヤシ防災システム": {
+    status:"ゼロから開拓", route:"岡山県消防設備協会の公開講習・行事で会う",
+    reason:"同社は消防設備協会の登録会員名簿に掲載されており、業界の学びの場なら営業目的だけの接触になりにくい。",
+    evidence:"岡山県消防設備協会の1号会員名簿に掲載",
+    firstStep:"協会の一般参加可能な講習会・行事を確認し、消防設備業界の採用課題を学びに行く。"
+  },
+  "有限会社ワイ・エス・ピー": {
+    status:"ゼロから開拓", route:"ザ・ビジネスモールの企業情報を起点にする",
+    reason:"商工会議所系の企業情報に掲載があるため、一般的な営業リストではなく、商談会や地域事業者向けの場を通す方が自然。",
+    evidence:"ザ・ビジネスモールの企業情報掲載を確認",
+    firstStep:"岡山商工会議所の商談会・交流会で参加可能なものを確認する。"
+  },
+  "竹森工芸株式会社": {
+    status:"ゼロから開拓", route:"岡山商工会議所の公開セミナー・交流会で会う",
+    reason:"同社は岡山商工会議所所属を公表し、銀行のSDGs取材実績もあるため、地域企業の公開活動が自然な入口になる。",
+    evidence:"岡山商工会議所所属と、あわぎん銀行の取材実績を確認",
+    firstStep:"商工会議所の一般参加可能な行事から、ものづくり・採用・広報に近い回を選ぶ。"
+  },
+  "日新機工有限会社": {
+    status:"ゼロから開拓", route:"創業60年の実績を1枚にした資料を郵送する",
+    reason:"公開イベントやSNSが確認できないため、電話で時間を奪わず、必要なときだけ見られる紙1枚を届ける方法が負担を抑えやすい。",
+    evidence:"創業60年超、公開SNSと自社サイトは未確認",
+    firstStep:"沿革と対応実績を見せる1ページの完成見本を作り、返信不要と明記する。"
+  },
+  "光陽警備保障株式会社": {
+    status:"ゼロから開拓", route:"検索時の見え方を1枚にして郵送する",
+    reason:"公開イベント、SNS、業界団体での接点が確認できないため、突然訪問せず、現状と改善後を比較した紙1枚を届ける方法が負担を抑えやすい。",
+    evidence:"公式サイト・SNS・県警備業協会での掲載は未確認",
+    firstStep:"会社名検索の現状と、最低限の会社案内がある場合の見え方を1枚にまとめ、返信不要と明記する。"
+  }
+};
+
 function connectionPlan(p){
+  if(COMPANY_CONNECTION_PLANS[p.name]) return COMPANY_CONNECTION_PLANS[p.name];
   const channels = Array.isArray(p.contact?.channels) ? p.contact.channels : [];
   const group = channels.find(ch=>/業界団体|商工|組合/.test(ch.n||"") && ch.u);
   const news = channels.find(ch=>/業界ニュース|お知らせ|プレス/.test(ch.n||"") && ch.u);
@@ -445,13 +509,13 @@ function connectionPlan(p){
     firstStep:"DM受付の記載と運用担当者を確認し、接触可能と分かってから文面を作る。"
   };
   if(indeed) return {
-    status:"ゼロから開拓", route:"会い方を追加調査",
+    status:"ゼロから開拓", route:"公開求人に合わせた1枚資料を会社所在地へ郵送",
     reason:"求人掲載は課題のシグナルであり、会えることやヒアリングできることの根拠にはならない。",
     evidence:indeed.m || "求人掲載を確認",
     firstStep:"一般参加できるイベント、主催者、登壇・出展履歴、公開SNSの順に調べる。"
   };
   return {
-    status:"ゼロから開拓", route:"会い方を追加調査",
+    status:"ゼロから開拓", route:"会社固有の改善見本を1枚だけ郵送",
     reason:"会える場や自然に連絡できる経路をゼロから探す。",
     evidence:"関係経路は未確認",
     firstStep:"一般参加できるイベント、主催者、登壇・出展履歴、公開SNSの順に調べる。"
@@ -848,30 +912,39 @@ function fitScore(p){
   return score;
 }
 
+function companyCardSummary(p, conclusion, connection){
+  const effect = conclusion.proposalReady
+    ? (conclusion.effectType === "費用減"
+      ? `採用費${conclusion.effectValue}/年の回避余地`
+      : `売上${conclusion.effectValue}/年の増加余地`)
+    : "効果額は未算定";
+  const proposal = conclusion.proposalReady
+    ? `${conclusion.cardProduct}を${conclusion.cardInvestment.replace(/[（(]単発[）)]/g, "")}で検討`
+    : "金額提示は保留";
+  const summaries = {
+    "株式会社フジショウ": `売上12億円・従業員75人で既存採用サイトも稼働中。${effect}。${proposal}。採用サイトの応募導線を1画面にした改善案から届ける。`,
+    "有限会社杉元建具": `資本金500万円・従業員約4人。Google評価4.3、岡山県建具組合連合会の正会員。${effect}。連合会の展示会や講習会で仕事を知るところから始める。`,
+    "有限会社三谷工業": `資本金2,000万円・従業員23人。主力の鉄骨組立工が自社採用ページに未掲載。${effect}。稼働中のInstagramで施工・採用活動を理解してから接触する。`,
+    "株式会社シーエス建材トーヨー住器": `従業員16人、資本金350万円。マド本舗岡山シーエスのYouTubeに5本の動画あり。${proposal}。公開動画を既存サイトへ生かす1画面案を先に作る。`,
+    "有限会社石井電業社": `月給20〜40万円で電気工事スタッフを募集中、資本金300万円。${effect}。engage求人を基に、応募前に知りたい会社情報の完成見本を作って届ける。`,
+    "有限会社コバヤシ防災システム": `月給24〜35万円の消防設備求人と公共入札実績あり。岡山県消防設備協会の1号会員。${effect}。協会の公開講習・行事で業界を学ぶ機会を入口にする。`,
+    "有限会社ワイ・エス・ピー": `月給25〜45万円の求人4件、大手ゼネコン案件中心、資本金400万円。${effect}。ザ・ビジネスモール掲載を手掛かりに商工会議所の商談会を探す。`,
+    "竹森工芸株式会社": `資本金1,000万円・従業員12人。岡山商工会議所所属で、あわぎん銀行のSDGs取材実績あり。${effect}。ものづくり系の公開行事で施工事例を知る。`,
+    "日新機工有限会社": `1962年設立、従業員3人・資本金300万円。60年以上の実績がネット上で見えない。${effect}。沿革と対応実績の1ページ見本を返信不要で郵送する。`,
+    "光陽警備保障株式会社": `公式サイト・SNS・現在の求人・県警備業協会掲載を確認できず、効果額も未算定。会社名検索の現状と改善後を比べた紙1枚を返信不要で郵送する。`
+  };
+  return summaries[p.name] || `${effect}。${proposal}。${connection.route}。${connection.firstStep}`;
+}
+
 function cardHtml(p, idx){
   const concl = concludeDept(p);
   const connection = connectionPlan(p);
-  const effect = concl.proposalReady
-    ? (concl.effectType === "費用減"
-      ? `年間${concl.effectValue}の${concl.effectAccountName}を減らせる可能性${concl.isEstimate ? "（推定）" : ""}`
-      : `年間${concl.effectValue}の売上増加余地${concl.isEstimate ? "（推定）" : ""}`)
-    : "効果を算定できるまで提案しない";
-  const proposal = concl.proposalReady
-    ? `${concl.cardInvestment.replace(/[（(]単発[）)]/g, "")}で${concl.cardProduct}`
-    : "不足している効果根拠を調べる";
-  const meetingBase = connection.route.replace(/^会い方の候補：/, "");
-  const meeting = meetingBase === "会い方を追加調査" ? meetingBase : `${meetingBase}を起点に会い方を探す`;
-  const proposalWithBudget = `${proposal}。${concl.cardBudget}`;
-  const meetingWithReason = `${meeting}。${connection.reason}`;
-  const firstStep = `まず${connection.firstStep}`;
+  const summary = companyCardSummary(p, concl, connection);
   return `<div class="card" data-idx="${idx}">
       <div class="row-head">
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
-      <span class="compact-line" title="${esc(effect)}">${esc(clipText(effect, 45))}</span>
-      <span class="compact-line" title="${esc(proposalWithBudget)}">${esc(clipText(proposalWithBudget, 60))}</span>
-      <span class="compact-line" title="${esc(meetingWithReason)}">${esc(clipText(meetingWithReason, 75))}</span>
-      <span class="compact-line" title="${esc(firstStep)}">${esc(clipText(firstStep, 70))}</span>
+      <span class="compact-line" title="${esc(summary)}">${esc(clipText(summary, 250))}</span>
     </div>`;
 }
 
@@ -939,7 +1012,6 @@ function modalBodyHtml(p){
         ${issueRow("広報", p.hypothesisPr)}
       </details>
       <details class="detail-toggle" open><summary>お互いに無理のないつながり方</summary>
-        ${issueRow("前提", connection.status)}
         ${issueRow("会い方の候補", connection.route)}
         ${issueRow("候補にした理由", connection.reason)}
         ${issueRow("確認済みの根拠", connection.evidence)}
@@ -987,7 +1059,7 @@ function renderSelectedCompany(idx){
   target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
     <div class="rail-selected-row"><b>相手に出せそうな効果</b>${esc(conclusion.cardLine)}</div>
     <div class="rail-selected-row"><b>予算に合いそうな提案</b>${esc(conclusion.cardBudget)} / ${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
-    <div class="rail-selected-row"><b>お互いに無理のないつながり方</b>${esc(connection.route)} / ${esc(connection.status)}</div>
+    <div class="rail-selected-row"><b>お互いに無理のないつながり方</b>${esc(connection.route)}</div>
     <div class="rail-selected-row"><b>最初の一歩</b>${esc(connection.firstStep)}</div>
     <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
     <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
