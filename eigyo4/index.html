@@ -124,21 +124,6 @@
   .approach-note{background:var(--panel-2);border-radius:8px;padding:10px 12px;font-size:12.5px;
     color:var(--text);line-height:1.6;margin-top:4px}
 
-  .diag-box{background:var(--ok-bg);border:1px solid var(--ok);border-radius:8px;padding:10px 12px}
-  .diag-type{font-weight:700;font-size:13.5px;color:var(--ok);margin-bottom:4px}
-  .diag-desc{font-size:12px;color:var(--text);line-height:1.6}
-  .diag-method{margin-top:8px;font-size:12px;color:var(--text);line-height:1.6}
-  .diag-method .dept-value{margin-right:6px;margin-bottom:0;display:inline-block}
-  .diag-fit{color:var(--ok)}
-  .diag-fit-empty{margin-top:8px;font-size:11px;color:var(--muted)}
-
-  .sender-bar{margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .sender-bar .label{font-size:11px;color:var(--muted)}
-  .sender-btn{font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:20px;
-    border:1px solid var(--border);background:var(--panel-2);color:var(--muted);cursor:pointer}
-  .sender-btn.active{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
-
-
   .conclusion-box{background:var(--panel-2);border:2px solid var(--text);border-radius:10px;
     padding:14px 16px;margin-bottom:16px}
   .proposal-kicker{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.05em;margin-bottom:4px}
@@ -188,18 +173,11 @@
   .ai-confirmed{color:var(--ok)}
   .ai-estimate{color:var(--warn)}
   .ai-unknown{color:var(--bad)}
-  .seller-profile,.diag-details,.detail-toggle{margin:0;border:0;border-top:1px solid var(--border);border-radius:0;padding:10px 0;background:transparent}
-  .seller-profile summary,.diag-details summary,.detail-toggle summary{cursor:pointer;font-size:11px;color:var(--muted);font-weight:700;
+  .detail-toggle{margin:0;border:0;border-top:1px solid var(--border);border-radius:0;padding:10px 0;background:transparent}
+  .detail-toggle summary{cursor:pointer;font-size:11px;color:var(--muted);font-weight:700;
     text-transform:uppercase;letter-spacing:.06em;list-style-position:inside}
-  .seller-profile[open] summary,.diag-details[open] summary,.detail-toggle[open] summary{margin-bottom:10px;color:var(--text)}
+  .detail-toggle[open] summary{margin-bottom:10px;color:var(--text)}
   .detail-toggle:last-child{border-bottom:1px solid var(--border)}
-  .diag-details .diag-box{margin-top:0}
-  .seller-profile .profile-hint{font-size:11px;color:var(--muted);margin:0 0 10px}
-  .profile-offerings{display:grid;gap:6px;margin-bottom:10px}
-  .profile-offerings label{display:flex;align-items:flex-start;gap:7px;font-size:12px;line-height:1.45}
-  .profile-field{display:block;margin-top:8px;font-size:11px;font-weight:700;color:var(--muted)}
-  .profile-field textarea,.profile-field input{display:block;width:100%;margin-top:3px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);font:inherit;font-size:12px;font-weight:400;padding:7px;resize:vertical}
-  .profile-save{margin-top:10px;width:100%;font:inherit;font-size:12px;font-weight:700;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--panel-2);color:var(--text);cursor:pointer}
   .trust-box,.priority-box{margin:10px 0;border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--panel-2);font-size:11px;line-height:1.65}
   .trust-box b,.priority-box b{display:block;margin-bottom:3px;font-size:10px;color:var(--muted)}
   .rail-selected{font-size:11px;line-height:1.55}
@@ -360,32 +338,6 @@ function issueRow(label, text){
 
 function findChannel(channels, name){ return channels.find(ch=>ch.n===name); }
 
-/* ---- 送り手(自分)のプロフィール: localStorageに保存、使うほど診断に反映される ---- */
-const SENDER_KEY = "eigyo_sender_style";
-const SENDER_STYLES = {
-  phone: { label: "電話・対話が得意", icon: "☎" },
-  writing: { label: "文章・丁寧さが得意", icon: "✎" },
-  network: { label: "人脈・紹介が得意", icon: "🤝" },
-};
-function getSenderStyle(){
-  try{ return localStorage.getItem(SENDER_KEY) || ""; }catch(e){ return ""; }
-}
-function setSenderStyle(v){
-  try{ localStorage.setItem(SENDER_KEY, v); }catch(e){}
-}
-
-const TRAIT_KEY = "eigyo_sender_trait";
-const SENDER_TRAITS = {
-  steady: { label: "丁寧・堅実型", icon: "🪪" },
-  energetic: { label: "フレンドリー・バイタリティ型", icon: "⚡" },
-};
-function getSenderTrait(){
-  try{ return localStorage.getItem(TRAIT_KEY) || ""; }catch(e){ return ""; }
-}
-function setSenderTrait(v){
-  try{ localStorage.setItem(TRAIT_KEY, v); }catch(e){}
-}
-
 /* ---- 提供商材・営業条件: 企業診断はこのプロフィールを起点にする ---- */
 const SELLER_PROFILE_KEY = "eigyo_seller_profile_v1";
 const OFFERING_CATALOG = [
@@ -403,9 +355,6 @@ function getSellerProfile(){
     const saved = JSON.parse(localStorage.getItem(SELLER_PROFILE_KEY) || "{}");
     return { ...base, ...saved, offerings:Array.isArray(saved.offerings) ? saved.offerings : base.offerings };
   }catch(e){ return base; }
-}
-function setSellerProfile(profile){
-  try{ localStorage.setItem(SELLER_PROFILE_KEY, JSON.stringify(profile)); }catch(e){}
 }
 function offeringName(id){ return OFFERING_CATALOG.find(o=>o.id===id)?.name || "未選択"; }
 function sourceLink(ch, label){
@@ -465,20 +414,6 @@ function trustBoxHtml(p, conclusion = concludeDept(p)){
     <span class="rail-note">公開情報は更新・削除される可能性があります。提案前に再確認してください。</span>
   </div>`;
 }
-function sellerProfileHtml(){
-  const profile = getSellerProfile();
-  return `<details class="seller-profile">
-    <summary>営業条件</summary>
-    <div class="profile-hint">未設定の項目は、診断で「未確認」として扱います。</div>
-    <div class="profile-offerings">${OFFERING_CATALOG.map(o=>`<label><input type="checkbox" data-profile-offering="${o.id}" ${profile.offerings.includes(o.id)?"checked":""}> <span><b>${esc(o.name)}</b><br>${esc(o.scope)}</span></label>`).join("")}</div>
-    <label class="profile-field">導入実績・事例（任意）<textarea data-profile-field="experience" rows="2" placeholder="未設定">${esc(profile.experience)}</textarea></label>
-    <label class="profile-field">得意分野（任意）<input data-profile-field="strengths" value="${esc(profile.strengths)}" placeholder="未設定"></label>
-    <label class="profile-field">使える人脈・紹介先（任意）<input data-profile-field="networks" value="${esc(profile.networks)}" placeholder="未設定"></label>
-    <label class="profile-field">希望する営業方法（任意）<input data-profile-field="preferredApproach" value="${esc(profile.preferredApproach)}" placeholder="未設定"></label>
-    <button type="button" class="profile-save" data-save-profile>保存して診断を更新</button>
-  </details>`;
-}
-
 // 発表デモでは「提供商材から考える営業戦略」(AI研修診断)を一時非表示にする。
 // 10社中9社が判定保留(根拠不足)になり、本筋のROI説明の邪魔になるため。
 // 機能自体は温存(次回作でのAI活用は主力の方向性のため)。再表示するにはtrueに戻すだけ。
@@ -543,62 +478,23 @@ function offeringStrategyHtml(p){
   </section>`;
 }
 
+// 一覧の優先順位計算に使う企業側の営業タイプ。画面上の診断詳細は表示しない。
 function diagnoseApproach(p){
-  const c = p.contact || {};
-  const channels = Array.isArray(c.channels) ? c.channels : [];
+  const channels = Array.isArray(p.contact?.channels) ? p.contact.channels : [];
   const site = findChannel(channels, "自社サイト");
   const recruitSite = findChannel(channels, "採用サイト");
   const gmap = findChannel(channels, "Googleマップ");
   const indeed = findChannel(channels, "Indeed");
-  const known = channels.filter(ch => ch.r==="◎" || ch.r==="○").length;
 
-  let type, typeDesc;
-  if(indeed && (indeed.r==="◎"||indeed.r==="○") && (recruitSite || !site || site.r==="✕" || /未掲載/.test(site.m||""))){
-    type = "応募導線型";
-    typeDesc = recruitSite
-      ? "求人媒体と既存採用サイトがあるため、新設ではなく情報整合・職種別導線・応募計測の改善余地を確認する。"
-      : "求人募集中だが応募者向け情報の不足が見込まれるため、採用情報の受け皿を確認・改善する。";
-  } else if((!site || site.r==="✕") && (!gmap || gmap.r==="✕")){
-    type = "認知構築型";
-    typeDesc = "自社サイト・Googleマップともに情報が無く、検索しても見つからない状態。まず「存在を知ってもらう」提案が合う。";
-  } else if(site && site.r==="△"){
-    type = "改善提案型";
-    typeDesc = "自社サイトは既にあるが情報が不足/弱い状態。ゼロから作るより「今あるものの改善」として軽く提案しやすい。";
-  } else {
-    type = "信頼補強型";
-    typeDesc = "情報はあるが証拠(口コミ・実績)が少ない状態。信頼材料を補強する提案が合う。";
+  if(indeed && (indeed.r === "◎" || indeed.r === "○") &&
+      (recruitSite || !site || site.r === "✕" || /未掲載/.test(site.m || ""))){
+    return { type:"応募導線型" };
   }
-
-  let method = known <= 2
-    ? "電話(ただし求人内容や会社概要を事前に読み込み、いきなり感を減らしてから)"
-    : "電話(会話の冒頭で把握済みの具体的事実に触れると自然)";
-
-  let fit = "";
-  const style = getSenderStyle();
-  const hasEmail = !!p.email;
-  if(style === "phone"){
-    fit = "あなたの「電話・対話が得意」なスタイルと相性良好。台本をベースに、その場での会話で押し切れる。";
-  } else if(style === "writing"){
-    if(hasEmail){
-      method = "まずメールで要点を丁寧に伝え、反応を見てから電話";
-      fit = "あなたの「文章が得意」なスタイルを活かすなら、電話より先にメールで丁寧に伝える方が強みが出る。";
-    } else {
-      fit = "この会社はメール窓口が無く電話一択だが、文章が得意なら台本を事前にしっかり作り込んでから電話すると強みを活かせる。";
-    }
-  } else if(style === "network"){
-    fit = "いきなりの電話より、地元の商工会・業界団体・知人経由で接点を作れないか先に探る方が「人脈・紹介」の強みに合う。";
+  if((!site || site.r === "✕") && (!gmap || gmap.r === "✕")){
+    return { type:"認知構築型" };
   }
-
-  const trait = getSenderTrait();
-  let traitNote = "";
-  if(trait === "steady"){
-    traitNote = "丁寧・堅実型なら、具体的な数字(求人件数・評価点など)を淡々と積み上げて話す方が信頼されやすい。";
-  } else if(trait === "energetic"){
-    traitNote = "フレンドリー・バイタリティ型なら、明るいトーンで率直に切り出しても警戒されにくい相手(地域密着の小規模事業者)。";
-  }
-  if(traitNote) fit = fit ? `${fit} ${traitNote}` : traitNote;
-
-  return { type, typeDesc, method, fit };
+  if(site && site.r === "△") return { type:"改善提案型" };
+  return { type:"信頼補強型" };
 }
 
 /* ---- 求人票に給与記載が無い場合、業種が近い職種の全国平均年収(公的統計)で代用する ----
@@ -898,12 +794,6 @@ function fitScore(p){
   // 情報の濃さは次点(薄い会社は自動的に下位へ)
   score += known * 5;
 
-  const style = getSenderStyle();
-  if(style === "network" && (!indeed || indeed.r==="✕")) score += 10;
-  if(style === "phone" && known >= 2) score += 5;
-  const trait = getSenderTrait();
-  if(trait === "energetic") score += 3;
-
   return score;
 }
 
@@ -932,17 +822,13 @@ function modalBodyHtml(p){
   const channels = Array.isArray(c.channels) ? c.channels : [];
   const own = sortChannels(channels.filter(ch=>OWN_MEDIA.has(ch.n)));
   const other = sortChannels(channels.filter(ch=>!OWN_MEDIA.has(ch.n)));
-  const diag = diagnoseApproach(p);
   const conclusion = concludeDept(p);
   const proposalReady = conclusion.proposalReady;
-  const seller = getSellerProfile();
   const holdText = "効果根拠が揃うまで保留";
   const phoneApproach = proposalReady ? (c.script || "未設定") : holdText;
   const emailApproach = proposalReady ? (p.email ? (c.message || "未設定") : "送信先未確認") : holdText;
   const formApproach = proposalReady ? "問い合わせフォーム未確認" : holdText;
-  const communityApproach = proposalReady
-    ? (seller.networks ? `活用できる接点：${seller.networks}` : "紹介・地域団体などの接点は未確認")
-    : holdText;
+  const communityApproach = proposalReady ? "紹介・地域団体などの接点は未確認" : holdText;
   const otherApproach = proposalReady ? (c.approachNote || "未設定") : holdText;
   return `
     <button class="close" aria-label="閉じる" data-close>×</button>
@@ -988,19 +874,6 @@ function modalBodyHtml(p){
         <p class="disclaimer">金額は公開情報に基づく参考試算です。成果を保証するものではありません。</p>
       </div>
       ${SHOW_OFFERING_STRATEGY ? offeringStrategyHtml(p) : ""}
-      ${proposalReady ? sellerProfileHtml() : ""}
-      <details class="diag-details">
-        <summary>診断詳細</summary>
-        <div class="diag-box">
-          <div class="diag-type">${esc(diag.type)}</div>
-          <div class="diag-desc">${esc(diag.typeDesc)}</div>
-          ${c.approachNote?`<div class="diag-method"><span class="dept-value">アプローチの切り口(費用対効果)</span>${esc(c.approachNote)}</div>`:""}
-          <div class="diag-method"><span class="dept-value">${proposalReady ? "推奨アプローチ" : "追加調査"}</span>${esc(proposalReady ? diag.method : conclusion.calculationInputs)}</div>
-          ${proposalReady && diag.fit?`<div class="diag-method diag-fit"><span class="dept-value">あなたとの相性</span>${esc(diag.fit)}</div>`:""}
-          ${proposalReady && !getSenderStyle()?`<div class="sender-bar" data-sender-bar="style"><span class="label">得意なスタイル(任意):</span></div>`:""}
-          ${proposalReady && !getSenderTrait()?`<div class="sender-bar" data-sender-bar="trait"><span class="label">性格タイプ(任意):</span></div>`:""}
-        </div>
-      </details>
       <details class="detail-toggle"><summary>課題仮説</summary>
         ${issueRow("営業", p.hypothesisSales)}
         ${issueRow("人事", p.hypothesisHr)}
@@ -1013,7 +886,7 @@ function modalBodyHtml(p){
         ${issueRow("コミュニティ営業", communityApproach)}
         ${issueRow("その他", otherApproach)}
       </details>
-      <details class="detail-toggle"><summary>関連情報</summary>
+      <details class="detail-toggle"><summary>媒体状況</summary>
         ${channelGroup("自社媒体", own)}
         ${channelGroup("他社媒体", other)}
       </details>
@@ -1022,38 +895,6 @@ function modalBodyHtml(p){
         ${issueRow("メール", p.email || "なし")}
       </details>
     </div>`;
-}
-
-function renderSenderBar(){
-  const styleBar = document.querySelector('[data-sender-bar="style"]');
-  if(styleBar){
-    Object.entries(SENDER_STYLES).forEach(([key, s])=>{
-      const btn = document.createElement("button");
-      btn.className = "sender-btn";
-      btn.type = "button";
-      btn.dataset.style = key;
-      btn.textContent = `${s.icon} ${s.label}`;
-      styleBar.appendChild(btn);
-    });
-  }
-  const traitBar = document.querySelector('[data-sender-bar="trait"]');
-  if(traitBar){
-    Object.entries(SENDER_TRAITS).forEach(([key, s])=>{
-      const btn = document.createElement("button");
-      btn.className = "sender-btn";
-      btn.type = "button";
-      btn.dataset.trait = key;
-      btn.textContent = `${s.icon} ${s.label}`;
-      traitBar.appendChild(btn);
-    });
-  }
-}
-
-function saveSellerProfileFromModal(){
-  const profile = getSellerProfile();
-  profile.offerings = Array.from(modal.querySelectorAll("[data-profile-offering]:checked")).map(el=>el.dataset.profileOffering);
-  modal.querySelectorAll("[data-profile-field]").forEach(el=>{ profile[el.dataset.profileField] = el.value.trim(); });
-  setSellerProfile(profile);
 }
 
 let ITEMS = [];
@@ -1067,7 +908,6 @@ function openModal(idx){
   modal.innerHTML = modalBodyHtml(p);
   overlay.classList.remove("hidden");
   openIdx = idx;
-  renderSenderBar();
 }
 function closeModal(){ overlay.classList.add("hidden"); openIdx = null; }
 
@@ -1103,22 +943,6 @@ document.querySelector(".desktop-shell").addEventListener("click", e=>{
 });
 overlay.addEventListener("click", e=>{
   if(e.target === overlay || e.target.closest("[data-close]")) { closeModal(); return; }
-  if(e.target.closest("[data-save-profile]")){
-    saveSellerProfileFromModal();
-    if(openIdx !== null) openModal(openIdx);
-    return;
-  }
-  const styleBtn = e.target.closest(".sender-btn[data-style]");
-  if(styleBtn){
-    setSenderStyle(getSenderStyle() === styleBtn.dataset.style ? "" : styleBtn.dataset.style);
-    if(openIdx !== null) openModal(openIdx);
-    return;
-  }
-  const traitBtn = e.target.closest(".sender-btn[data-trait]");
-  if(traitBtn){
-    setSenderTrait(getSenderTrait() === traitBtn.dataset.trait ? "" : traitBtn.dataset.trait);
-    if(openIdx !== null) openModal(openIdx);
-  }
 });
 document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeModal(); });
 
