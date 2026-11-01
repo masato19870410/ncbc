@@ -256,6 +256,7 @@ if(location.protocol === "file:"){
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1OmKyrwSlLxOEPetl5Q17Aox05Ata8FHMxhDEYgtDkX4/export?format=csv&gid=1331008365";
 
 const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const glue = html => html.replace(/万円/g, "万⁠円");
 const clipText = (s, max) => {
   const text = (s??"").toString().replace(/\s+/g, " ").trim();
   return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
@@ -1044,7 +1045,7 @@ const modal = document.getElementById("modal");
 function openModal(idx){
   const p = ITEMS[idx];
   if(!p) return;
-  modal.innerHTML = modalBodyHtml(p);
+  modal.innerHTML = glue(modalBodyHtml(p));
   overlay.classList.remove("hidden");
   openIdx = idx;
 }
@@ -1057,14 +1058,14 @@ function renderSelectedCompany(idx){
   const conclusion = concludeDept(p);
   const connection = connectionPlan(p);
   selectedIdx = idx;
-  target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
+  target.innerHTML = glue(`<div class="rail-selected-name">${esc(p.name)}</div>
     <div class="rail-selected-row"><b>相手に出せそうな効果</b>${esc(conclusion.cardLine)}</div>
     <div class="rail-selected-row"><b>予算に合いそうな提案</b>${esc(conclusion.cardBudget)} / ${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
     <div class="rail-selected-row"><b>お互いに無理のないつながり方</b>${esc(connection.route)}</div>
     <div class="rail-selected-row"><b>最初の一歩</b>${esc(connection.firstStep)}</div>
     <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
     <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
-    <button class="rail-detail-btn" type="button" data-open-selected>詳細を見る</button>`;
+    <button class="rail-detail-btn" type="button" data-open-selected>詳細を見る</button>`);
   document.querySelectorAll(".card").forEach(card=>card.setAttribute("aria-current", Number(card.dataset.idx) === idx ? "true" : "false"));
 }
 
@@ -1158,7 +1159,7 @@ function renderGrid(){
   if(!ITEMS.length) return;
   const order = ITEMS.map((p,i)=>({p,i,conclusion:concludeDept(p)}))
     .sort((a,b)=>fitScore(b.p)-fitScore(a.p));
-  grid.innerHTML = order.length ? order.map(({p,i})=>cardHtml(p,i)).join("") : `<div class="empty">条件に合う会社がありません。</div>`;
+  grid.innerHTML = order.length ? glue(order.map(({p,i})=>cardHtml(p,i)).join("")) : `<div class="empty">条件に合う会社がありません。</div>`;
   if(selectedIdx !== null) renderSelectedCompany(selectedIdx);
 }
 
