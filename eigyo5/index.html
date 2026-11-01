@@ -949,10 +949,10 @@ function cardHtml(p, idx){
         <div class="name" title="${esc(p.name||"")}">${esc(clipText(p.name, 15))}</div>
       </div>
       ${p.area ? `<div class="meta" title="${esc(p.area)}">${esc(p.area)}</div>` : ""}
-      <div class="line-group"><span class="connection-label">効果</span>${lines.effect.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
-      <div class="line-group"><span class="connection-label">予算</span>${lines.scale.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
-      <div class="line-group"><span class="connection-label">価格</span>${lines.proposal.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
-      <div class="line-group"><span class="connection-label">対面</span>${lines.approach.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group">${lines.effect.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group">${lines.scale.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group">${lines.proposal.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
+      <div class="line-group">${lines.approach.map(l => `<span class="compact-line">${esc(l)}</span>`).join("")}</div>
     </div>`;
 }
 
