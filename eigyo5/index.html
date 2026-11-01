@@ -1037,7 +1037,7 @@ function modalBodyHtml(p){
         ${issueRow("人事", p.hypothesisHr)}
         ${issueRow("広報", p.hypothesisPr)}
       </details>
-      <details class="detail-toggle" open><summary>接点</summary>
+      <details class="detail-toggle" open><summary>接触方法</summary>
         ${issueRow("会い方の候補", connection.route)}
         ${issueRow("候補にした理由", connection.reason)}
         ${issueRow("確認済みの根拠", connection.evidence)}
@@ -1085,7 +1085,7 @@ function renderSelectedCompany(idx){
   target.innerHTML = `<div class="rail-selected-name">${esc(p.name)}</div>
     <div class="rail-selected-row"><b>相手に出せそうな効果</b>${esc(conclusion.cardLine)}</div>
     <div class="rail-selected-row"><b>予算に合いそうな提案</b>${esc(conclusion.cardBudget)} / ${esc(conclusion.cardProduct)} / ${esc(conclusion.cardInvestment)}</div>
-    <div class="rail-selected-row"><b>接点</b>${esc(connection.route)}</div>
+    <div class="rail-selected-row"><b>接触方法</b>${esc(connection.route)}</div>
     <div class="rail-selected-row"><b>最初の一歩</b>${esc(connection.firstStep)}</div>
     <div class="rail-selected-row"><b>${conclusion.proposalReady ? "優先理由" : "保留理由"}</b>${esc(priorityReason(p, conclusion))}</div>
     <div class="rail-selected-row"><b>算定に必要な情報</b>${esc(conclusion.calculationInputs || "条件未登録")}</div>
